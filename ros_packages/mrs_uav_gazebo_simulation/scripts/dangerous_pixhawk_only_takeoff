@@ -1,0 +1,24 @@
+#!/bin/bash
+# author: Vojtech Spurny
+set -e
+
+distro=`lsb_release -r | awk '{ print $2 }'`
+script_path="$(rospack find mrs_uav_gazebo_simulation)/scripts/dangerous_pixhawk_only_takeoff.py"
+
+# select Ubuntu version
+if [ "$distro" = "18.04" ]; then
+
+  python_exec=python
+
+elif [ "$distro" = "20.04" ]; then
+
+  python_exec=python3
+
+else
+  echo -e "\e[31mThis version of Ubuntu (${distro}) is untested. Modify this script accordingly.\e[0m"
+  exit 1
+
+fi
+
+#execute script
+$python_exec $script_path $@

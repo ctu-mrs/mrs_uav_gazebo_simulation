@@ -1,0 +1,34 @@
+#!/bin/bash
+# author: Vojtech Spurny
+
+set -e
+
+trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
+trap 'echo "$0: \"${last_command}\" command failed with exit code $?"' ERR
+
+distro=`lsb_release -r | awk '{ print $2 }'`
+[ "$distro" = "18.04" ] && ROS_DISTRO="melodic"
+[ "$distro" = "20.04" ] && ROS_DISTRO="noetic"
+
+debian=`lsb_release -d | grep -i debian | wc -l`
+[[ "$debian" -eq "1" ]] && ROS_DISTRO="noetic" && distro="20.04" && DEBIAN=true
+
+script_path="$(rospack find mrs_uav_gazebo_simulation)/scripts/mrs_drone_spawner.py"
+
+# select Ubuntu version
+if [ "$distro" = "18.04" ]; then
+
+  python_exec=python
+
+elif [ "$distro" = "20.04" ]; then
+
+  python_exec=python3
+
+else
+  echo -e "\e[31mThis version of OS is untested. Modify this script accordingly.\e[0m"
+  exit 1
+
+fi
+
+#execute script
+$python_exec $script_path $@

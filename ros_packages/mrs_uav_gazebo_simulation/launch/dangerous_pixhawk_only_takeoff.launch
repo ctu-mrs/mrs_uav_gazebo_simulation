@@ -1,0 +1,14 @@
+<launch>
+  
+  <arg name="uav_name" default="$(optenv UAV_NAME uav)"/>
+
+  <group ns="$(arg uav_name)">
+    <node name="dangerous_pixhawk_only_takeoff" pkg="mrs_uav_gazebo_simulation" type="dangerous_pixhawk_only_takeoff" output="screen" args="">
+      <rosparam file="$(find mrs_uav_gazebo_simulation)/config/pixhawk_only_takeoff.yaml" command="load" />
+      <remap from="~global_pos_in" to="mavros/global_position/global" />
+      <remap from="~arming_out" to="mavros/cmd/arming" />
+      <remap from="~mode_out" to="mavros/set_mode" />
+      <remap from="~waypoint_push" to="mavros/mission/push" />
+    </node>
+  </group>
+</launch>

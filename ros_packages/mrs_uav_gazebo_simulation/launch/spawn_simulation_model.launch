@@ -1,0 +1,30 @@
+<launch>
+
+  <arg name="ID"/>
+  <arg name="vehicle"/>
+  <arg name="model_config_file"/>
+  <arg name="mavlink_tcp_port"/>
+  <arg name="mavlink_udp_port"/>
+  <arg name="x"/>
+  <arg name="y"/>
+  <arg name="z"/>
+  <arg name="heading"/>
+
+  <arg name="roll" default="0"/>
+  <arg name="pitch" default="0"/>
+
+  <arg name="namespace" default="uav$(arg ID)"/>
+
+  <arg name="resource_package_path" default="$(find mrs_uav_gazebo_simulation)" />
+
+  <!-- UAV namespace -->
+  <group ns="$(arg namespace)">
+
+    <!-- generate sdf vehicle model -->
+    <arg name="cmd" default="$(find mrs_uav_gazebo_simulation)/scripts/jinja_gen.py --stdout --mavlink_udp_port=$(arg mavlink_udp_port) --mavlink_tcp_port=$(arg mavlink_tcp_port) --model_config_file=$(arg model_config_file) --namespace=$(arg namespace) --output-file /tmp/$(arg vehicle).sdf $(arg resource_package_path)/models/mrs_robots_description/sdf/$(arg vehicle).sdf.jinja"/>
+    <param command="$(arg cmd)" name="sdf_description"/>
+
+    <!-- spawn vehicle -->
+    <node name="$(anon vehicle_spawn)" pkg="gazebo_ros" type="spawn_model" output="screen" args="-sdf  -param sdf_description  -model uav$(arg ID) -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg roll) -P $(arg pitch) -Y $(arg heading)"/>
+  </group>
+</launch>

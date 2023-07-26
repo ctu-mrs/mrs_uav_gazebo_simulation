@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- MAVROS posix SITL environment launch script -->
+  <!-- launches Gazebo environment and 2x: MAVROS, PX4 SITL, and spawns vehicle -->
+  <!-- <arg name="ID" default="1"/> -->
+  <arg name="ID"/>
+  <arg name="vehicle"/>
+  <arg name="x"/>
+  <arg name="y"/>
+  <arg name="z"/>
+  <arg name="heading"/>
+  
+  <arg name="roll" default="0"/>
+  <arg name="pitch" default="0"/>
+  <arg name="est" default="ekf2"/>
+  
+  <!-- PX4 configs -->
+  <arg name="interactive" default="false"/>
+  <!-- PX4 SITL -->
+  <arg unless="$(arg interactive)" name="px4_command_arg1" value="-d"/>
+  <arg     if="$(arg interactive)" name="px4_command_arg1" value=""/>
+
+  <!-- UAV namespace -->
+  <group ns="uav$(arg ID)">
+
+    <!-- PX4 params -->
+    <env name="PX4_SIM_MODEL" value="$(arg vehicle)" />
+    <env name="PX4_ESTIMATOR" value="$(arg est)" />
+
+    <!-- PX4 SITL -->
+    <node name="sitl_uav$(arg ID)" pkg="px4" type="px4" output="screen" args="$(find mrs_uav_gazebo_simulation)/ROMFS/px4fmu_common -s etc/init.d-posix/rcS $(arg px4_command_arg1) -i $(arg ID) -w sitl_uav$(arg ID)"/>
+  
+  </group>
+</launch>

@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# @name DJI F450 SITL
+#
+# @type Quadcopter x
+#
+# @maintainer Petr Stibinger <stibipet@fel.cvut.cz>
+#
+
+. ${R}etc/init.d/rc.mc_defaults
+
+param set-default MAV_TYPE 2
+
+set MIXER quad_x

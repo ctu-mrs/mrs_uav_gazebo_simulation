@@ -1,0 +1,52 @@
+<launch>
+
+  <!-- these are the arguments you can pass this launch file, for example gui:=false -->
+  <arg name="paused" default="false" />
+  <arg name="use_sim_time" default="true" />
+  <arg name="extra_gazebo_args" default="" />
+  <arg name="gui" default="true" />
+  <arg name="headless" default="false" />
+  <arg name="debug" default="false" />
+  <arg name="physics" default="ode" />
+  <arg name="verbose" default="true" />
+  <arg name="reset" default="true" />
+
+    <!-- supply this argument to specify the world name within the mrs_gazebo_common_resources package -->
+  <arg name="world_name" default="grass_plane" />
+
+    <!-- supply this argument to specity a world file from outside of the mrs_gazebo_common_resources package -->
+  <arg name="world_file" default="$(find mrs_gazebo_common_resources)/worlds/$(arg world_name).world" />
+
+    <!-- set use_sim_time flag -->
+  <group if="$(arg use_sim_time)">
+    <param name="/use_sim_time" value="true" />
+  </group>
+
+  <!-- set command arguments -->
+  <arg unless="$(arg paused)" name="command_arg1" value="" />
+  <arg     if="$(arg paused)" name="command_arg1" value="-u" />
+  <arg unless="$(arg headless)" name="command_arg2" value="" />
+  <arg     if="$(arg headless)" name="command_arg2" value="-r" />
+  <arg unless="$(arg verbose)" name="command_arg3" value="" />
+  <arg     if="$(arg verbose)" name="command_arg3" value="--verbose" />
+  <arg unless="$(arg debug)" name="script_type" value="gzserver" />
+  <arg     if="$(arg debug)" name="script_type" value="debug" />
+  
+  <!-- kill previous sessions of mavros, px4 and gazebo -->
+  <group if="$(arg reset)">
+    <node pkg="mrs_uav_gazebo_simulation" type="kill_previous_session.sh" name="kill_previous_session" output="screen" />
+  </group>
+
+  <!-- start spawner -->
+  <include file="$(find mrs_uav_gazebo_simulation)/launch/mrs_drone_spawner.launch" />
+
+  <!-- start gazebo server-->
+  <node name="gazebo" pkg="gazebo_ros" type="$(arg script_type)" respawn="false" output="screen"
+        args="$(arg command_arg1) $(arg command_arg2) $(arg command_arg3) -e $(arg physics) $(arg extra_gazebo_args) $(arg world_file)" />
+
+  <!-- start gazebo client -->
+  <group if="$(arg gui)">
+    <node name="gazebo_gui" pkg="gazebo_ros" type="gzclient" respawn="false" output="screen" />
+  </group>
+
+</launch>

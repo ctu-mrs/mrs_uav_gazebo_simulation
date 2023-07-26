@@ -1,0 +1,5 @@
+<launch>
+
+  <node name="gazebo_gui" pkg="gazebo_ros" type="gzclient" respawn="false" output="screen" />
+
+</launch>

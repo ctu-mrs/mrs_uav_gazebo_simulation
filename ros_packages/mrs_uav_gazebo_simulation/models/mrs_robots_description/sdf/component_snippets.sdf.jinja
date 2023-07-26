@@ -1,0 +1,3207 @@
+<?xml version="1.0"?>
+
+<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+<!-- !!    THIS DOCUMENT CONTAINS ONLY COMMON COMPONENTS MACRO AND    !! -->
+<!-- !!  PARAMETERS DEFINITIONS. IT SHOULD NOT CONTAIN ANY ARGUMENTS. !! -->
+<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+
+<!-- License {-->
+<!--
+Copyright 2015 Fadri Furrer, ASL, ETH Zurich, Switzerland
+Copyright 2015 Michael Burri, ASL, ETH Zurich, Switzerland
+Copyright 2015 Mina Kamel, ASL, ETH Zurich, Switzerland
+Copyright 2015 Janosch Nikolic, ASL, ETH Zurich, Switzerland
+Copyright 2015 Markus Achtelik, ASL, ETH Zurich, Switzerland
+Copyright 2022 Vojtech Spurny, MRS, CTU Prague, Czech Republic
+Copyright 2022 Petr Stibinger, MRS, CTU Prague, Czech Republic
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<!--}-->
+
+<!-- Math constants {-->
+<!-- Functions and constants from the python math module (e.g. pi and trigonometric functions) are available for use -->
+
+{%- set pi = 3.14159265359 -%}
+
+{%- macro rad(deg) -%}
+{{ deg * pi / 180 }}
+{%- endmacro -%}
+
+{%- set rad0 = 0.0 -%}
+{%- set rad10 = 10 * pi / 180 -%}
+{%- set rad20 = 20 * pi / 180 -%}
+{%- set rad30 = 30 * pi / 180 -%}
+{%- set rad45 = 45 * pi / 180 -%}
+{%- set rad60 = 60 * pi / 180 -%}
+{%- set rad65 = 65 * pi / 180 -%}
+{%- set rad70 = 70 * pi / 180 -%}
+{%- set rad85 = 85 * pi / 180 -%}
+{%- set rad90 = 90 * pi / 180 -%}
+{%- set rad95 = 95 * pi / 180 -%}
+{%- set rad115 = 115 * pi / 180 -%}
+{%- set rad120 = 120 * pi / 180 -%}
+{%- set rad135 = 135 * pi / 180 -%}
+{%- set rad150 = 150 * pi / 180 -%}
+{%- set rad180 = 180 * pi / 180 -%}
+{%- set rad210 = 210 * pi / 180 -%}
+{%- set rad270 = 270 * pi / 180 -%}
+{%- set rad330 = 330 * pi / 180 -%}
+
+{%- set sin30 = 0.5 -%}
+{%- set sin45 = 0.70710678118 -%}
+{%- set sin60 = 0.86602540378 -%}
+{%- set sin90 = 1.0 -%}
+
+{%- set cos30 = 0.86602540378 -%}
+{%- set cos45 = 0.70710678118 -%}
+{%- set cos60 = 0.5 -%}
+{%- set cos90 = 0.0 -%}
+
+{%- set sqrt2 = 1.41421356237 -%}
+<!--}-->
+
+<!-- ================================================================== -->
+<!-- ||                          code blocks                         || -->
+<!-- ================================================================== -->
+
+<!-- Zero inertial macro {-->
+{# macro to place the lowest mass and intertia that gazebo allows #}
+{%- macro zero_inertial_macro() -%}
+<inertial>
+  <mass>0.0001</mass>
+  <inertia>
+    <ixx>1e-7</ixx>
+    <ixy>0</ixy>
+    <ixz>0</ixz>
+    <iyy>1e-7</iyy>
+    <iyz>0</iyz>
+    <izz>1e-7</izz>
+  </inertia>
+</inertial>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Cylinder inertia {-->
+{%- macro cylinder_inertia(m, r, h) -%}
+<inertia>
+  <ixx>{{ m * ( 3 * r * r + h * h ) / 12 }}</ixx>
+  <ixy>0</ixy>
+  <ixz>0</ixz>
+  <iyy>{{ m * ( 3 * r * r + h * h ) / 12 }}</iyy>
+  <iyz>0</iyz>
+  <izz>{{ m * r * r / 2 }}</izz>
+</inertia>
+{%- endmacro -%}
+<!--}-->
+
+<!-- ================================================================== -->
+<!-- ||   generic macro definitions (visualization, collision ...)   || -->
+<!-- ================================================================== -->
+
+<!-- Visual colored box macro {-->
+{%- macro visual_colored_box_macro(name, size_x, size_y, size_z, color, x, y, z, roll, pitch, yaw) -%}
+<visual name="{{ name }}_visual">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <box>
+      <size>{{ size_x }} {{ size_y }} {{ size_z }}</size>
+    </box>
+  </geometry>
+  <material>
+    <script>
+      <name>Gazebo/{{ color }}</name>
+      <uri>file://media/materials/scripts/gazebo.material</uri>
+    </script>
+  </material>
+</visual>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Visual colored box with collision macro {-->
+{%- macro visual_colored_box_with_collision_macro(name, size_x, size_y, size_z, color, x, y, z, roll, pitch, yaw) -%}
+<visual name="{{ name }}_visual">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <box>
+      <size>{{ size_x }} {{ size_y }} {{ size_z }}</size>
+    </box>
+  </geometry>
+  <material>
+    <script>
+      <name>Gazebo/{{ color }}</name>
+      <uri>file://media/materials/scripts/gazebo.material</uri>
+    </script>
+  </material>
+</visual>
+<collision name="{{ name }}_collision">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <box>
+      <size>{{ size_x }} {{ size_y }} {{ size_z }}</size>
+    </box>
+  </geometry>
+</collision>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Visual mesh macro {-->
+{%- macro visual_mesh_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw) -%}
+<visual name="{{ name }}_visual">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <mesh>
+      <uri>{{ mesh_file }}</uri>
+      <scale>{{ mesh_scale }}</scale>
+    </mesh>
+  </geometry>
+  <material>
+    <script>
+      <name>Gazebo/{{ color }}</name>
+      <uri>file://media/materials/scripts/gazebo.material</uri>
+    </script>
+  </material>
+</visual>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Visual mesh mrs material macro {-->
+{%- macro visual_mesh_mrs_material_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw) -%}
+<visual name="{{ name }}_visual">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <mesh>
+      <uri>{{ mesh_file }}</uri>
+      <scale>{{ mesh_scale }}</scale>
+    </mesh>
+  </geometry>
+  <material>
+    <script>
+      <name>MRS/{{ color }}</name>
+      <uri>model://mrs_robots_description/materials/mrs.material</uri>
+    </script>
+  </material>
+</visual>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Visual mesh with collision macro {-->
+{%- macro visual_mesh_with_collision_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw) -%}
+<visual name="{{ name }}_visual">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <mesh>
+      <uri>{{ mesh_file }}</uri>
+      <scale>{{ mesh_scale }}</scale>
+    </mesh>
+  </geometry>
+  <material>
+    <script>
+      <name>Gazebo/{{ color }}</name>
+      <uri>file://media/materials/scripts/gazebo.material</uri>
+    </script>
+  </material>
+</visual>
+<collision name="{{ name }}_collision">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <mesh>
+      <uri>{{ mesh_file }}</uri>
+      <scale>{{ mesh_scale }}</scale>
+    </mesh>
+  </geometry>
+</collision>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Visual mesh textured macro {-->
+{%- macro visual_mesh_textured_macro(name, mesh_file, mesh_scale, x, y, z, roll, pitch, yaw) -%}
+<visual name="{{ name }}_visual">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <mesh>
+      <uri>{{ mesh_file }}</uri>
+      <scale>{{ mesh_scale }}</scale>
+    </mesh>
+  </geometry>
+</visual>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Visual mesh textured with collision macro {-->
+{%- macro visual_mesh_textured_with_collision_macro(name, mesh_file, mesh_scale, x, y, z, roll, pitch, yaw) -%}
+<visual name="{{ name }}_visual">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <mesh>
+      <uri>{{ mesh_file }}</uri>
+      <scale>{{ mesh_scale }}</scale>
+    </mesh>
+  </geometry>
+</visual>
+<collision name="{{ name }}_collision">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <mesh>
+      <uri>{{ mesh_file }}</uri>
+      <scale>{{ mesh_scale }}</scale>
+    </mesh>
+  </geometry>
+</collision>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Leg macro {-->
+{%- macro leg_macro(name, mesh_file, mesh_scale, color, parent, x, y, z, roll, pitch, yaw, collision_height, collision_radius) -%}
+{{ visual_mesh_macro(
+  name = name,
+  mesh_file = mesh_file,
+  mesh_scale = mesh_scale,
+  color = color,
+  x = x,
+  y = y,
+  z = z,
+  roll = roll,
+  pitch = pitch,
+  yaw = yaw)
+}}
+<collision name="{{ name }}_link_collision">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <cylinder>
+      <length>{{ collision_height }}</length>
+      <radius>{{ collision_radius }}</radius>
+    </cylinder>
+  </geometry>
+  <surface>
+    <contact>
+      <ode>
+        <min_depth>0.001</min_depth>
+        <max_vel>0.0</max_vel>
+      </ode>
+    </contact>
+    <friction>
+      <ode/>
+    </friction>
+  </surface>
+</collision>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Leg macro with offset {-->
+{%- macro leg_offset_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw, collision_height, collision_radius, offset_x, offset_y, offset_z) -%}
+{{ visual_mesh_macro(
+  name = name,
+  mesh_file = mesh_file,
+  mesh_scale = mesh_scale,
+  color = color,
+  x = x,
+  y = y,
+  z = z,
+  roll = roll,
+  pitch = pitch,
+  yaw = yaw)
+}}
+<collision name="{{ name }}_link_collision">
+  <pose>{{ x + offset_x }} {{ y + offset_y }} {{ z + offset_z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <cylinder>
+      <length>{{ collision_height }}</length>
+      <radius>{{ collision_radius }}</radius>
+    </cylinder>
+  </geometry>
+  <surface>
+    <contact>
+      <ode>
+        <min_depth>0.001</min_depth>
+        <max_vel>0.0</max_vel>
+      </ode>
+    </contact>
+    <friction>
+      <ode/>
+    </friction>
+  </surface>
+</collision>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Leg macro with collision offset {-->
+{%- macro leg_macro_collision_offset(name, mesh_file, mesh_scale, color, parent, x, y, z, roll, pitch, yaw, collision_height, collision_radius, collision_offset) -%}
+{{ visual_mesh_macro(
+  name = name,
+  mesh_file = mesh_file,
+  mesh_scale = mesh_scale,
+  color = color,
+  x = x,
+  y = y,
+  z = z,
+  roll = roll,
+  pitch = pitch,
+  yaw = yaw)
+}}
+<collision name="{{ name }}_link_collision">
+  <pose>{{ x }} {{ y }} {{ z + collision_offset }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <cylinder>
+      <length>{{ collision_height }}</length>
+      <radius>{{ collision_radius }}</radius>
+    </cylinder>
+  </geometry>
+  <surface>
+    <contact>
+      <ode>
+        <min_depth>0.001</min_depth>
+        <max_vel>0.0</max_vel>
+      </ode>
+    </contact>
+    <friction>
+      <ode/>
+    </friction>
+  </surface>
+</collision>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Prop macro {-->
+{%- macro prop_macro(direction, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, time_constant_up, time_constant_down, max_rot_velocity, motor_number, rotor_drag_coefficient, rolling_moment_coefficient, enable_motor_crash, color, mesh_file, mesh_scale, x, y, z, roll, pitch, yaw, ixx, ixy, ixz, iyy, iyz, izz) -%}
+<link name="prop_{{ motor_number }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <inertial>
+    <mass>{{ mass }}</mass>
+    <inertia>
+      <ixx>{{ ixx }}</ixx>
+      <ixy>{{ ixy }}</ixy>
+      <ixz>{{ ixz }}</ixz>
+      <iyy>{{ iyy }}</iyy>
+      <iyz>{{ iyz }}</iyz>
+      <izz>{{ izz }}</izz>
+    </inertia>
+  </inertial>
+  <visual name="visual">
+    <geometry>
+      <mesh>
+        <uri>{{ mesh_file }}</uri>
+        <scale>{{ mesh_scale }}</scale>
+      </mesh>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/{{ color }}</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <collision name="prop_{{ motor_number }}_link_collision">
+    <pose>0 0 0 0 {{ rad90 }} 0</pose>
+    <geometry>
+      <cylinder>
+        <length>{{ 2*radius }}</length>
+        <radius>0.01</radius>
+      </cylinder>
+    </geometry>
+    <surface>
+      <contact>
+        <ode/>
+      </contact>
+      <friction>
+        <ode/>
+      </friction>
+    </surface>
+  </collision>
+</link>
+
+<plugin name="motor{{ motor_number }}_plugin" filename="libgazebo_motor_model.so">
+  <robotNamespace/>
+  <jointName>prop_{{ motor_number }}_joint</jointName>
+  <linkName>prop_{{ motor_number }}_link</linkName>
+  <turningDirection>{{ direction }}</turningDirection>
+  <timeConstantUp>{{ time_constant_up }}</timeConstantUp>
+  <timeConstantDown>{{ time_constant_down }}</timeConstantDown>
+  <maxRotVelocity>{{ max_rot_velocity }}</maxRotVelocity>
+  <motorConstant>{{ motor_constant }}</motorConstant>
+  <momentConstant>{{ moment_constant }}</momentConstant>
+  <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
+  <motorNumber>{{ motor_number }}</motorNumber>
+  <rotorDragCoefficient>{{ rotor_drag_coefficient }}</rotorDragCoefficient>
+  <rollingMomentCoefficient>{{ rolling_moment_coefficient }}</rollingMomentCoefficient>
+  <motorSpeedPubTopic>/motor_speed/{{ motor_number }}</motorSpeedPubTopic>
+  <rotorVelocitySlowdownSim>{{ rotor_velocity_slowdown_sim }}</rotorVelocitySlowdownSim>
+  <enableMotorCrash>{{ enable_motor_crash }}</enableMotorCrash>
+</plugin>
+
+<plugin name="motor{{ motor_number }}_speed_republisher_plugin" filename="libMRSGazeboMotorSpeedRepublisherPlugin.so">
+  <robotNamespace/>
+  <motorSpeedTopic>/motor_speed/{{ motor_number }}</motorSpeedTopic>
+</plugin>
+
+<joint name="prop_{{ motor_number }}_joint" type="revolute">
+  <parent>{{ parent }}</parent>
+  <child>prop_{{ motor_number }}_link</child>
+  <axis>
+    <xyz>0 0 1</xyz>
+    <limit>
+      <lower>-1e+16</lower>
+      <upper>1e+16</upper>
+    </limit>
+    <dynamics>
+      <spring_reference>0</spring_reference>
+      <spring_stiffness>0</spring_stiffness>
+    </dynamics>
+    <use_parent_model_frame>1</use_parent_model_frame>
+  </axis>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Prop macro with 2 meshes{-->
+{%- macro prop_macro_2_meshes(direction, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, time_constant_up, time_constant_down, max_rot_velocity, motor_number, rotor_drag_coefficient, rolling_moment_coefficient, enable_motor_crash, color, mesh_file_1, mesh_file_2, meshes_z_offset,  mesh_scale, x, y, z, roll, pitch, yaw, ixx, ixy, ixz, iyy, iyz, izz) -%}
+<link name="prop_{{ motor_number }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <inertial>
+    <mass>{{ mass }}</mass>
+    <inertia>
+      <ixx>{{ ixx }}</ixx>
+      <ixy>{{ ixy }}</ixy>
+      <ixz>{{ ixz }}</ixz>
+      <iyy>{{ iyy }}</iyy>
+      <iyz>{{ iyz }}</iyz>
+      <izz>{{ izz }}</izz>
+    </inertia>
+  </inertial>
+  <visual name="visual_1">
+    <geometry>
+      <mesh>
+        <uri>{{ mesh_file_1 }}</uri>
+        <scale>{{ mesh_scale }}</scale>
+      </mesh>
+    </geometry>
+  </visual>
+  <visual name="visual_2">
+    <pose>{{ 0 }} {{ 0 }} {{ meshes_z_offset }} {{ 0 }} {{ 0 }} {{ 0 }}</pose>
+    <geometry>
+      <mesh>
+        <uri>{{ mesh_file_2 }}</uri>
+        <scale>{{ mesh_scale }}</scale>
+      </mesh>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/{{ color }}</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <collision name="prop_{{ motor_number }}_link_collision">
+    <pose>0 0 0 0 {{ rad90 }} 0</pose>
+    <geometry>
+      <cylinder>
+        <length>{{ 2*radius }}</length>
+        <radius>0.01</radius>
+      </cylinder>
+    </geometry>
+    <surface>
+      <contact>
+        <ode/>
+      </contact>
+      <friction>
+        <ode/>
+      </friction>
+    </surface>
+  </collision>
+</link>
+
+<plugin name="motor{{ motor_number }}_plugin" filename="libgazebo_motor_model.so">
+  <robotNamespace/>
+  <jointName>prop_{{ motor_number }}_joint</jointName>
+  <linkName>prop_{{ motor_number }}_link</linkName>
+  <turningDirection>{{ direction }}</turningDirection>
+  <timeConstantUp>{{ time_constant_up }}</timeConstantUp>
+  <timeConstantDown>{{ time_constant_down }}</timeConstantDown>
+  <maxRotVelocity>{{ max_rot_velocity }}</maxRotVelocity>
+  <motorConstant>{{ motor_constant }}</motorConstant>
+  <momentConstant>{{ moment_constant }}</momentConstant>
+  <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
+  <motorNumber>{{ motor_number }}</motorNumber>
+  <rotorDragCoefficient>{{ rotor_drag_coefficient }}</rotorDragCoefficient>
+  <rollingMomentCoefficient>{{ rolling_moment_coefficient }}</rollingMomentCoefficient>
+  <motorSpeedPubTopic>/motor_speed/{{ motor_number }}</motorSpeedPubTopic>
+  <rotorVelocitySlowdownSim>{{ rotor_velocity_slowdown_sim }}</rotorVelocitySlowdownSim>
+  <enableMotorCrash>{{ enable_motor_crash }}</enableMotorCrash>
+</plugin>
+
+<plugin name="motor{{ motor_number }}_speed_republisher_plugin" filename="libMRSGazeboMotorSpeedRepublisherPlugin.so">
+  <robotNamespace/>
+  <motorSpeedTopic>/motor_speed/{{ motor_number }}</motorSpeedTopic>
+</plugin>
+
+<joint name="prop_{{ motor_number }}_joint" type="revolute">
+  <parent>{{ parent }}</parent>
+  <child>prop_{{ motor_number }}_link</child>
+  <axis>
+    <xyz>0 0 1</xyz>
+    <limit>
+      <lower>-1e+16</lower>
+      <upper>1e+16</upper>
+    </limit>
+    <dynamics>
+      <spring_reference>0</spring_reference>
+      <spring_stiffness>0</spring_stiffness>
+    </dynamics>
+    <use_parent_model_frame>1</use_parent_model_frame>
+  </axis>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Multirotor physics macro {-->
+{%- macro multirotor_physics_macro(mass, body_radius, body_height, rotor_velocity_slowdown_sim, ixx, ixy, ixz, iyy, iyz, izz) -%}
+<inertial>
+  <mass>{{ mass }}</mass>
+  <inertia>
+    <ixx>{{ ixx }}</ixx>
+    <ixy>{{ ixy }}</ixy>
+    <ixz>{{ ixz }}</ixz>
+    <iyy>{{ iyy }}</iyy>
+    <iyz>{{ iyz }}</iyz>
+    <izz>{{ izz }}</izz>
+  </inertia>
+</inertial>
+<collision name="base_link_collision">
+  <pose>
+    <x>0</x>
+    <y>0</y>
+    <z>{{ - body_height / 2 }}</z>
+    <roll>0</roll>
+    <pitch>0</pitch>
+    <yaw>0</yaw>
+  </pose>
+  <geometry>
+    <cylinder>
+      <length>{{ body_height }}</length>
+      <radius>{{ body_radius }}</radius>
+    </cylinder>
+  </geometry>
+  <surface>
+    <contact>
+      <ode>
+        <min_depth>0.001</min_depth>
+        <max_vel>0.0</max_vel>
+      </ode>
+    </contact>
+    <friction>
+      <ode/>
+    </friction>
+  </surface>
+</collision>
+
+<plugin filename="libgazebo_multirotor_base_plugin.so" name="rosbag">
+  <robotNamespace/>
+  <linkName>base_link</linkName>
+  <rotorVelocitySlowdownSim>{{ rotor_velocity_slowdown_sim }}</rotorVelocitySlowdownSim>
+</plugin>
+{%- endmacro -%}
+<!--}-->
+
+  <!-- ================================================================== -->
+  <!-- ||  generic sensor plugin definitions (camera, rangefinder ...) || -->
+  <!-- ================================================================== -->
+
+  <!--  {-->
+
+<!-- Macro to add the mavlink_interface_plugin{-->
+{%- macro mavlink_interface_macro(mavlink_addr, mavlink_udp_port, mavlink_tcp_port, serial_enabled, serial_device, baudrate, qgc_addr, qgc_udp_port, sdk_addr, sdk_udp_port, hil_mode, hil_state_level, send_vision_estimation, send_odometry, enable_lockstep, use_tcp) -%}
+<plugin name="mavlink_interface_plugin" filename="libgazebo_mavlink_interface.so">
+  <robotNamespace/>
+  <imuSubTopic>/imu</imuSubTopic>
+  <magSubTopic>/mag</magSubTopic>
+  <baroSubTopic>/baro</baroSubTopic>
+  <mavlink_addr>{{ mavlink_addr }}</mavlink_addr>
+  <mavlink_udp_port>{{ mavlink_udp_port }}</mavlink_udp_port>
+  <mavlink_tcp_port>{{ mavlink_tcp_port }}</mavlink_tcp_port>
+  <serialEnabled>{{ serial_enabled }}</serialEnabled>
+  <serialDevice>{{ serial_device }}</serialDevice>
+  <baudRate>{{ baudrate }}</baudRate>
+  <qgc_addr>{{ qgc_addr }}</qgc_addr>
+  <qgc_udp_port>{{ qgc_udp_port }}</qgc_udp_port>
+  <sdk_addr>{{ sdk_addr }}</sdk_addr>
+  <sdk_udp_port>{{ sdk_udp_port }}</sdk_udp_port>
+  <hil_mode>{{ hil_mode }}</hil_mode>
+  <hil_state_level>{{ hil_state_level }}</hil_state_level>
+  <send_vision_estimation>{{ send_vision_estimation }}</send_vision_estimation>
+  <send_odometry>{{ send_odometry }}</send_odometry>
+  <enable_lockstep>{{ enable_lockstep }}</enable_lockstep>
+  <use_tcp>{{ use_tcp }}</use_tcp>
+  <motorSpeedCommandPubTopic>/gazebo/command/motor_speed</motorSpeedCommandPubTopic>
+  <control_channels>
+    <channel name="rotor1">
+      <input_index>0</input_index>
+      <input_offset>0.0</input_offset>
+      <input_scaling>0.85</input_scaling>
+      <zero_position_disarmed>0</zero_position_disarmed>
+      <zero_position_armed>0.15</zero_position_armed>
+      <joint_control_type>velocity</joint_control_type>
+    </channel>
+    <channel name="rotor2">
+      <input_index>1</input_index>
+      <input_offset>0.0</input_offset>
+      <input_scaling>0.85</input_scaling>
+      <zero_position_disarmed>0</zero_position_disarmed>
+      <zero_position_armed>0.15</zero_position_armed>
+      <joint_control_type>velocity</joint_control_type>
+    </channel>
+    <channel name="rotor3">
+      <input_index>2</input_index>
+      <input_offset>0.0</input_offset>
+      <input_scaling>0.85</input_scaling>
+      <zero_position_disarmed>0</zero_position_disarmed>
+      <zero_position_armed>0.15</zero_position_armed>
+      <joint_control_type>velocity</joint_control_type>
+    </channel>
+    <channel name="rotor4">
+      <input_index>3</input_index>
+      <input_offset>0.0</input_offset>
+      <input_scaling>0.85</input_scaling>
+      <zero_position_disarmed>0</zero_position_disarmed>
+      <zero_position_armed>0.15</zero_position_armed>
+      <joint_control_type>velocity</joint_control_type>
+    </channel>
+    <channel name="rotor5">
+      <input_index>4</input_index>
+      <input_offset>0.0</input_offset>
+      <input_scaling>0.85</input_scaling>
+      <zero_position_disarmed>0</zero_position_disarmed>
+      <zero_position_armed>0.15</zero_position_armed>
+      <joint_control_type>velocity</joint_control_type>
+    </channel>
+    <channel name="rotor6">
+      <input_index>5</input_index>
+      <input_offset>0.0</input_offset>
+      <input_scaling>0.85</input_scaling>
+      <zero_position_disarmed>0</zero_position_disarmed>
+      <zero_position_armed>0.15</zero_position_armed>
+      <joint_control_type>velocity</joint_control_type>
+    </channel>
+    <channel name="rotor7">
+      <input_index>6</input_index>
+      <input_offset>0.0</input_offset>
+      <input_scaling>0.85</input_scaling>
+      <zero_position_disarmed>0</zero_position_disarmed>
+      <zero_position_armed>0.15</zero_position_armed>
+      <joint_control_type>velocity</joint_control_type>
+    </channel>
+    <channel name="rotor8">
+      <input_index>7</input_index>
+      <input_offset>0.0</input_offset>
+      <input_scaling>0.85</input_scaling>
+      <zero_position_disarmed>0</zero_position_disarmed>
+      <zero_position_armed>0.15</zero_position_armed>
+      <joint_control_type>velocity</joint_control_type>
+    </channel>
+  </control_channels>
+</plugin>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add the gps_plugin {-->
+{%- macro gps_macro(gps_name, parent_link, update_rate, gps_noise, gps_xy_random_walk, gps_z_random_walk, gps_xy_noise_density, gps_z_noise_density, gps_vxy_noise_density, gps_vz_noise_density, x, y, z, roll, pitch, yaw) -%}
+<model name="{{ gps_name }}">
+  <link name="link">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    {{ zero_inertial_macro() }}
+    <sensor name="gps_sensor" type="gps">
+      <plugin name="gps_plugin" filename="libgazebo_gps_plugin.so">
+        <robotNamespace/>
+        <update_rate>{{ update_rate }}</update_rate>
+        <gpsNoise>{{ gps_noise }}</gpsNoise>
+        <gpsXYRandomWalk>{{ gps_xy_random_walk }}</gpsXYRandomWalk>
+        <gpsZRandomWalk>{{ gps_z_random_walk }}</gpsZRandomWalk>
+        <gpsXYNoiseDensity>{{ gps_xy_noise_density }}</gpsXYNoiseDensity>
+        <gpsZNoiseDensity>{{ gps_z_noise_density }}</gpsZNoiseDensity>
+        <gpsVXYNoiseDensity>{{ gps_vxy_noise_density }}</gpsVXYNoiseDensity>
+        <gpsVZNoiseDensity>{{ gps_vz_noise_density }}</gpsVZNoiseDensity>
+        <topic>{{ gps_name }}</topic>
+      </plugin>
+    </sensor>
+  </link>
+</model>
+
+<joint name='{{ gps_name }}_joint' type='fixed'>
+  <child>{{ gps_name }}::link</child>
+  <parent>{{ parent_link }}</parent>
+</joint>
+
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add the magnetometer_plugin{-->
+{%- macro magnetometer_plugin_macro(pub_rate, noise_density, random_walk, bias_correlation_time, mag_topic) -%}
+<plugin name="magnetometer_plugin" filename="libgazebo_magnetometer_plugin.so">
+  <robotNamespace/>
+  <pubRate>{{ pub_rate }}</pubRate>
+  <noiseDensity>{{ noise_density }}</noiseDensity>
+  <randomWalk>{{ random_walk }}</randomWalk>
+  <biasCorrelationTime>{{ bias_correlation_time }}</biasCorrelationTime>
+  <magTopic>{{ mag_topic }}</magTopic>
+</plugin>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add the GPS groundtruth_plugin{-->
+{%- macro gps_groundtruth_plugin_macro(home_latitude, home_longitude, home_altitude) -%}
+<plugin name="gps_groundtruth_plugin" filename="libgazebo_groundtruth_plugin.so">
+  <robotNamespace/>
+  <homeLatitude>{{ home_latitude }}</homeLatitude>
+  <homeLongitude>{{ home_longitude }}</homeLongitude>
+  <homeAltitude>{{ home_altitude }}</homeAltitude>
+</plugin>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add the barometer_plugin{-->
+{%- macro barometer_plugin_macro(baro_topic, pub_rate, baro_drift_pa_per_sec) -%}
+<plugin name="barometer_plugin" filename="libgazebo_barometer_plugin.so">
+  <robotNamespace/>
+  <pubRate>{{ pub_rate }}</pubRate>
+  <baroTopic>{{ baro_topic }}</baroTopic>
+  <baroDriftPaPerSec>{{ baro_drift_pa_per_sec }}</baroDriftPaPerSec>
+</plugin>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add the imu_plugin{-->
+{%- macro imu_plugin_macro(imu_name, parent_link, imu_topic, gyroscope_noise_density, gyroscope_random_walk, gyroscope_bias_correlation_time, gyroscope_turn_on_bias_sigma, accelerometer_noise_density, accelerometer_random_walk, accelerometer_bias_correlation_time, accelerometer_turn_on_bias_sigma, x, y, z, roll, pitch, yaw) -%}
+<link name="{{ imu_name }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+</link>
+<joint name="{{ imu_name }}_joint" type="revolute">
+  <parent>{{ parent_link }}</parent>
+  <child>{{ imu_name }}_link</child>
+  <axis>
+    <xyz>0 0 1</xyz>
+    <limit>
+      <upper>0</upper>
+      <lower>0</lower>
+      <effort>0</effort>
+      <velocity>0</velocity>
+    </limit>
+    <use_parent_model_frame>1</use_parent_model_frame>
+  </axis>
+</joint>
+<plugin filename="libgazebo_imu_plugin.so" name="{{ imu_name }}_plugin">
+<!-- A good description of the IMU parameters can be found in the kalibr documentation:
+     https://github.com/ethz-asl/kalibr/wiki/IMU-Noise-Model-and-Intrinsics -->
+  <robotNamespace/> <!-- (string, required): ros namespace in which the messages are published -->
+  <linkName>{{ imu_name }}_link</linkName> <!-- (string, required): name of the body which holds the IMU sensor -->
+  <imuTopic>{{ imu_topic }}</imuTopic> <!-- (string): name of the sensor output topic and prefix of service names (defaults to imu) -->
+  <gyroscopeNoiseDensity>{{ gyroscope_noise_density }}</gyroscopeNoiseDensity> <!-- Gyroscope noise density (two-sided spectrum) [rad/s/sqrt(Hz)] -->
+  <gyroscopeRandomWalk>{{ gyroscope_random_walk }}</gyroscopeRandomWalk> <!-- Gyroscope bias random walk [rad/s/s/sqrt(Hz)] -->
+  <gyroscopeBiasCorrelationTime>{{ gyroscope_bias_correlation_time }}</gyroscopeBiasCorrelationTime> <!-- Gyroscope bias correlation time constant [s] -->
+  <gyroscopeTurnOnBiasSigma>{{ gyroscope_turn_on_bias_sigma }}</gyroscopeTurnOnBiasSigma> <!-- Gyroscope turn on bias standard deviation [rad/s] -->
+  <accelerometerNoiseDensity>{{ accelerometer_noise_density }}</accelerometerNoiseDensity> <!-- Accelerometer noise density (two-sided spectrum) [m/s^2/sqrt(Hz)] -->
+  <accelerometerRandomWalk>{{ accelerometer_random_walk }}</accelerometerRandomWalk> <!-- Accelerometer bias random walk. [m/s^2/s/sqrt(Hz)] -->
+  <accelerometerBiasCorrelationTime>{{ accelerometer_bias_correlation_time }}</accelerometerBiasCorrelationTime> <!-- Accelerometer bias correlation time constant [s] -->
+  <accelerometerTurnOnBiasSigma>{{ accelerometer_turn_on_bias_sigma }}</accelerometerTurnOnBiasSigma> <!-- Accelerometer turn on bias standard deviation [m/s^2] -->
+</plugin>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add imu with configurable rate {-->
+{%- macro custom_imu_macro(sensor_name, parent_link, update_rate, topic_name, frame_name, noise_mean, x, y, z, roll, pitch, yaw) -%}
+<link name="{{ sensor_name }}_link">
+  <pose relative_to = "{{ parent_link }}">{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <sensor name="{{ sensor_name }}_sensor" type="imu">
+    <gravity>true</gravity>
+    <always_on>true</always_on>
+    <update_rate>{{ update_rate }}</update_rate>
+    <visualize>false</visualize>
+    <topic>__default_topic__</topic>
+    <plugin name="{{ sensor_name }}_plugin" filename="libgazebo_ros_imu_sensor.so">
+      <robotNamespace></robotNamespace>
+      <topicName>{{ topic_name }}</topicName>
+      <updateRateHZ>{{ update_rate }}</updateRateHZ>
+      <gaussianNoise>{{ noise_mean }}</gaussianNoise>
+      <xyzOffset>0 0 0</xyzOffset>
+      <rpyOffset>0 0 0</rpyOffset>
+      <frameName>{{ frame_name }}</frameName>
+    </plugin>
+  </sensor>
+</link>
+
+<joint name="{{ sensor_name }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>{{ sensor_name }}_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add the wind_plugin{-->
+{%- macro wind_plugin_macro(xyz_offset, wind_direction, wind_force_mean, wind_gust_direction, wind_gust_duration, wind_gust_start, wind_gust_force_mean) -%}
+<plugin filename="libgazebo_wind_plugin.so" name="wind_plugin">
+  <frameId>base_link</frameId>
+  <linkName>base_link</linkName>
+  <robotNamespace/>
+  <xyzOffset>{{ xyz_offset }}</xyzOffset> <!-- [m] [m] [m] -->
+  <windDirection>{{ wind_direction }}</windDirection>
+  <windForceMean>{{ wind_force_mean }}</windForceMean> <!-- [N] -->
+  <windGustDirection>{{ wind_gust_direction }}</windGustDirection>
+  <windGustDuration>{{ wind_gust_duration }}</windGustDuration> <!-- [s] -->
+  <windGustStart>{{ wind_gust_start }}</windGustStart> <!-- [s] -->
+  <windGustForceMean>{{ wind_gust_force_mean }}</windGustForceMean> <!-- [N] -->
+</plugin>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add the odometry_plugin{-->
+{%- macro odometry_plugin_macro(odometry_sensor_name, parent_link, topic_name, noise, frame_name, frame_rate, x, y, z, roll, pitch, yaw) -%}
+<link name="{{ odometry_sensor_name }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+</link>
+<joint name="{{ odometry_sensor_name }}_joint" type="revolute">
+  <parent>{{ parent_link }}</parent>
+  <child>{{ odometry_sensor_name }}_link</child>
+  <axis>
+    <xyz>0 0 1</xyz>
+    <limit>
+      <lower>0</lower>
+      <upper>0</upper>
+      <velocity>0</velocity>
+      <effort>0</effort>
+    </limit>
+    <use_parent_model_frame>1</use_parent_model_frame>
+  </axis>
+</joint>
+<plugin name="{{ odometry_sensor_name }}_plugin" filename="libgazebo_ros_p3d.so">
+  <alwaysOn>true</alwaysOn>
+  <updateRate>{{ frame_rate }}</updateRate>
+  <bodyName>{{ odometry_sensor_name }}_link</bodyName>
+  <topicName>{{ topic_name }}</topicName>
+  <gaussianNoise>{{ noise }}</gaussianNoise>
+  <frameName>{{ frame_name }}</frameName>
+  <xyzOffset>{{ x }} {{ y }} {{ z }}</xyzOffset>
+  <rpyOffset>{{ roll }} {{ pitch }} {{ yaw }}</rpyOffset>
+</plugin>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add the rangefinder_plugin {-->
+{%- macro rangefinder_sensor_macro(name, parent_frame_name, rangefinder_frame_name, topic, frame_rate, fov, min_distance, max_distance, resolution, noise, x, y, z, roll, pitch, yaw) -%}
+<sensor name="{{ name }}_sensor" type='ray'>
+  <update_rate>{{ frame_rate }}</update_rate>
+  <ray>
+    <scan>
+      <horizontal>
+        <samples>5</samples>
+        <resolution>1</resolution>
+        <min_angle>-{{ fov/2 }}</min_angle>
+        <max_angle>{{ fov/2 }}</max_angle>
+      </horizontal>
+      <vertical>
+        <samples>5</samples>
+        <resolution>1</resolution>
+        <min_angle>-{{ fov/2 }}</min_angle>
+        <max_angle>{{ fov/2 }}</max_angle>
+      </vertical>
+    </scan>
+    <range>
+      <min>{{ min_distance }}</min>
+      <max>{{ max_distance }}</max>
+      <resolution>{{ resolution }}</resolution>
+    </range>
+  </ray>
+  <plugin name='{{ name }}_plugin' filename='libMRSGazeboRangefinderPlugin.so'>
+    <gaussianNoise>{{ noise }}</gaussianNoise>
+    <alwaysOn>true</alwaysOn>
+    <updateRate>{{ frame_rate }}</updateRate>
+    <topicName>{{ topic }}</topicName>
+    <frameName>{{ rangefinder_frame_name }}</frameName>
+    <fov>{{ fov }}</fov>
+    <radiation>radiation</radiation>
+    <parentFrameName>{{ parent_frame_name }}</parentFrameName>
+    <x>{{ x }}</x>
+    <y>{{ y }}</y>
+    <z>{{ z }}</z>
+    <roll>{{ roll }}</roll>
+    <pitch>{{ pitch }}</pitch>
+    <yaw>{{ yaw }}</yaw>
+  </plugin>
+</sensor>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add the camera_plugin {-->
+{%- macro camera_macro(parent_link, camera_name, camera_frame_name, sensor_base_frame_name, frame_rate, parent_frame_name, horizontal_fov, image_width, image_height, min_distance, max_distance, noise_mean, noise_stddev, mesh_file, mesh_scale, color, visual_x, visual_y, visual_z, visual_roll, visual_pitch, visual_yaw, x, y, z, roll, pitch, yaw) -%}
+<link name="{{ camera_name }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  {{ visual_mesh_macro(
+    name = "",
+    mesh_file = mesh_file,
+    mesh_scale = mesh_scale,
+    color = color,
+    x = visual_x,
+    y = visual_y,
+    z = visual_z,
+    roll = visual_roll,
+    pitch = visual_pitch,
+    yaw = visual_yaw)
+  }}
+  <sensor name="{{ camera_name }}_sensor" type="camera">
+    <update_rate>{{ frame_rate }}</update_rate>
+    <camera>
+      <horizontal_fov>{{ horizontal_fov }}</horizontal_fov>
+      <image>
+        <width>{{ image_width }}</width>
+        <height>{{ image_height }}</height>
+      </image>
+      <clip>
+        <near>{{ min_distance }}</near>
+        <far>{{ max_distance }}</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <!-- Noise is sampled independently per pixel on each frame.
+        That pixel's noise value is added to each of its color
+        channels, which at that point lie in the range [0,1]. -->
+        <mean>{{ noise_mean }}</mean>
+        <stddev>{{ noise_stddev }}</stddev>
+      </noise>
+    </camera>
+    <plugin name="{{ camera_name }}_plugin" filename="libMRSGazeboCameraPlugin.so">
+      <alwaysOn>true</alwaysOn>
+      <updateRate>{{ frame_rate }}</updateRate>
+      <cameraName>{{ camera_name }}</cameraName>
+      <imageTopicName>image_raw</imageTopicName>
+      <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+      <frameName>/{{ camera_frame_name }}</frameName>
+      <hackBaseline>0.0</hackBaseline>
+      <distortionK1>0.0</distortionK1>
+      <distortionK2>0.0</distortionK2>
+      <distortionK3>0.0</distortionK3>
+      <distortionT1>0.0</distortionT1>
+      <distortionT2>0.0</distortionT2>
+      <parentFrameName>{{ parent_frame_name }}</parentFrameName>
+      <sensorBaseFrameName>{{ sensor_base_frame_name }}</sensorBaseFrameName>
+      <x>{{ x }}</x>
+      <y>{{ y }}</y>
+      <z>{{ z }}</z>
+      <roll>{{ roll }}</roll>
+      <pitch>{{ pitch }}</pitch>
+      <yaw>{{ yaw }}</yaw>
+    </plugin>
+  </sensor>
+</link>
+
+<joint name="{{ camera_name }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>{{ camera_name }}_link</child>
+</joint>
+
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add the fisheye_camera_plugin {-->
+{%- macro fisheye_macro(parent_link, camera_name, topic_ns_prefix, camera_frame_name, sensor_base_frame_name, frame_rate, parent_frame_name, horizontal_fov, image_width, image_height, min_distance, max_distance, lens_type, lens_c1, lens_c2, lens_f, lens_fun, lens_scale, lens_cutoff_angle, lens_texture_size, noise_mean, noise_stddev, mesh_file, mesh_scale, color, visual_x, visual_y, visual_z, visual_roll, visual_pitch, visual_yaw, x, y, z, roll, pitch, yaw) -%}
+{# -- topics -- #}
+{%- set topic_image = topic_ns_prefix + "image_raw" -%}
+{%- set topic_camera_ifo = topic_ns_prefix + "camera_info" -%}
+
+<link name="{{ camera_name }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  {{ visual_mesh_macro(
+    name = "",
+    mesh_file = mesh_file,
+    mesh_scale = mesh_scale,
+    color = color,
+    x = visual_x,
+    y = visual_y,
+    z = visual_z,
+    roll = visual_roll,
+    pitch = visual_pitch,
+    yaw = visual_yaw)
+  }}
+  <sensor name="{{ camera_name }}_sensor" type="wideanglecamera">
+    <update_rate>{{ frame_rate }}</update_rate>
+    <camera>
+      <horizontal_fov>{{ horizontal_fov }}</horizontal_fov>
+      <image>
+        <width>{{ image_width }}</width>
+        <height>{{ image_height }}</height>
+      </image>
+      <clip>
+        <near>{{ min_distance }}</near>
+        <far>{{ max_distance }}</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <!-- Noise is sampled independently per pixel on each frame.
+        That pixel's noise value is added to each of its color
+        channels, which at that point lie in the range [0,1]. -->
+        <mean>{{ noise_mean }}</mean>
+        <stddev>{{ noise_stddev }}</stddev>
+      </noise>
+      <lens>
+        <type>{{ lens_type }}</type>
+        <custom_function>
+          <c1>{{ lens_c1 }}</c1>
+          <c2>{{ lens_c2 }}</c2>
+          <f>{{ lens_f }}</f>
+          <fun>{{ lens_fun }}</fun>
+        </custom_function>
+        <scale_to_hfov>{{ lens_scale }}</scale_to_hfov>
+        <cutoff_angle>{{ lens_cutoff_angle }}</cutoff_angle>
+        <env_texture_size>{{ lens_texture_size }}</env_texture_size>
+      </lens>
+    </camera>
+    <plugin name="{{ camera_name }}_plugin" filename="libMRSGazeboCameraPlugin.so">
+      <alwaysOn>true</alwaysOn>
+      <updateRate>{{ frame_rate }}</updateRate>
+      <cameraName>{{ camera_name }}</cameraName>
+      <imageTopicName>{{ topic_image }}</imageTopicName>
+      <cameraInfoTopicName>{{ topic_camera_ifo }}</cameraInfoTopicName>
+      <frameName>/{{ camera_frame_name }}</frameName>
+      <hackBaseline>0.0</hackBaseline>
+      <distortionK1>0.0</distortionK1>
+      <distortionK2>0.0</distortionK2>
+      <distortionK3>0.0</distortionK3>
+      <distortionT1>0.0</distortionT1>
+      <distortionT2>0.0</distortionT2>
+      <parentFrameName>{{ parent_frame_name }}</parentFrameName>
+      <sensorBaseFrameName>{{ sensor_base_frame_name }}</sensorBaseFrameName>
+      <x>{{ x }}</x>
+      <y>{{ y }}</y>
+      <z>{{ z }}</z>
+      <roll>{{ roll }}</roll>
+      <pitch>{{ pitch }}</pitch>
+      <yaw>{{ yaw }}</yaw>
+    </plugin>
+  </sensor>
+</link>
+
+<joint name="{{ camera_name }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>{{ camera_name }}_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!--}-->
+
+<!-- ================================================================== -->
+<!-- ||                      sensor definitions                      || -->
+<!-- ================================================================== -->
+
+<!-- ======================= rangefinder sensors ======================-->
+
+<!-- Macro to add a garmin (connected to the pixhawk) {-->
+{%- macro garmin_macro(sensor_name, parent_link, x, y, z, roll, pitch, yaw) -%}
+<link name="{{ sensor_name }}::link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="visual">
+    <origin xyz="0.015 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh>
+        <uri>model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl</uri>
+        <scale>0.001 0.001 0.001</scale>
+      </mesh>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/DarkGrey</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <sensor name="garmin_sensor" type="ray">
+    <always_on>true</always_on>
+    <update_rate>100</update_rate>
+    <visualize>false</visualize>
+    <ray>
+      <scan>
+        <horizontal>
+          <samples>1</samples>
+          <resolution>1</resolution>
+          <min_angle>-0</min_angle>
+          <max_angle>0</max_angle>
+        </horizontal>
+      </scan>
+      <range>
+        <min>0.06</min> <!-- do not change: use min_distance (below) for realistic behavior (smaller values cause issues) -->
+        <max>35</max>   <!-- do not change: use max_distance (below) for realistic behavior (bigger values cause issues) -->
+        <resolution>0.01</resolution>
+      </range>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.01</stddev>
+      </noise>
+    </ray>
+    <plugin name="{{ sensor_name }}_plugin" filename="libgazebo_lidar_plugin.so">
+      <robotNamespace/>
+      <min_distance>0.1</min_distance>
+      <max_distance>35.0</max_distance>
+    </plugin>
+  </sensor>
+</link>
+
+<joint name="{{ sensor_name }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>{{ sensor_name }}::link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add an external garmin (not connected to the pixhawk) {-->
+<!-- Orientation empty for down looking garmin, _up for upward looking sensor -->
+{%- macro external_garmin_macro(namespace, parent_link, orientation, x, y, z, roll, pitch, yaw) -%}
+<link name="garmin{{ orientation }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="visual">
+    <origin xyz="0.015 0 0" rpy="0 0 0" />
+    <geometry>
+      <mesh>
+        <uri>model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl</uri>
+        <scale>0.001 0.001 0.001</scale>
+      </mesh>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/DarkGrey</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  {{ rangefinder_sensor_macro(
+    name = "garmin" + orientation,
+    parent_frame_name = namespace + "/fcu",
+    rangefinder_frame_name = namespace + "/garmin" + orientation,
+    topic = "garmin" + orientation + "/range",
+    frame_rate = 100,
+    fov = 0.03,
+    min_distance = 0.1,
+    max_distance = 40.0,
+    resolution = 0.005,
+    noise = 0.01,
+    x = x,
+    y = y,
+    z = z,
+    roll = roll,
+    pitch = pitch,
+    yaw = yaw)
+  }}
+</link>
+
+<joint name="garmin{{ orientation }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>garmin{{ orientation }}_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a Teraranger One {-->
+{%- macro teraranger_macro(namespace, parent_link, x, y, z, roll, pitch, yaw) -%}
+<link name="teraranger_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="visual">
+    <geometry>
+      <box>
+        <size>0.015 0.027 0.033</size>
+      </box>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Yellow</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  {{ rangefinder_sensor_macro(
+    name = "teraranger",
+    parent_frame_name = namespace + "/fcu",
+    rangefinder_frame_name = namespace + "/teraranger",
+    topic = "teraranger/range",
+    frame_rate = 100,
+    fov = 0.03,
+    min_distance = 0.1,
+    max_distance = 14,
+    resolution = 0.005,
+    noise = 0.04,
+    x = x,
+    y = y,
+    z = z,
+    roll = roll,
+    pitch = pitch,
+    yaw = yaw)
+  }}
+</link>
+
+<joint name="teraranger_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>teraranger_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a URM37 ultrasound {-->
+{%- macro ultrasonic_sensor_macro(namespace, parent_link, suffix, x, y, z, roll, pitch, yaw) -%}
+<link name="ultrasound{{ suffix }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="visual">
+    <geometry>
+      <mesh>
+        <uri>model://mrs_robots_description/meshes/sensors/ultrasonic_URM37.dae</uri>
+        <scale>1 1 1</scale>
+      </mesh>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/DarkGrey</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  {{ rangefinder_sensor_macro(
+    name = "ultrasound" + suffix,
+    parent_frame_name = namespace + "/fcu",
+    rangefinder_frame_name = namespace + "/ultrasound" + suffix,
+    topic = "ultrasound" + suffix + "/range",
+    frame_rate = 40,
+    fov = 0.698131701,
+    min_distance = 0.04,
+    max_distance = 5,
+    resolution = 0.01,
+    noise = 0.04,
+    x = x,
+    y = y,
+    z = z,
+    roll = roll,
+    pitch = pitch,
+    yaw = yaw)
+  }}
+</link>
+
+<joint name="ultrasound{{ suffix }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>ultrasound{{ suffix }}_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- ========================== LIDAR sensors ========================= -->
+
+<!-- Macro to add a Scanse Sweeper{-->
+{%- macro scanse_sweep_macro(namespace, parent_link, x, y, z, roll, pitch, yaw) -%}
+<link name="sweeper_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="base_visual">
+    <pose>0 0 -0.031 0 0 0</pose>
+    <geometry>
+      <cylinder>
+        <length>0.0255</length>
+        <radius>0.0234</radius>
+      </cylinder>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/DarkGrey</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <visual name="rotator_visual">
+    <geometry>
+      <cylinder>
+        <length>0.0385</length>
+        <radius>0.0325</radius>
+      </cylinder>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/DarkGrey</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <sensor name='sweeper_sensor' type='ray'>
+    <visualize>false</visualize>
+    <update_rate>10</update_rate>
+    <ray>
+      <scan>
+        <horizontal>
+          <samples>500</samples>
+          <resolution>1</resolution>
+          <min_angle>0</min_angle>
+          <max_angle>6.283185</max_angle>
+        </horizontal>
+      </scan>
+      <range>
+        <min>0.45</min>
+        <max>10</max>
+        <resolution>0.01</resolution>
+      </range>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.01</stddev>
+      </noise>
+    </ray>
+    <plugin name='sweeper_plugin' filename='libMRSGazebo2DLidarPlugin.so'>
+      <topicName>scanse_sweep/range</topicName>
+      <frameName>{{ namespace }}/scanse_sweep</frameName>
+      <parentFrameName>{{ namespace}}/fcu</parentFrameName>
+      <x>{{ x }}</x>
+      <y>{{ y }}</y>
+      <z>{{ z }}</z>
+      <roll>{{ roll }}</roll>
+      <pitch>{{ pitch }}</pitch>
+      <yaw>{{ yaw }}</yaw>
+    </plugin>
+  </sensor>
+</link>
+
+<joint name="sweeper_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>sweeper_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+  <!-- Macro to add a RPlidar A3{-->
+{%- macro rplidar_macro(namespace, parent_link, x, y, z, roll, pitch, yaw) -%}
+<link name="rplidar_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="base_visual">
+    <pose>0 0 -0.029 0 0 {{ rad180 }}</pose>
+    <geometry>
+      <mesh>
+        <uri>model://mrs_robots_description/meshes/sensors/rplidar.stl</uri>
+        <scale>0.001 0.001 0.001</scale>
+      </mesh>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/FlatBlack</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <visual name="purple_visual">
+    <pose>0 0 -0.011 0 0 0</pose>
+    <geometry>
+      <cylinder>
+        <length>0.001</length>
+        <radius>0.038</radius>
+      </cylinder>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Purple</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <sensor name='rplidar_sensor' type='ray'>
+    <visualize>false</visualize>
+    <update_rate>20</update_rate>
+    <ray>
+      <scan>
+        <horizontal>
+          <samples>{{ 14400/20 }}</samples>
+          <resolution>1</resolution>
+          <min_angle>-3.1241390751</min_angle>
+          <max_angle>3.1241390751</max_angle>
+        </horizontal>
+      </scan>
+      <range>
+        <min>0.15</min>
+        <max>14</max>
+        <resolution>0.01</resolution>
+      </range>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.01</stddev>
+      </noise>
+    </ray>
+    <plugin name='rplidar_plugin' filename='libMRSGazebo2DLidarPlugin.so'>
+        <topicName>rplidar/scan</topicName>
+        <frameName>{{ namespace }}/rplidar</frameName>
+        <parentFrameName>{{ namespace }}/fcu</parentFrameName>
+        <x>{{ x }}</x>
+        <y>{{ y }}</y>
+        <z>{{ z }}</z>
+        <roll>{{ roll }}</roll>
+        <pitch>{{ pitch }}</pitch>
+        <yaw>{{ yaw }}</yaw>
+      </plugin>
+    </sensor>
+</link>
+
+<joint name="rplidar_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>rplidar_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a Velodyne Lidar {-->
+{%- macro velodyne_macro(namespace, parent_link, sensor_name, rot_freq, lasers, max_range, noise, vfov_angle, enable_gpu_ray, x, y, z, roll, pitch, yaw) -%}
+
+{# The real ouster is transforming lidar data from lidar_frame to sensor_frame directly for user. #}
+{# For simplicity, we are placing sensor_frame to the same place as the lidar_frame is. #}
+{# Velodyne macro is using the same plugin as ouster macro. Therefore we need to render data in the same way. #}
+
+{# -- frame names -- #}
+{%- set frame_fcu = namespace + "/fcu" -%}
+{%- set frame_sensor = namespace + "/" + sensor_name + "_sensor" -%}
+{%- set frame_lidar = namespace + "/" + sensor_name  -%}
+
+{# -- topics -- #}
+{%- set topic_lidar = "/" + namespace + "/" + sensor_name + "/scan" -%}
+{%- set topic_diag = "/" + namespace + "/" + sensor_name + "/is_alive" -%}
+
+{# -- tf from sensor to lidar -- #}
+{# The laser rays should be coming approximately from the half of sensor height #}
+{%- set lidar_x = 0 -%}
+{%- set lidar_y = 0 -%}
+{%- set lidar_z = 0.037725 -%}
+{%- set lidar_roll = 0 -%}
+{%- set lidar_pitch = 0 -%}
+{%- set lidar_yaw = 0  -%}
+
+{% if enable_gpu_ray %}
+  {%- set velodyne_plugin_filename ="libMRSGazebo3DLidarGpuPlugin.so" -%}
+  {%- set sensor_type = "gpu_ray"  -%}
+{% else %}
+  {%- set velodyne_plugin_filename ="libMRSGazebo3DLidarPlugin.so" -%}
+  {%- set sensor_type = "ray"  -%}
+{% endif %}
+
+<link name="velodyne_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="base_visual">
+    <pose>0 0 0.0094 0 0 0</pose>
+    <geometry>
+      <cylinder>
+        <length>0.0188</length>
+        <radius>0.062</radius>
+      </cylinder>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/FlatBlack</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <visual name="top_visual">
+    <pose>0 0 0.0643 0 0 0</pose>
+    <geometry>
+      <cylinder>
+        <length>0.0148</length>
+        <radius>0.062</radius>
+      </cylinder>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/FlatBlack</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <visual name="window_visual">
+    <pose>0 0 0.03785 0 0 0</pose>
+    <geometry>
+      <cylinder>
+        <length>0.0381</length>
+        <radius>0.058</radius>
+      </cylinder>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Blue</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <sensor name="{{ sensor_name }}_lidar_sensor" type="{{ sensor_type }}">
+    <pose>{{ lidar_x }} {{ lidar_y }} {{ lidar_z }} {{ lidar_roll }} {{ lidar_pitch }} {{ lidar_yaw }}</pose>
+    {# <pose>0 0 0 0 0 0</pose> #}
+    <visualize>false</visualize>
+    <update_rate>{{ rot_freq }}</update_rate>
+    <ray>
+      <scan>
+        <horizontal>
+          <samples>{{ 291200/(rot_freq*lasers) }}</samples>
+          <resolution>1</resolution>
+          <min_angle>{{ -rad180 }}</min_angle>
+          <max_angle>{{ rad180 }}</max_angle>
+        </horizontal>
+        <vertical>
+          <samples>{{ lasers }}</samples>
+          <resolution>1</resolution>
+          <min_angle>{{ -vfov_angle/2*rad180/180.0 }}</min_angle>
+          <max_angle>{{ vfov_angle/2*rad180/180.0 }}</max_angle>
+        </vertical>
+      </scan>
+      <range>
+        <min>0.1</min>
+        <max>{{ max_range }}</max>
+        <resolution>0.03</resolution>
+      </range>
+    </ray>
+    <plugin name="{{ sensor_name }}_lidar_plugin" filename="{{ velodyne_plugin_filename }}">
+      <parentFrameName>{{ frame_fcu }}</parentFrameName>
+      <sensorFrameName>{{ frame_sensor }}</sensorFrameName>
+      <sensor_x>{{ x + lidar_x }}</sensor_x>
+      <sensor_y>{{ y + lidar_y }}</sensor_y>
+      <sensor_z>{{ z + lidar_z }}</sensor_z>
+      <sensor_roll>{{ roll }}</sensor_roll>
+      <sensor_pitch>{{ pitch }}</sensor_pitch>
+      <sensor_yaw>{{ yaw }}</sensor_yaw>
+      <lidar_x>0</lidar_x>
+      <lidar_y>0</lidar_y>
+      <lidar_z>0</lidar_z>
+      <lidar_roll>{{ lidar_roll }}</lidar_roll>
+      <lidar_pitch>{{ lidar_pitch }}</lidar_pitch>
+      <lidar_yaw>{{ lidar_yaw }}</lidar_yaw>
+      <topicName>{{ topic_lidar }}</topicName>
+      <topicDiagName>{{ topic_diag }}</topicDiagName>
+      <lidarFrameName>{{ frame_lidar }}</lidarFrameName>
+      <min_range>0.1</min_range>
+      <max_range>{{ max_range }}</max_range>
+      <gaussianNoise>{{ noise }}</gaussianNoise>
+      <imu>false</imu>
+    </plugin>
+  </sensor>
+</link>
+
+<joint name="velodyne_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>velodyne_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add an Ouster Lidar {-->
+
+<!-- Macro to add an Generic Ouster Lidar {-->
+{%- macro generic_ouster_macro(namespace, parent_link, sensor_name, rot_freq, lasers, max_range, noise, vfov_angle, enable_gpu_ray, x, y, z, roll, pitch, yaw) -%}
+
+{# The real ouster is transforming lidar data from lidar_frame to sensor_frame directly for user. #}
+{# For simplicity, we are placing sensor_frame to the same place as the lidar_frame is. #}
+
+{# -- gazebo links -- #}
+{%- set sensor_link = sensor_name + "_sensor_link" -%}
+
+{# -- frame names -- #}
+{%- set frame_fcu = namespace + "/fcu" -%}
+{%- set frame_sensor = namespace + "/" + sensor_name + "_sensor" -%}
+{%- set frame_lidar = namespace + "/" + sensor_name + "_lidar"  -%}
+{%- set frame_imu = namespace + "/" + sensor_name + "_imu"  -%}
+
+{# -- topics -- #}
+{%- set topic_lidar = "/" + namespace + "/" + sensor_name + "_cloud_nodelet/points" -%}
+{%- set topic_imu = "/" + namespace + "/" + sensor_name + "_cloud_nodelet/imu" -%}
+{%- set topic_diag = "/" + namespace + "/" + sensor_name + "_cloud_nodelet/is_alive" -%}
+
+{# -- tf from sensor to lidar -- #}
+{%- set lidar_x = 0 -%}
+{%- set lidar_y = 0 -%}
+{%- set lidar_z = 0.0344 -%}
+{%- set lidar_roll = 0 -%}
+{%- set lidar_pitch = 0 -%}
+{%- set lidar_yaw = 0 -%}
+
+{# -- tf from sensor to imu -- #}
+{%- set imu_x = 0.006253 -%}
+{%- set imu_y = -0.011775 -%}
+{%- set imu_z = 0.007645 -%}
+{%- set imu_roll = 0 -%}
+{%- set imu_pitch = 0 -%}
+{%- set imu_yaw = 0 -%}
+
+{% if enable_gpu_ray %}
+  {%- set ouster_plugin_filename ="libMRSGazebo3DLidarGpuPlugin.so" -%}
+  {%- set sensor_type = "gpu_ray"  -%}
+{% else %}
+  {%- set ouster_plugin_filename ="libMRSGazebo3DLidarPlugin.so" -%}
+  {%- set sensor_type = "ray"  -%}
+{% endif %}
+
+<link name="{{ sensor_link }}">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="base_visual">
+    <pose>0 0 0 0 0 {{ rad90 }}</pose>
+    <geometry>
+      <mesh>
+        <uri>model://mrs_robots_description/meshes/sensors/os1_64.dae</uri>
+        <scale>1 1 1</scale>
+      </mesh>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/White</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <visual name="window_visual">
+    <pose>0 0 {{ lidar_z }} 0 0 </pose>
+    <geometry>
+      <cylinder>
+        <length>0.035</length>
+        <radius>0.038</radius>
+      </cylinder>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Black</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  
+  {# IMU #}
+  <sensor name="{{ sensor_name }}_imu_sensor" type="imu">
+    <pose>{{ imu_x }} {{ imu_y }} {{ imu_z }} {{ imu_roll }} {{ imu_pitch }} {{ imu_yaw }}</pose>
+    <gravity>true</gravity>
+    <always_on>true</always_on>
+    <update_rate>100</update_rate>
+    <visualize>false</visualize>
+    <topic>__default_topic__</topic>
+    <plugin name="{{ sensor_name }}_imu_plugin" filename="libgazebo_ros_imu_sensor.so">
+      <robotNamespace></robotNamespace>
+      <topicName>{{ topic_imu }}</topicName>
+      <bodyName>{{ sensor_link }}</bodyName>
+      <updateRateHZ>100</updateRateHZ>
+      <gaussianNoise>0.005</gaussianNoise>
+      <xyzOffset>0 0 0</xyzOffset>
+      <rpyOffset>0 0 0</rpyOffset>
+      <frameName>{{ frame_imu }}</frameName>
+    </plugin>
+  <!-- <plugin name="imu_controller" filename="libhector_gazebo_ros_imu.so"> -->
+  <!--   <updateRate>100.0</updateRate> -->
+  <!--   <bodyName>${frame_imu}</bodyName> -->
+  <!--   <topicName>${topic_imu}</topicName> -->
+  <!--   <accelDrift>0.005 0.005 0.005</accelDrift> -->
+  <!--   <accelGaussianNoise>0.005 0.005 0.005</accelGaussianNoise> -->
+  <!--   <rateDrift>0.005 0.005 0.005 </rateDrift> -->
+  <!--   <rateGaussianNoise>0.005 0.005 0.005 </rateGaussianNoise> -->
+  <!--   <headingDrift>0.005</headingDrift> -->
+  <!--   <headingGaussianNoise>0.005</headingGaussianNoise> -->
+  <!-- </plugin> -->
+  </sensor>
+  
+  {# LIDAR #}
+  <sensor name="{{ sensor_name }}_lidar_sensor" type="{{ sensor_type }}">
+    <pose>{{ lidar_x }} {{ lidar_y }} {{ lidar_z }} {{ lidar_roll }} {{ lidar_pitch }} {{ lidar_yaw }}</pose>
+    {# <pose>0 0 0 0 0 0</pose> #}
+    <visualize>false</visualize>
+    <update_rate>{{ rot_freq }}</update_rate>
+    <ray>
+      <scan>
+        <horizontal>
+          <samples>{{ 20480/rot_freq }}</samples>
+          <resolution>1</resolution>
+          <min_angle>0</min_angle>
+          <max_angle>{{ 2*pi }}</max_angle>
+        </horizontal>
+        <vertical>
+          <samples>{{ lasers }}</samples>
+          <resolution>1</resolution>
+          <min_angle>{{ -vfov_angle/2*rad180/180.0 }}</min_angle>
+          <max_angle>{{ vfov_angle/2*rad180/180.0 }}</max_angle>
+        </vertical>
+      </scan>
+      <range>
+        <min>0.1</min>
+        <max>{{ max_range }}</max>
+        <resolution>0.03</resolution>
+      </range>
+    </ray>
+    <plugin name="{{ sensor_name }}_lidar_plugin" filename="{{ ouster_plugin_filename }}">
+      <parentFrameName>{{ frame_fcu }}</parentFrameName>
+      <sensorFrameName>{{ frame_sensor }}</sensorFrameName>
+      <sensor_x>{{ x + lidar_x }}</sensor_x>
+      <sensor_y>{{ y + lidar_y }}</sensor_y>
+      <sensor_z>{{ z + lidar_z }}</sensor_z>
+      <sensor_roll>{{ roll + lidar_roll }}</sensor_roll>
+      <sensor_pitch>{{ pitch + lidar_pitch }}</sensor_pitch>
+      <sensor_yaw>{{ yaw + lidar_yaw }}</sensor_yaw>
+
+      <!-- Lidar parameters -->
+      <lidarFrameName>{{ frame_lidar }}</lidarFrameName>
+      <lidar_x>0</lidar_x>
+      <lidar_y>0</lidar_y>
+      <lidar_z>0</lidar_z>
+      <lidar_roll>0</lidar_roll>
+      <lidar_pitch>0</lidar_pitch>
+      <lidar_yaw>{{ rad180 }}</lidar_yaw>
+      <topicName>{{ topic_lidar }}</topicName>
+      <topicDiagName>{{ topic_diag }}</topicDiagName>
+      <min_range>0.1</min_range>
+      <max_range>{{ max_range }}</max_range>
+      <ordered>true</ordered>
+      <gaussianNoise>{{ noise }}</gaussianNoise>
+
+      <!-- IMU parameters -->
+      <imu>true</imu>
+      <imuFrameName>{{ frame_imu }}</imuFrameName>
+      <imu_x>{{ imu_x - lidar_x }}</imu_x>
+      <imu_y>{{ imu_y - lidar_y }}</imu_y>
+      <imu_z>{{ imu_z - lidar_z }}</imu_z>
+      <imu_roll>{{ imu_roll - lidar_roll }}</imu_roll>
+      <imu_pitch>{{ imu_pitch - lidar_pitch }}</imu_pitch>
+      <imu_yaw>{{ imu_yaw - lidar_yaw }}</imu_yaw>
+    </plugin>
+  </sensor>
+</link>
+
+<joint name="{{ sensor_name }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>{{ sensor_link }}</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+{%- macro ouster_macro(namespace, parent_link, sensor_name, ouster_model, rot_freq, noise, enable_gpu_ray, x, y, z, roll, pitch, yaw) -%}
+
+<!-- Outster type selection {-->
+{#  default: OS1-16 Generation 1 - is specified in the config file #}
+
+{# <!-- OS0 {--> #}
+{# <!-- OS0-32 --> #}
+{% if ouster_model == 'OS0-32' %}
+  {%- set lasers = 32 -%}
+  {%- set vfov_angle = 90 -%}
+  {%- set range = 55 -%}
+{% endif %}
+
+{# <!-- OS0-64 --> #}
+{% if ouster_model == 'OS0-64' %}
+  {%- set lasers = 64 -%}
+  {%- set vfov_angle = 90 -%}
+  {%- set range = 55 -%}
+{% endif %}
+
+{# <!-- OS0-128 --> #}
+{% if ouster_model == 'OS0-128' %}
+  {%- set lasers = 128 -%}
+  {%- set vfov_angle = 90 -%}
+  {%- set range = 55 -%}
+{% endif %}
+{# <!--}--> #}
+
+{# <!-- OS1 Generation 1 {--> #}
+{# <!-- OS1-16 Generation 1 --> #}
+{% if ouster_model == 'OS1-16' %}
+  {%- set lasers = 16 -%}
+  {%- set vfov_angle = 33.2 -%}
+  {%- set range = 120 -%}
+{% endif %}
+
+{# <!--}--> #}
+
+{# <!-- OS1 Generation 2 {--> #}
+{# <!-- OS1-32 Generation 2 --> #}
+{% if ouster_model == 'OS1-32' %}
+  {%- set lasers = 32 -%}
+  {%- set vfov_angle = 45 -%}
+  {%- set range = 120 -%}
+{% endif %}
+
+{# <!-- OS1-64 Generation 2 --> #}
+{% if ouster_model == 'OS1-64' %}
+  {%- set lasers = 64 -%}
+  {%- set vfov_angle = 45 -%}
+  {%- set range = 120 -%}
+{% endif %}
+
+{# <!-- OS1-128 Generation 2 --> #}
+{% if ouster_model == 'OS1-128' %}
+  {%- set lasers = 128 -%}
+  {%- set vfov_angle = 45 -%}
+  {%- set range = 120 -%}
+{% endif %}
+
+{# <!--}--> #}
+
+<!-- OS2 {-->
+<!-- OS2-32 -->
+{% if ouster_model == 'OS2-32' %}
+  {%- set lasers = 32 -%}
+  {%- set vfov_angle = 22.5 -%}
+  {%- set range = 240 -%}
+{% endif %}
+
+<!-- OS2-64 -->
+{% if ouster_model == 'OS2-64' %}
+  {%- set lasers = 64 -%}
+  {%- set vfov_angle = 22.5 -%}
+  {%- set range = 240 -%}
+{% endif %}
+
+<!-- OS2-128 -->
+{% if ouster_model == 'OS2-128' %}
+  {%- set lasers = 128 -%}
+  {%- set vfov_angle = 22.5 -%}
+  {%- set range = 240 -%}
+{% endif %}
+
+<!--}-->
+<!--}-->
+
+{{ generic_ouster_macro(
+  namespace = namespace,
+  parent_link = parent_link,
+  sensor_name = sensor_name,
+  rot_freq = rot_freq,
+  lasers = lasers,
+  vfov_angle = vfov_angle,
+  max_range = range,
+  noise = noise,
+  enable_gpu_ray = enable_gpu_ray,
+  x = x,
+  y = y,
+  z = z,
+  roll = roll,
+  pitch = pitch,
+  yaw = yaw)
+}}
+{%- endmacro -%}
+
+<!--}-->
+
+<!-- ========================= camera sensors ========================= -->
+
+<!-- Macro to add an Intel Realsense D435 {-->
+{%- macro realsense_macro(namespace, camera_name, camera_suffix, parent_link, enable_realistic_realsense, x, y, z, roll, pitch, yaw) -%}
+{# -- frame names -- #}
+{%- set frame_fcu = namespace + "/fcu" -%}
+
+<link name="{{ camera_name }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="body_visual">
+    <pose>0 0 0 {{ -rad90 }} 0 {{ -rad90 }}</pose>
+    <geometry>
+      <mesh>
+        <uri>model://mrs_robots_description/meshes/sensors/realsense_body.stl</uri>
+        <scale>0.001 0.001 0.001</scale>
+      </mesh>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/White</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <visual name="glass_visual">
+    <pose>0 0 0 {{ -rad90 }} 0 {{ -rad90 }}</pose>
+    <geometry>
+      <mesh>
+        <uri>model://mrs_robots_description/meshes/sensors/realsense_glass.stl</uri>
+        <scale>0.001 0.001 0.001</scale>
+      </mesh>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/BlackTransparent</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+
+  <!-- sensors {-->
+  <!-- rgb camera {-->
+  <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_color" type="camera">
+    {# <pose>0 -0.046 0.004 0 0 0</pose> #}
+    <pose>0 0 -0.0115 0 0 0</pose>
+      <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_color">
+      {# <horizontal_fov>1.211259</horizontal_fov> #}
+      <horizontal_fov>1.211259</horizontal_fov>
+      <image>
+        <width>1280</width>
+        <height>720</height>
+        <format>RGB_INT8</format>
+      </image>
+      <clip>
+        <near>0.1</near>
+        <far>100</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.007</stddev>
+      </noise>
+    </camera>
+    <always_on>1</always_on>
+    <update_rate>60</update_rate>
+    <visualize>0</visualize>
+  </sensor>
+  <!--}-->
+
+  <!-- infra stereo {-->
+  <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_infra_stereo" type="multicamera">
+    <always_on>1</always_on>
+    <update_rate>30</update_rate>
+    <visualize>0</visualize>
+    <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_infra1">
+      {# <horizontal_fov>1.7523106</horizontal_fov> #}
+      <horizontal_fov>1.211259</horizontal_fov>
+      <image>
+        <width>640</width>
+        <height>360</height>
+        <format>L_INT8</format>
+      </image>
+      <clip>
+        <near>0.1</near>
+        <far>50</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.005</stddev>
+      </noise>
+    </camera>
+    <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_infra2">
+      <pose>0 0.05 0 0 0 0</pose>
+      {# <horizontal_fov>1.7523106</horizontal_fov> #}
+      <horizontal_fov>1.211259</horizontal_fov>
+      <image>
+        <width>640</width>
+        <height>360</height>
+        <format>L_INT8</format>
+      </image>
+      <clip>
+        <near>0.1</near>
+        <far>50</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.005</stddev>
+      </noise>
+    </camera>
+  </sensor>
+  <!--}-->
+
+  <!-- (unused) infra2 {-->
+    <!-- <sensor name="infra2" type="camera"> -->
+    <!-- <parent link="${camera_name}${camera_suffix}_camera_${camera_suffix}"/> -->
+    <!-- <pose>0 -1.0325 0 0 0 0</pose> -->
+    <!--   <pose frame="${camera_name}${camera_suffix}/camera_infra2">0 -1.0325 0 0 0 0</pose> -->
+    <!--   <camera name="${camera_name}${camera_suffix}/camera_${camera_suffix}_infra2"> -->
+      <!-- <horizontal_fov>1.7523106</horizontal_fov> -->
+      <!--     <horizontal_fov>1.211259</horizontal_fov> -->
+      <!--     <image> -->
+        <!--       <width>1280</width> -->
+        <!--       <height>720</height> -->
+        <!--       <format>L_INT8</format> -->
+        <!--     </image> -->
+      <!--     <clip> -->
+        <!--       <near>0.1</near> -->
+        <!--       <far>10</far> -->
+        <!--     </clip> -->
+      <!--     <noise> -->
+        <!--       <type>gaussian</type> -->
+        <!--       <mean>0.0</mean> -->
+        <!--       <stddev>0.05</stddev> -->
+        <!--     </noise> -->
+      <!--   </camera> -->
+    <!--   <always_on>1</always_on> -->
+    <!--   <update_rate>60</update_rate> -->
+    <!--   <visualize>0</visualize> -->
+      <!-- </sensor> -->
+      <!--}-->
+
+  <!-- aligned depth to color {-->
+  <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_aligned_depth_to_color" type="depth">
+    <pose>0 -0.0115 0.0 0 0 0</pose>
+    <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_aligned_depth_to_color">
+      <horizontal_fov>1.211259</horizontal_fov>
+      <image>
+        {% if enable_realistic_realsense %}
+          <width>320</width>
+          <height>180</height>
+        {% else %}
+          <width>1280</width>
+          <height>720</height>
+        {% endif %}
+      </image>
+      <clip>
+        <near>0.3</near>
+        <far>12</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>5000.0</stddev>
+      </noise>
+    </camera>
+    <always_on>1</always_on>
+    <update_rate>60</update_rate>
+    <visualize>0</visualize>
+  </sensor>
+  <!--}-->
+  <!--}-->
+
+</link>
+
+<plugin name="{{ camera_name }}{{ camera_suffix }}_plugin" filename="libMRSGazeboRealsensePlugin.so">
+  <camera_name>{{ camera_name }}</camera_name>
+  <camera_suffix>{{ camera_suffix }}</camera_suffix>
+  <useRealistic>{{ enable_realistic_realsense }}</useRealistic>
+  <noisePerMeter>0.2</noisePerMeter>
+  <minNoiseDistance>4.0</minNoiseDistance>
+  <perlinEmptyThreshold>0.8</perlinEmptyThreshold>
+  <perlinEmptySpeed>0.2</perlinEmptySpeed>
+  <imageScaling>4</imageScaling>
+  <blurSize>15</blurSize>
+  <erosionSize>5</erosionSize>
+  <parentFrameName>{{ frame_fcu }}</parentFrameName>
+  <x>{{ x }}</x>
+  <y>{{ y }}</y>
+  <z>{{ z }}</z>
+  <roll>{{ roll }}</roll>
+  <pitch>{{ pitch }}</pitch>
+  <yaw>{{ yaw }}</yaw>
+</plugin>
+
+<joint name="{{ camera_name }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>{{ camera_name }}_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a Bluefox camera {-->
+{%- macro bluefox_camera_macro(namespace, camera_name, parent_link, frame_rate, hfov, noise, x, y, z, roll, pitch, yaw) -%}
+{{ camera_macro(
+  parent_link = parent_link,
+  camera_name = camera_name,
+  parent_frame_name = namespace + "/fcu",
+  camera_frame_name = namespace + "/" + camera_name + "_optical",
+  sensor_base_frame_name = namespace  + "/" + camera_name,
+  frame_rate = frame_rate,
+  horizontal_fov = hfov,
+  image_width = 752,
+  image_height = 480,
+  min_distance = 0.02,
+  max_distance = 80,
+  noise_mean = 0.0,
+  noise_stddev = noise,
+  mesh_file = "model://mrs_robots_description/meshes/sensors/bluefox.dae",
+  mesh_scale = "1 1 1",
+  color = "DarkGrey",
+  visual_x = 0,
+  visual_y = 0,
+  visual_z = 0,
+  visual_roll = rad90,
+  visual_pitch = 0,
+  visual_yaw = 0,
+  x = x,
+  y = y,
+  z = z,
+  roll = roll,
+  pitch = pitch,
+  yaw = yaw)
+}}
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a Fisheye camera {-->
+{%- macro fisheye_camera_macro(namespace, camera_name, topic_ns_prefix, parent_link, frame_rate, noise, x, y, z, roll, pitch, yaw) -%}
+{{ fisheye_macro(
+  camera_name = camera_name,
+  topic_ns_prefix = topic_ns_prefix,
+  parent_frame_name = namespace + "/fcu",
+  camera_frame_name = namespace + "/" + camera_name + "_optical",
+  sensor_base_frame_name = namespace  + "/" + camera_name,
+  parent_link = parent_link,
+  frame_rate = frame_rate,
+  horizontal_fov = rad180,
+  image_width = 752,
+  image_height = 480,
+  lens_type = "custom",
+  lens_c1 = 1.05,
+  lens_c2 = 4,
+  lens_f = 1.0,
+  lens_fun = "tan",
+  lens_scale = True,
+  lens_cutoff_angle = rad90,
+  lens_texture_size = 512,
+  min_distance = 0.02,
+  max_distance = 40,
+  noise_mean = 0.0,
+  noise_stddev = noise,
+  mesh_file = "model://mrs_robots_description/meshes/sensors/bluefox.dae",
+  mesh_scale = "1 1 1",
+  color = "DarkGrey",
+  visual_x = 0,
+  visual_y = 0,
+  visual_z = 0,
+  visual_roll = rad90,
+  visual_pitch = 0,
+  visual_yaw = 0,
+  x = x,
+  y = y,
+  z = z,
+  roll = roll,
+  pitch = pitch,
+  yaw = yaw)
+}}
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a Mobius camera {-->
+{%- macro mobius_camera_macro(namespace, camera_name, parent_link, frame_rate, x, y, z, roll, pitch, yaw) -%}
+{{ camera_macro(
+  parent_link = parent_link,
+  camera_name = camera_name,
+  parent_frame_name = namespace + "/fcu",
+  camera_frame_name = namespace + "/" + camera_name + "_optical",
+  sensor_base_frame_name = namespace  + "/" + camera_name,
+  frame_rate = frame_rate,
+  horizontal_fov = 2.28638,
+  image_width = 1280,
+  image_height = 720,
+  min_distance = 0.02,
+  max_distance = 40,
+  noise_mean = 0.0,
+  noise_stddev = 0.007,
+  mesh_file = "model://mrs_robots_description/meshes/sensors/mobius.dae",
+  mesh_scale = "1 1 1",
+  color = "DarkGrey",
+  visual_x = -0.004,
+  visual_y = 0.0045,
+  visual_z = 0,
+  visual_roll = 0,
+  visual_pitch = 0,
+  visual_yaw = 0,
+  x = x,
+  y = y,
+  z = z,
+  roll = roll,
+  pitch = pitch,
+  yaw = yaw)
+}}
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a thermal camera {-->
+{%- macro thermal_camera_macro(camera_name, camera_topic_name, parent_frame_name, camera_frame_name, sensor_base_frame_name, parent_link, frame_rate, hfov, image_width, image_height, x, y, z, roll, pitch, yaw) -%}
+<link name="{{ camera_name }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="visual">
+    <pose>0 0 0 0 0 0</pose>
+    <geometry>
+      <mesh>
+        <uri>mrs_robots_description/meshes/sensors/teraranger_evo_thermal_33.dae</uri>
+        <scale>0.001 0.001 0.001</scale>
+      </mesh>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Yellow</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <sensor name="mrs_thermal_camera_sensor" type="camera">
+    <update_rate>{{ frame_rate }}</update_rate>
+    <camera>
+      <horizontal_fov>{{ hfov }}</horizontal_fov>
+      <image>
+        <format>R8G8B8</format>
+        <width>{{ 3 * image_width }}</width>
+        <height>{{ 3 * image_height }}</height>
+      </image>
+      <clip>
+        <near>0.1</near>
+        <far>300</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.0</stddev>
+      </noise>
+    </camera>
+    <plugin name="{{camera_name}}_plugin" filename="libMRSGazeboThermalCameraPlugin.so">
+      <alwaysOn>true</alwaysOn>
+      <cameraName>{{ camera_name }}</cameraName>
+      <updateRate>{{ frame_rate }}</updateRate>
+      <imageTopicName>{{ camera_topic_name }}/rgb_image</imageTopicName>
+      <cameraInfoTopicName>{{ camera_topic_name }}/camera_info</cameraInfoTopicName>
+      <rawTemperatureTopicName>{{ camera_topic_name }}/raw_temp_array</rawTemperatureTopicName>
+      <surroundingTemperature>20</surroundingTemperature>
+      <maximalTemperature>150</maximalTemperature>
+      <minimalTemperatureGreenColor>0.2</minimalTemperatureGreenColor>
+      <noiseStdDev>4.0</noiseStdDev>
+      <noiseStdDevMaxTemp>20.0</noiseStdDevMaxTemp>
+      <frameName>{{ camera_frame_name }}</frameName>
+      <parentFrameName>{{ parent_frame_name }}</parentFrameName>
+      <sensorBaseFrameName>{{ sensor_base_frame_name }}</sensorBaseFrameName>
+      <x>{{ x }}</x>
+      <y>{{ y }}</y>
+      <z>{{ z }}</z>
+      <roll>{{ roll }}</roll>
+      <pitch>{{ pitch }}</pitch>
+      <yaw>{{ yaw }}</yaw>
+    </plugin>
+  </sensor>
+</link>
+
+<joint name="{{ camera_name }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>{{ camera_name }}_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a UV Camera {-->
+{%- macro uvcam_macro(parent_link, calibration_file, occlusions, frame_rate, device_id, camera_publish_topic, x, y, z, roll, pitch, yaw) -%}
+<link name="uvcam_{{ device_id }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="visual">
+    <pose>0 0 0 {{ rad90 }} 0 0</pose>
+    <geometry>
+      <mesh>
+        <uri>model://mrs_robots_description/meshes/sensors/bluefox.dae</uri>
+        <scale>1 1 1</scale>
+      </mesh>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Black</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <sensor name="uvcam_{{ device_id }}_sensor" type="rfid" >
+    <update_rate>1</update_rate>
+    <plugin name='uvcam_{{ device_id }}_plugin' filename="libuvdar_cam.so">
+      <alwaysOn>false</alwaysOn>
+      <updateRate>{{ frame_rate }}</updateRate>
+      <occlusion>{{ occlusions }}</occlusion>
+      <framerate>{{ frame_rate }}</framerate>
+      <calibration_file>{{ calibration_file }}</calibration_file>
+      <device_id>{{ device_id }}</device_id>
+      <camera_publish_topic>{{ camera_publish_topic }}</camera_publish_topic>
+    </plugin>
+  </sensor>
+</link>
+
+<joint name="uvcam_{{ device_id }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>uvcam_{{ device_id }}_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a camera mounted on virtual servo {-->
+{%- macro servo_camera_macro(parent, offset_pitch_link_x, offset_pitch_link_y, offset_pitch_link_z, offset_pitch_link_yaw, offset_pitch_link_roll, offset_pitch_link_pitch, offset_roll_link_x, offset_roll_link_y, offset_roll_link_z, offset_roll_link_yaw, offset_roll_link_roll, offset_roll_link_pitch, tilt_update_rate, max_pitch, min_pitch, max_pitch_rate, max_roll, min_roll, max_roll_rate, compensate_tilt_roll, compensate_tilt_pitch, parent_frame_name, sensor_base_frame_name, camera_frame_name, camera_update_rate, horizontal_fov, img_width, img_height, roll_link_mesh_file, pitch_link_mesh_file, mesh_scale) -%}
+
+<link name="servo_camera_gimbal_link">
+  <pose relative_to = "servo_camera_roll_joint"> 0 0 0 0 0 0</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="visual">
+    <pose>0 0 0 0 0 0</pose>
+    <geometry>
+      {% if roll_link_mesh_file == '' %}
+      <box>
+        <size>0.01 0.01 0.01</size>
+      </box>
+      {% else %}
+      <mesh>
+        <uri>{{ roll_link_mesh_file }}</uri>
+        <scale>{{ mesh_scale }}</scale>
+      </mesh>
+      {% endif %}
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Black</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+</link>
+
+<link name="servo_camera_link">
+  <pose relative_to = "servo_camera_pitch_joint"> 0 0 0 0 0 0</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="visual">
+    <pose>0 0 0 0 0 0</pose>
+    <geometry>
+      {% if pitch_link_mesh_file == '' %}
+      <box>
+        <size>0.01 0.01 0.01</size>
+      </box>
+      {% else %}
+      <mesh>
+        <uri>{{ pitch_link_mesh_file }}</uri>
+        <scale>{{ mesh_scale }}</scale>
+      </mesh>
+      {% endif %}
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Black</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <sensor name="servo_camera_sensor" type="camera">
+    <update_rate>{{ camera_update_rate }}</update_rate>
+    <camera>
+      <horizontal_fov>{{ horizontal_fov }}</horizontal_fov>
+      <image>
+        <width>{{ img_width }}</width>
+        <height>{{ img_height }}</height>
+      </image>
+      <clip>
+        <near>0.25</near>
+        <far>100</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+          <!-- Noise is sampled independently per pixel on each frame.
+            That pixel's noise value is added to each of its color
+          channels, which at that point lie in the range [0,1]. -->
+        <mean>0.0</mean>
+        <stddev>0.01</stddev>
+      </noise>
+    </camera>
+    <plugin name="camera_plugin" filename="libMRSGazeboCameraPlugin.so">
+      <alwaysOn>true</alwaysOn>
+      <updateRate>{{ camera_update_rate }}</updateRate>
+      <cameraName>servo_camera</cameraName>
+      <imageTopicName>image_raw</imageTopicName>
+      <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+      <frameName>{{ camera_frame_name }}</frameName>
+      <hackBaseline>0.0</hackBaseline>
+      <distortionK1>0.0</distortionK1>
+      <distortionK2>0.0</distortionK2>
+      <distortionK3>0.0</distortionK3>
+      <distortionT1>0.0</distortionT1>
+      <distortionT2>0.0</distortionT2>
+      <x>0.0</x>
+      <y>0.0</y>
+      <z>0.0</z>
+      <roll>0.0</roll>
+      <pitch>0.0</pitch>
+      <yaw>0.0</yaw>
+      <parentFrameName>{{ parent_frame_name }}</parentFrameName>
+      <sensorBaseFrameName>{{ sensor_base_frame_name }}</sensorBaseFrameName>
+    </plugin>
+  </sensor>
+</link>
+
+<plugin name="servo_camera_plugin" filename="libMRSGazeboServoCameraPlugin.so">
+  <tilt_update_rate>{{ tilt_update_rate }}</tilt_update_rate>
+  <max_pitch_rate>{{ max_pitch_rate }}</max_pitch_rate>
+  <max_pitch>{{ max_pitch }}</max_pitch>
+  <min_pitch>{{ min_pitch }}</min_pitch>
+  <max_roll_rate>{{ max_roll_rate }}</max_roll_rate>
+  <max_roll>{{ max_roll }}</max_roll>
+  <min_roll>{{ min_roll }}</min_roll>
+  <joint_name_pitch>servo_camera_pitch_joint</joint_name_pitch>
+  <joint_name_roll>servo_camera_roll_joint</joint_name_roll>
+  <parent_link_pitch>servo_camera_gimbal_link</parent_link_pitch>
+  <parent_link_roll>{{ parent }}</parent_link_roll>
+  <compensate_tilt_roll>{{ compensate_tilt_roll }}</compensate_tilt_roll>
+  <compensate_tilt_pitch>{{ compensate_tilt_pitch }}</compensate_tilt_pitch>
+</plugin>
+
+<joint name="servo_camera_roll_joint" type="revolute">
+  <parent>{{ parent }}</parent>
+  <child>servo_camera_gimbal_link</child>
+  <pose relative_to = "{{ parent }}">{{ offset_roll_link_x }} {{ offset_roll_link_y }} {{ offset_roll_link_z }} {{ offset_roll_link_roll }} {{ offset_roll_link_pitch }} {{ offset_roll_link_yaw }}</pose>
+  <axis>
+    <xyz>1 0 0</xyz>
+    <limit>
+      <lower>-0.5</lower>
+      <upper>0.5</upper>
+      <effort>1</effort>
+      <velocity>10</velocity>
+    </limit>
+    <dynamics>
+      <damping>0.0</damping>
+      <friction>0.0</friction>
+    </dynamics>
+  </axis>
+</joint>
+
+<joint name="servo_camera_pitch_joint" type="revolute">
+  <parent>servo_camera_gimbal_link</parent>
+  <child>servo_camera_link</child>
+  <pose relative_to = "servo_camera_roll_joint">{{ offset_pitch_link_x }} {{ offset_pitch_link_y }} {{ offset_pitch_link_z }} {{ offset_pitch_link_roll }} {{ offset_pitch_link_pitch }} {{ offset_pitch_link_yaw }}</pose>
+  <axis>
+    <xyz>0 1 0</xyz>
+    <limit>
+      <lower>-1.57</lower>
+      <upper>1.57</upper>
+      <effort>1</effort>
+      <velocity>10</velocity>
+    </limit>
+    <dynamics>
+      <damping>0.0</damping>
+      <friction>0.0</friction>
+    </dynamics>
+  </axis>
+</joint>
+
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a fisheye camera with integrated imu {-->
+{%- macro vio_macro(namespace, sensor_name, parent_link, frame_rate, noise, imu_rate, imu_noise_mean, x, y, z, roll, pitch, yaw) -%}
+{{ fisheye_camera_macro(
+  namespace = namespace,
+  camera_name = sensor_name,
+  topic_ns_prefix = "camera/",
+  parent_link = parent_link,
+  frame_rate = frame_rate,
+  noise = noise,
+  x = x,
+  y = y,
+  z = z,
+  roll = roll,
+  pitch = pitch,
+  yaw = yaw)
+}}
+
+{{ custom_imu_macro(
+  sensor_name = sensor_name + "_imu",
+  parent_link = sensor_name + "_link",
+  update_rate = imu_rate,
+  topic_name = "/" + namespace + "/" + sensor_name + "/imu",
+  frame_name = namespace + "/" + sensor_name,
+  noise_mean = imu_noise_mean,
+  x = 0,
+  y = 0,
+  z = 0,
+  roll = -rad90,
+  pitch = 0,
+  yaw = -rad90)
+}}
+{%- endmacro -%}
+<!--}-->
+
+<!-- ========================== other sensors ========================= -->
+
+<!-- Macro to add a Teraranger Tower Evo {-->
+
+<!-- Macro to add a single Teraranger Evo {-->
+{%- macro teraranger_evo_macro(parent_link, id, visualize, frame_name, parent_frame_name, gaussian_noise, x, y, z, roll, pitch, yaw) -%}
+<visual name="teraranger_evo_{{ id }}_visual">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <mesh>
+      <uri>model://mrs_robots_description/meshes/sensors/teraranger_evo.stl</uri>
+      <scale>1 1 1</scale>
+    </mesh>
+  </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Yellow</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+</visual>
+<sensor name="teraranger_evo_{{ id }}_sensor" type="ray">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <visualize>{{ visualize }}</visualize>
+  <update_rate>120</update_rate>
+  <ray>
+    <scan>
+      <horizontal>
+        <samples>10</samples>
+        <resolution>1</resolution>
+        <min_angle>-0.01750</min_angle>
+        <max_angle>0.01750</max_angle>
+      </horizontal>
+      <vertical>
+        <samples>10</samples>
+        <resolution>1</resolution>
+        <min_angle>-0.01750</min_angle>
+        <max_angle>0.01750</max_angle>
+      </vertical>
+    </scan>
+    <range>
+      <min>0.5</min>
+      <max>60.0</max>
+      <resolution>0.05</resolution>
+    </range>
+  </ray>
+  <plugin name='teraranger_evo_{{ id }}_plugin' filename='libMRSGazeboRangefinderPlugin.so'>
+    <topicName>/{{ frame_name }}/range_{{ id }}</topicName>
+    <frameName>{{ frame_name }}/range_{{ id }}</frameName>
+    <parentFrameName>{{ parent_frame_name }}</parentFrameName>
+    <gaussianNoise>{{ gaussian_noise }}</gaussianNoise>
+    <updateRate>20</updateRate>
+    <radiation>ultrasound</radiation>
+    <fov>0.035</fov>
+    <x>{{ x }}</x>
+    <y>{{ y }}</y>
+    <z>{{ z }}</z>
+    <roll>{{ roll }}</roll>
+    <pitch>{{ pitch }}</pitch>
+    <yaw>{{ yaw }}</yaw>
+  </plugin>
+</sensor>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a Teraranger Tower base hub {-->
+{%- macro teraranger_evo_tower_macro(parent_link, visualize, frame_name, parent_frame_name, gaussian_noise, x, y, z, roll, pitch, yaw) -%}
+{# -- parameters of sensors -- (id, x, y, z, roll, pitch, yaw) #}
+{%- set sensor_parameters = [(0,  0.046,  0.0,   0.001, 0.0, 0.0,  0.0),
+                             (1,  0.032,  0.032, 0.001, 0.0, 0.0,  rad45),
+                             (2,  0.000,  0.046, 0.001, 0.0, 0.0,  rad90),
+                             (3, -0.032,  0.032, 0.001, 0.0, 0.0,  rad135),
+                             (4, -0.046,  0.000, 0.001, 0.0, 0.0,  rad180),
+                             (5, -0.032, -0.032, 0.001, 0.0, 0.0, -rad135),
+                             (6,  0.000, -0.046, 0.001, 0.0, 0.0, -rad90),
+                             (7,  0.032, -0.032, 0.001, 0.0, 0.0, -rad45)] -%}
+
+<link name="teraranger_evo_tower_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="visual">
+    <pose>0 0 -0.014 0 0 0</pose>
+    <geometry>
+      <cylinder>
+        <length>0.001</length>
+        <radius>0.06</radius>
+      </cylinder>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Black</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+
+{% for id_, x_, y_, z_, roll_, pitch_, yaw_ in sensor_parameters %}
+  {{ teraranger_evo_macro(
+    parent_link = parent_link,
+    id = id_,
+    visualize = visualize,
+    frame_name = frame_name,
+    parent_frame_name = parent_frame_name,
+    gaussian_noise = gaussian_noise,
+    x = x_,
+    y = y_,
+    z = z_,
+    roll = roll_,
+    pitch = pitch_,
+    yaw = yaw_)
+  }}
+{% endfor %}
+</link>
+
+<joint name="teraranger_evo_tower_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>teraranger_evo_tower_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+<!--}-->
+
+<!-- Macro to add a gps satelite blocking sensor {-->
+{%- macro gps_satelites_blocking_macro(parent_link) -%}
+{# not supported in the current version #}
+<link name="gps_blocking_link">
+  <pose>0 0 0 0 {{ -rad90 }} 0</pose>
+  {{ zero_inertial_macro() }}
+  <sensor name='gps_blocking_sensor' type='ray'>
+    <visualize>false</visualize>
+    <update_rate>2</update_rate>
+    <ray>
+      <scan>
+        <horizontal>
+          <samples>4</samples>
+          <resolution>1</resolution>
+          <min_angle>-1.1</min_angle>
+          <max_angle>1.1</max_angle>
+        </horizontal>
+        <vertical>
+          <samples>4</samples>
+          <resolution>1</resolution>
+          <min_angle>-0.9</min_angle>
+          <max_angle>0.9</max_angle>
+        </vertical>
+      </scan>
+      <range>
+        <min>0.5</min>
+        <max>50</max>
+        <resolution>0.5</resolution>
+      </range>
+    </ray>
+    <plugin name='gps_blocking_plugin' filename='libgazebo_ros_laser.so'>
+      <topicName>gps_sat_blocking</topicName>
+      <frameName>gps_blocking</frameName>
+    </plugin>
+  </sensor>
+</link>
+
+<joint name="gps_blocking_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>gps_blocking_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a magnetic gripper {-->
+{%- macro magnet_gripper_visualization_macro(parent_link, x, y, z, roll, pitch, yaw) -%}
+<link name="magnet_gripper_visualization_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="front_visual">
+    <pose>-0.09 0 0.03 0 0 0</pose>
+    <geometry>
+      <box>
+        <size>0.005 0.05 0.06</size>
+      </box>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Black</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <visual name="back_visual">
+    <pose>0.09 0 0.03 0 0 0</pose>
+    <geometry>
+      <box>
+        <size>0.005 0.05 0.06</size>
+      </box>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Black</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <visual name="down_visual">
+    <pose>0 0 0 0 0 0</pose>
+    <geometry>
+      <box>
+        <size>0.18 0.05 0.005</size>
+      </box>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Black</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <visual name="up_visual">
+    <pose>0 0 0.06 0 0 0</pose>
+    <geometry>
+      <box>
+        <size>0.18 0.05 0.005</size>
+      </box>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Black</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <collision name="collision">
+    <pose>0 0 0 0 0 0</pose>
+    <geometry>
+      <box>
+        <size>0.18 0.05 0.005</size>
+      </box>
+    </geometry>
+  </collision>
+</link>
+
+<joint name="magnet_gripper_visualization_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>magnet_gripper_visualization_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a Timepix detector {-->
+{%- macro timepix_macro(parent_link, name,  x, y, z, roll, pitch, yaw) -%}
+<link name="{{ name }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="visual">
+    <pose>0 0.05 0 0 0 0</pose>
+    <geometry>
+      <box>
+        <size>0.02 0.09 0.02</size>
+      </box>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Green</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+</link>
+
+<plugin name="{{ name }}_plugin" filename="libgazebo_timepix.so" >
+  <exposition_time>0.1</exposition_time>  <!-- [s] -->
+  <material>si</material>                 <!-- string -->
+  <size>0.0003 0.01408 0.01408</size>     <!-- [m m m] -->
+</plugin>
+
+<joint name="{{ name }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>{{ name }}_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a Timepix3 event camera {-->
+{%- macro timepix3_macro(parent_link, name, material, thickness, max_message_window, sensor_suffix, x, y, z, roll, pitch, yaw) -%}
+<link name="{{ name }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="visual">
+    <pose>0 0.05 0 0 0 0</pose>
+    <geometry>
+      <box>
+        <size>0.02 0.09 0.02</size>
+      </box>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Green</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+</link>
+
+<plugin name="{{ name }}_plugin" filename="libgazebo_timepix3.so" >
+  <material>{{ material }}</material>               <!-- string -->
+  <size>{{ thickness }} 0.01408 0.01408</size>     <!-- [m m m] -->
+  <max_message_window>{{ max_message_window }}</max_message_window> <!-- [s] -->
+  <sensor_suffix>{{ sensor_suffix }}</sensor_suffix> <!-- string -->
+</plugin>
+
+<joint name="{{ name }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>{{ name }}_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a water gun {-->
+{%- macro water_gun_macro(parent_link, muzzle_velocity, particle_capacity, spread, spawning_reservoir, nozzle_offset_x, nozzle_offset_y, nozzle_offset_z, x, y, z, roll, pitch, yaw) -%}
+<link name="water_gun_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="water_bag_visual">
+    <pose>0 0 0 0 0 0</pose>
+    <geometry>
+      <box>
+        <size>0.02 0.08 0.03</size>
+      </box>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Blue</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <visual name="nozzle_visual">
+    <pose>{{ nozzle_offset_x - 0.08/2 }} {{ nozzle_offset_y }} {{ nozzle_offset_z - 0.006/2 }} 0 {{ rad90 }} 0</pose>
+    <geometry>
+      <cylinder>
+        <length>0.08</length>
+        <radius>0.006</radius>
+      </cylinder>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/DarkGrey</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+</link>
+
+<plugin name="water_gun_plugin" filename="libMRSGazeboWaterGunPlugin.so">
+  <muzzle_velocity>{{ muzzle_velocity }}</muzzle_velocity>
+  <offset_x>{{ nozzle_offset_x }}</offset_x>
+  <offset_y>{{ nozzle_offset_y }}</offset_y>
+  <offset_z>{{ nozzle_offset_z }}</offset_z>
+  <spread>{{ spread }}</spread>
+  <particle_capacity>{{ particle_capacity }}</particle_capacity>
+  <spawning_reservoir>{{ spawning_reservoir }}</spawning_reservoir>
+</plugin>
+
+<joint name="water_gun_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>water_gun_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a light {-->
+{%- macro light_macro(parent_link, update_rate, max_pitch_rate, initial_on, compensate_tilt, x, y, z, roll, pitch, yaw) -%}
+<link name="light_macro_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="visual">
+    <pose>0 0 0 0 0 0</pose>
+    <geometry>
+      <box>
+        <size>0.01 0.01 0.01</size>
+      </box>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Yellow</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+</link>
+
+<plugin name="light_plugin" filename="libMRSGazeboLightPlugin.so">
+  <offset_x>{{ x }}</offset_x>
+  <offset_y>{{ y }}</offset_y>
+  <offset_z>{{ z }}</offset_z>
+  <offset_roll>{{ roll }}</offset_roll>
+  <offset_pitch>{{ pitch }}</offset_pitch>
+  <offset_yaw>{{ yaw }}</offset_yaw>
+  <spawning_frame>{{ parent_link }}</spawning_frame>
+  <update_rate>{{ update_rate }}</update_rate>
+  <max_pitch_rate>{{ max_pitch_rate }}</max_pitch_rate>
+  <initial_on>{{ initial_on }}</initial_on>
+  <compensate_tilt>{{ compensate_tilt }}</compensate_tilt>
+</plugin>
+
+<joint name="light_macro_joint" type="revolute">
+  <parent>{{ parent_link }}</parent>
+  <child>light_macro_link</child>
+  <axis>
+    <xyz>0 1 0</xyz>
+    <limit>
+      <lower>-1.57</lower>
+      <upper>1.57</upper>
+      <effort>1</effort>
+      <velocity>10</velocity>
+    </limit>
+    <dynamics>
+      <damping>0.0</damping>
+      <friction>0.0</friction>
+    </dynamics>
+  </axis>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a safety_led {-->
+{%- macro safety_led_macro(parent_link, failure_duration_threshold, x, y, z, roll, pitch, yaw) -%}
+<link name="safety_led_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+</link>
+
+<plugin name="safety_led_plugin" filename="libMRSSafetyLedPlugin.so">
+  <model_name>safety_led</model_name>
+  <failure_duration_threshold>{{ failure_duration_threshold }}</failure_duration_threshold>
+  <model_spawn_delay>5.0</model_spawn_delay>
+  <x>{{ x }}</x>
+  <y>{{ y }}</y>
+  <z>{{ z }}}</z>
+  <roll>{{ roll }}</roll>
+  <pitch>{{ pitch }}</pitch>
+  <yaw>{{ yaw }}</yaw>
+</plugin>
+
+<joint name="safety_led_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>safety_led_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a UV LED{-->
+{%- macro uvled_macro(parent_link, device_id, signal_id , x, y, z, roll, pitch, yaw) -%}
+<link name="uvled_{{ device_id }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="main_body_visual">
+    <pose>0 0 -0.0025 0 0 0</pose>
+    <geometry>
+      <cylinder>
+        <length>0.005</length>
+        <radius>0.007</radius>
+      </cylinder>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/DarkGrey</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <visual name="electrodes_visual">
+    <pose>0 0 -0.0025 0 0 0</pose>
+    <geometry>
+      <box>
+        <size>0.001 0.02 0.001</size>
+      </box>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/DarkGrey</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <visual name="lens_visual">
+    <pose>0 0 0 0 0 0</pose>
+    <geometry>
+      <sphere>
+        <radius>0.005</radius>
+      </sphere>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/BlueTransparent</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <sensor name="uvled_{{ device_id }}_sensor" type="rfid">
+    <update_rate>1</update_rate>
+    <plugin name='uvled_{{ device_id }}_plugin' filename="libuvdar_led.so">
+      <alwaysOn>false</alwaysOn>
+      <updateRate>1</updateRate>
+      <signal_id>{{ signal_id }}</signal_id>
+      <device_id>{{ device_id }}</device_id>
+    </plugin>
+  </sensor>
+</link>
+
+<joint name="uvled_{{ device_id }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>uvled_{{ device_id }}_link</child>
+  <disableFixedJointLumping>true</disableFixedJointLumping>
+  <preserveFixedJoint>true</preserveFixedJoint>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- ================================================================== -->
+<!-- ||         other equipment definitions (holders, boxes ...)     || -->
+<!-- ================================================================== -->
+
+<!-- Macro to add a parachute {-->
+{%- macro parachute_macro(parent_link, x, y, z, roll, pitch, yaw) -%}
+<link name="parachute_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="visual">
+    <pose>0 0 0 0 0 0</pose>
+    <geometry>
+      <cylinder>
+        <length>0.1</length>
+        <radius>0.048</radius>
+      </cylinder>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/DarkGrey</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+</link>
+
+<plugin name="parachute_plugin" filename="libMRSGazeboParachutePlugin.so">
+  <air_density>1.225</air_density>
+  <drag_coeff>500</drag_coeff>
+  <cross_section>0.25</cross_section>
+  <offset_x>0</offset_x>
+  <offset_y>0</offset_y>
+  <offset_z>-1.56</offset_z>
+</plugin>
+
+<joint name="parachute_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>parachute_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a whycon box {-->
+{%- macro whycon_box_macro(parent_link, mesh_scale, x, y, z, roll, pitch, yaw) -%}
+<link name="whycon_box_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="visual">
+    <pose>0 0 0 0 0 0</pose>
+    <geometry>
+      <mesh>
+        <uri>model://mrs_robots_description/meshes/sensors/whycon_box.dae</uri>
+        <scale>{{ mesh_scale }}</scale>
+      </mesh>
+    </geometry>
+  </visual>
+</link>
+
+<joint name="whycon_box_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>whycon_box_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a pendulum {-->
+
+<!-- Macro to add a single chain in the pendulum {-->
+{%- macro single_chain_pendulum_macro(parent_link, id, chain_mass, chain_radius, chain_length, joint_offset_x, joint_offset_y, joint_offset_z) -%}
+<link name="pendulum_chain_{{ id }}_link">
+  <pose relative_to = "pendulum_chain_{{ id }}_joint"> 0 0 {{ -chain_length/2 }} 0 0 0</pose>
+  <inertial>
+    <mass>{{ chain_mass }}</mass>
+    {{
+      cylinder_inertia(
+        m = chain_mass,
+        r = chain_radius,
+        h = chain_length)
+    }}
+  </inertial>
+  <gravity>1</gravity>
+  <visual name="chain_visual">
+    <pose>0 0 0 0 0 0</pose>
+    <geometry>
+      <cylinder>
+        <length>{{ chain_length }}</length>
+        <radius>{{ chain_radius }}</radius>
+      </cylinder>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/DarkGrey</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <visual name="connection_visual">
+    <pose>0 0 {{ chain_length/2 }} 0 0 0</pose>
+    <geometry>
+      <sphere>
+        <radius>0.012</radius>
+      </sphere>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Yellow</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+</link>
+
+<joint name="pendulum_chain_{{ id }}_joint" type="revolute2">
+  <parent>{{ parent_link }}</parent>
+  <child>pendulum_chain_{{ id }}_link</child>
+  <pose relative_to = "{{ parent_link }}">{{ joint_offset_x }} {{ joint_offset_y }} {{ joint_offset_z }} 0 0 0</pose>
+  <axis>
+    <xyz>1 0 0</xyz>
+    <limit>
+      <lower>-3.1415</lower>
+      <upper>3.1415</upper>
+      <effort>-1</effort>
+      <velocity>-1</velocity>
+    </limit>
+    <dynamics>
+      <damping>0.0</damping>
+      <friction>0.0</friction>
+    </dynamics>
+  </axis>
+  <axis2>
+    <xyz>0 1 0</xyz>
+    <limit>
+      <lower>-3.1415</lower>
+      <upper>3.1415</upper>
+      <effort>-1</effort>
+      <velocity>-1</velocity>
+    </limit>
+    <dynamics>
+      <damping>0.0</damping>
+      <friction>0.0</friction>
+    </dynamics>
+  </axis2>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a pendulum {-->
+{%- macro pendulum_macro(parent_link, number_of_chains, chain_length, chain_radius, chain_mass, x, y, z) -%}
+{{ single_chain_pendulum_macro(
+  parent_link = parent_link,
+  id = 0,
+  chain_mass = chain_mass,
+  chain_radius = chain_radius,
+  chain_length = chain_length,
+  joint_offset_x = x,
+  joint_offset_y = y,
+  joint_offset_z = z,
+  )
+}}
+
+{% for id_ in range(1, number_of_chains) %}
+  {{ single_chain_pendulum_macro(
+    parent_link = "pendulum_chain_" + (id_ - 1)| string() + "_link",
+    id = id_,
+    chain_mass = chain_mass,
+    chain_radius = chain_radius,
+    chain_length = chain_length,
+    joint_offset_x = 0,
+    joint_offset_y = 0,
+    joint_offset_z = -chain_length/2,
+    )
+  }}
+{% endfor %}
+{%- endmacro -%}
+<!--}-->
+<!--}-->

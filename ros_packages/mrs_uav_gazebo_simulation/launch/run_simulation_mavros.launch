@@ -1,0 +1,58 @@
+<launch>
+
+  <arg name="ID"/>
+  <arg name="vehicle"/>
+  <arg name="fcu_url"/>
+
+  <arg name="pluginlists_yaml" value="$(find mrs_uav_general)/config/px4_pluginlists.yaml" />
+  <arg name="config_yaml" value="$(find mrs_uav_general)/config/px4_config.yaml" />
+
+  <arg name="log_output" default="screen" />
+  <arg name="gcs_url" default="" />
+  <arg name="fcu_protocol" default="v2.0" />
+  <arg name="tgt_component" default="1" />
+  <arg name="tgt_system" default="$(eval 1 + arg('ID'))" />
+  <arg name="respawn_mavros" default="false" />
+
+  <arg name="est" default="ekf2"/>
+
+  <!-- UAV namespace -->
+  <group ns="uav$(arg ID)">
+
+    <!-- PX4 params -->
+    <env name="PX4_SIM_MODEL" value="$(arg vehicle)" />
+    <env name="PX4_ESTIMATOR" value="$(arg est)" />
+
+    <!-- MAVROS -->
+    <node pkg="mavros" type="mavros_node" name="mavros" required="$(eval not respawn_mavros)" clear_params="true" output="$(arg log_output)" respawn="$(arg respawn_mavros)">
+      <param name="fcu_url" value="$(arg fcu_url)" />
+      <param name="gcs_url" value="$(arg gcs_url)" />
+      <param name="target_system_id" value="$(arg tgt_system)" />
+      <param name="target_component_id" value="$(arg tgt_component)" />
+      <param name="fcu_protocol" value="$(arg fcu_protocol)" />
+
+      <param name="distance_sensor/garmin/id" value="0" />
+      <param name="distance_sensor/garmin/frame_id" value="uav$(arg ID)/garmin" />
+      <param name="local_position/frame_id" value="uav$(arg ID)/pixhawk_origin" />
+      <param name="local_position/tf/child_frame_id" value="uav$(arg ID)/fcu" />
+      <param name="imu/frame_id" value="uav$(arg ID)/fcu" />
+      <param name="global_position/frame_id" value="uav$(arg ID)/utm_origin" />
+      <param name="global_position/child_frame_id" value="uav$(arg ID)/fcu" />
+
+      <!-- enable publishing simtime from px4 -->
+      <param name="time/publish_sim_time" value="false"/>
+
+      <!-- connection timeout in seconds between px4 and mavros.-->
+      <param name="conn/timeout" value="1000000"/>
+
+      <!-- load blacklist, config -->
+      <rosparam command="load" file="$(arg pluginlists_yaml)" />
+      <rosparam command="load" file="$(arg config_yaml)" />
+
+      <!-- prevent all uavs from publishing to the same diagnostics topic -->
+      <remap from="/diagnostics" to="/uav$(arg ID)/diagnostics" />
+    </node>
+
+  </group>
+
+</launch>

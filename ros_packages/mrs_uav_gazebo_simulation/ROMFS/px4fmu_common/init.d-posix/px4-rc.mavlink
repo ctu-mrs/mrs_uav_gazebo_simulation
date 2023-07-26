@@ -1,0 +1,20 @@
+#!/bin/sh
+# shellcheck disable=SC2154
+
+port_base=$((14000 + (4 * px4_instance)))
+udp_offboard_port_local=$((port_base + 1))
+udp_offboard_port_remote=$((port_base + 2))
+
+simulator_tcp_port=$((4560+px4_instance))
+
+mavlink start -x -u $udp_offboard_port_local -r 4000000 -m onboard -o $udp_offboard_port_remote
+mavlink stream -r 100 -s ATTITUDE -u $udp_offboard_port_local
+mavlink stream -r 100 -s ATTITUDE_QUATERNION -u $udp_offboard_port_local # /mavros/imu/data
+mavlink stream -r 100 -s ATTITUDE_TARGET -u $udp_offboard_port_local
+mavlink stream -r 100 -s HIGHRES_IMU -u $udp_offboard_port_local # /mavros/imu/data_raw
+mavlink stream -r 100 -s LOCAL_POSITION_NED -u $udp_offboard_port_local
+mavlink stream -r 100 -s GLOBAL_POSITION_INT -u $udp_offboard_port_local
+mavlink stream -r 10 -s RC_CHANNELS -u $udp_offboard_port_local
+mavlink stream -r 10 -s SYS_STATUS -u $udp_offboard_port_local
+mavlink stream -r 100 -s HEARTBEAT -u $udp_offboard_port_local
+mavlink stream -r 100 -s DISTANCE_SENSOR -u $udp_offboard_port_local
