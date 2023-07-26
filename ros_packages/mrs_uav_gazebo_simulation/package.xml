@@ -22,6 +22,7 @@
   <depend>px4</depend>
   <depend>mavlink_sitl_gazebo</depend>
   <depend>mrs_gazebo_common_resources</depend>
+  <depend>mrs_uav_px4_api</depend>
   <depend>std_msgs</depend>
   <depend>message_runtime</depend>
   <depend>mrs_msgs</depend>
