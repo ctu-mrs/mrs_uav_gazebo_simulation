@@ -26,6 +26,7 @@
   <depend>std_msgs</depend>
   <depend>message_runtime</depend>
   <depend>mrs_msgs</depend>
+  <depend>python3-jinja2</depend>
 
   <exec_depend>mrs_uav_general</exec_depend>
 
