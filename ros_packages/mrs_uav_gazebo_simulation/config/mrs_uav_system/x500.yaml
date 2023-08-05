@@ -1,0 +1,6 @@
+uav_mass: 2.0
+
+motor_params:
+  n_motors: 4
+  a: 0.28980
+  b: -0.17647
