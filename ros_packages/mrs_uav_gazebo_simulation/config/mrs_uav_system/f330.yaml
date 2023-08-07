@@ -1,8 +1,8 @@
-uav_mass: 2.0
+uav_mass: 1.35
 
 motor_params:
   n_motors: 4
-  a: 0.28980
+  a:  0.39413
   b: -0.17647
 
 # these model parameters can be used when
@@ -11,18 +11,18 @@ motor_params:
 # are done by the MRS system.
 model_params:
 
-  arm_length: 0.25 # [m]
-  body_height: 0.1 # [m]
+  arm_length: 0.165 # [m]
+  body_height: 0.07 # [m]
 
   propulsion:
 
     # force [N] = force_constant * rpm^2
-    force_constant: 0.00000027087
+    force_constant: 0.000000094268
 
     # torque [Nm] = torque_constant * force [N]
     torque_constant: 0.07
 
-    prop_radius: 0.15 # [m]
+    prop_radius: 0.09 # [m]
 
     # allocation motors -> torques
 
@@ -35,10 +35,10 @@ model_params:
     allocation_matrix: [
       -0.707, 0.707, 0.707,  -0.707, # *= force_constant*arm_length
       -0.707, 0.707, -0.707, 0.707,  # *= force_constant*arm_length
-      -1,     -1,    1,      1,      # *= torque_constant*force_constant
+      -1,     -1,    1,      1,      # *= moment_constant*force_constant
       1,      1,     1,      1,      # *= force_constant
     ]
 
     rpm:
-      min: 1170 # [revolutions/minute]
-      max: 7800 # [revolutions/minute]
+      min: 1459  # [revolutions/minute]
+      max: 9722  # [revolutions/minute]
