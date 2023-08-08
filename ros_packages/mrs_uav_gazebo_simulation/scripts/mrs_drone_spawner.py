@@ -40,8 +40,10 @@ class MrsDroneSpawner():
         # check that mrs_uav_general package can be found
         self.rospack.get_path('mrs_uav_general')
 
-        pkg_path = self.rospack.get_path('mrs_uav_gazebo_simulation')
-        path_to_spawner_params = pkg_path + os.sep + 'config' + os.sep + 'spawner_params.yaml'
+        gazebo_simulation_path = self.rospack.get_path('mrs_uav_gazebo_simulation')
+        px4_api_path = self.rospack.get_path('mrs_uav_px4_api')
+
+        path_to_spawner_params = gazebo_simulation_path + os.sep + 'config' + os.sep + 'spawner_params.yaml'
 
         with open(path_to_spawner_params, 'r') as params_file:
             self.spawner_params = yaml.safe_load(params_file)
@@ -58,9 +60,9 @@ class MrsDroneSpawner():
         for key, values in self.spawner_params.items():
             self.default_model_config[key] = values[0]
 
-        self.path_to_launch_file_firmware = pkg_path + os.sep + 'launch' + os.sep + 'run_simulation_firmware.launch'
-        self.path_to_launch_file_spawn_model = pkg_path + os.sep + 'launch' + os.sep + 'spawn_simulation_model.launch'
-        self.path_to_launch_file_mavros = "mrs_uav_px4_api" + os.sep + 'launch' + os.sep + 'mavros_gazebo_simulation.launch'
+        self.path_to_launch_file_firmware = gazebo_simulation_path + os.sep + 'launch' + os.sep + 'run_simulation_firmware.launch'
+        self.path_to_launch_file_spawn_model = gazebo_simulation_path + os.sep + 'launch' + os.sep + 'spawn_simulation_model.launch'
+        self.path_to_launch_file_mavros = px4_api_path + os.sep + 'launch' + os.sep + 'mavros_gazebo_simulation.launch'
 
         rospy.init_node('mrs_drone_spawner', anonymous=True)
         rinfo('Node initialization started. All parameters loaded correctly.')
@@ -650,3 +652,4 @@ if __name__ == '__main__':
 
     except rospy.ROSInterruptException:
         pass
+
