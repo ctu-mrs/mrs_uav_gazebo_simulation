@@ -60,7 +60,7 @@ class MrsDroneSpawner():
 
         self.path_to_launch_file_firmware = pkg_path + os.sep + 'launch' + os.sep + 'run_simulation_firmware.launch'
         self.path_to_launch_file_spawn_model = pkg_path + os.sep + 'launch' + os.sep + 'spawn_simulation_model.launch'
-        self.path_to_launch_file_mavros = pkg_path + os.sep + 'launch' + os.sep + 'run_simulation_mavros.launch'
+        self.path_to_launch_file_mavros = "mrs_uav_px4_api" + os.sep + 'launch' + os.sep + 'mavros_gazebo_simulation.launch'
 
         rospy.init_node('mrs_drone_spawner', anonymous=True)
         rinfo('Node initialization started. All parameters loaded correctly.')
