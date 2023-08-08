@@ -39,6 +39,10 @@ model_params:
       1,      1,     1,      1,      # *= force_constant
     ]
 
+    # The UAV's inertia is approximated as a cilinder using the parameters above
+    # Alternatively, you can provide inertia matrix directly using the following parameter:
+    # inertia_matrix: []
+
     rpm:
       min: 875  # [revolutions/minute]
       max: 5832 # [revolutions/minute]
