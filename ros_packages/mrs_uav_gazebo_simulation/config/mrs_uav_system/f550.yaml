@@ -1,8 +1,8 @@
-uav_mass: 1.35
+uav_mass: 2.3
 
 motor_params:
-  n_motors: 4
-  a:  0.39413
+  n_motors: 6
+  a:  0.37119
   b: -0.17647
 
 # these model parameters can be used when
@@ -11,18 +11,18 @@ motor_params:
 # are done by the MRS system.
 model_params:
 
-  arm_length: 0.165 # [m]
-  body_height: 0.07 # [m]
+  arm_length: 0.27 # [m]
+  body_height: 0.1  # [m]
 
   propulsion:
 
     # force [N] = force_constant * rpm^2
-    force_constant: 0.000000094268
+    force_constant: 0.00000012216
 
     # torque [Nm] = torque_constant * force [N]
     torque_constant: 0.07
 
-    prop_radius: 0.09 # [m]
+    prop_radius: 0.11 # [m]
 
     # allocation motors -> torques
 
@@ -33,10 +33,10 @@ model_params:
     #  yaw torque,         Matrix       ...
     #  thrust force]              ]    RPM_n_motors^2]
     allocation_matrix: [
-      -0.707, 0.707, 0.707,  -0.707, # *= force_constant*arm_length
-      -0.707, 0.707, -0.707, 0.707,  # *= force_constant*arm_length
-      -1,     -1,    1,      1,      # *= moment_constant*force_constant
-      1,      1,     1,      1,      # *= force_constant
+      1, -1, -0.5,  0.5,  0.5,   -0.5, # *= force_constant*arm_length
+      0, 0,  -0.87, 0.87, -0.87, 0.87, # *= force_constant*arm_length
+      1, -1, 1,     -1,   -1,    1,    # *= moment_constant*force_constant
+      1, 1,  1,     1,    1,     1     # *= force_constant
     ]
 
     # The UAV's inertia is approximated as a cilinder using the parameters above
@@ -44,8 +44,8 @@ model_params:
     # inertia_matrix: []
 
     rpm:
-      min: 1459  # [revolutions/minute]
-      max: 9722  # [revolutions/minute]
+      min: 1360  # [revolutions/minute]
+      max: 9068  # [revolutions/minute]
 
 mrs_uav_managers:
 
