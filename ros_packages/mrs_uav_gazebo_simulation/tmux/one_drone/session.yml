@@ -36,7 +36,7 @@ windows:
   - takeoff:
       layout: tiled
       panes:
-        - waitForRos; roslaunch mrs_uav_general automatic_start.launch
+        - waitForRos; roslaunch mrs_uav_autostart automatic_start.launch
         - 'waitForControl; rosservice call /$UAV_NAME/hw_api/arming 1; sleep 2; rosservice call /$UAV_NAME/hw_api/offboard'
   - goto:
       layout: tiled
