@@ -14,21 +14,19 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <depend>rospy</depend>
   <depend>cmake_modules</depend>
-  <depend>mavros_msgs</depend>
-  <depend>gazebo</depend>
   <depend>gazebo_ros</depend>
-  <depend>px4</depend>
   <depend>mavlink_sitl_gazebo</depend>
-  <depend>mrs_gazebo_common_resources</depend>
-  <depend>mrs_uav_px4_api</depend>
-  <depend>std_msgs</depend>
+  <depend>mavros_msgs</depend>
   <depend>message_runtime</depend>
+  <depend>mrs_gazebo_common_resources</depend>
   <depend>mrs_msgs</depend>
-  <depend>python3-jinja2</depend>
+  <depend>mrs_uav_px4_api</depend>
+  <depend>px4</depend>
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
 
-  <exec_depend>mrs_uav_general</exec_depend>
+  <depend>python3-jinja2</depend>
 
   <export>
     <!-- gazebo_ros_paths_plugin automatically adds these to

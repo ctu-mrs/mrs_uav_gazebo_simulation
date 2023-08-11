@@ -1,22 +1,29 @@
-cmake_minimum_required(VERSION 3.2.0)
+cmake_minimum_required(VERSION 3.5)
 project(mrs_uav_gazebo_simulation)
 
-find_package(catkin REQUIRED COMPONENTS
+set(CATKIN_DEPENDENCIES
   cmake_modules
-  rospy
   gazebo_ros
-  std_msgs
+  mavlink_sitl_gazebo
+  mavros_msgs
+  message_runtime
+  mrs_gazebo_common_resources
   mrs_msgs
+  mrs_uav_px4_api
+  px4
+  rospy
+  std_msgs
   )
 
-find_package(mavros_msgs REQUIRED)
+find_package(catkin REQUIRED COMPONENTS
+  ${CATKIN_DEPENDENCIES}
+  )
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 catkin_package(
-  CATKIN_DEPENDS rospy std_msgs message_runtime
-  DEPENDS mavros_msgs
+  CATKIN_DEPENDS ${CATKIN_DEPENDENCIES}
   )
 
 include_directories(
