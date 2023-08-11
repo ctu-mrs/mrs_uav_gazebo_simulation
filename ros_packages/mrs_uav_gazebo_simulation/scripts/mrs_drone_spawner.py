@@ -37,9 +37,6 @@ class MrsDroneSpawner():
         self.verbose = verbose
         self.rospack = rospkg.RosPack()
 
-        # check that mrs_uav_general package can be found
-        self.rospack.get_path('mrs_uav_general')
-
         gazebo_simulation_path = self.rospack.get_path('mrs_uav_gazebo_simulation')
         px4_api_path = self.rospack.get_path('mrs_uav_px4_api')
 

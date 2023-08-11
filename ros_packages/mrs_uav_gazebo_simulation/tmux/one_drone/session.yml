@@ -28,7 +28,7 @@ windows:
   - hw_api:
       layout: tiled
       panes:
-        - waitForTime; roslaunch mrs_uav_px4_api api.launch custom_config:=./custom_configs/hw_api.yaml
+        - waitForTime; roslaunch mrs_uav_px4_api api.launch
   - control:
       layout: tiled
       panes:
