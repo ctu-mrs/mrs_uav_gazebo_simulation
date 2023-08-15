@@ -745,7 +745,7 @@ limitations under the License.
 
 <!-- Macro to add the magnetometer_plugin{-->
 {%- macro magnetometer_plugin_macro(pub_rate, noise_density, random_walk, bias_correlation_time, mag_topic) -%}
-<plugin name="magnetometer_plugin" filename="libMrsGazeboCommonResources_MagnetometerPlugin.so">
+<plugin name="magnetometer_plugin" filename="libgazebo_magnetometer_plugin.so">
   <robotNamespace/>
   <pubRate>{{ pub_rate }}</pubRate>
   <noiseDensity>{{ noise_density }}</noiseDensity>
