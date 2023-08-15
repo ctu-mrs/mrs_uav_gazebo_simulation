@@ -745,7 +745,7 @@ limitations under the License.
 
 <!-- Macro to add the magnetometer_plugin{-->
 {%- macro magnetometer_plugin_macro(pub_rate, noise_density, random_walk, bias_correlation_time, mag_topic) -%}
-<plugin name="magnetometer_plugin" filename="libgazebo_magnetometer_plugin.so">
+<plugin name="magnetometer_plugin" filename="libMrsGazeboCommonResources_MagnetometerPlugin.so">
   <robotNamespace/>
   <pubRate>{{ pub_rate }}</pubRate>
   <noiseDensity>{{ noise_density }}</noiseDensity>
@@ -921,7 +921,7 @@ limitations under the License.
       <resolution>{{ resolution }}</resolution>
     </range>
   </ray>
-  <plugin name='{{ name }}_plugin' filename='libMRSGazeboRangefinderPlugin.so'>
+  <plugin name='{{ name }}_plugin' filename='libMrsGazeboCommonResources_RangefinderPlugin.so'>
     <gaussianNoise>{{ noise }}</gaussianNoise>
     <alwaysOn>true</alwaysOn>
     <updateRate>{{ frame_rate }}</updateRate>
@@ -979,7 +979,7 @@ limitations under the License.
         <stddev>{{ noise_stddev }}</stddev>
       </noise>
     </camera>
-    <plugin name="{{ camera_name }}_plugin" filename="libMRSGazeboCameraPlugin.so">
+    <plugin name="{{ camera_name }}_plugin" filename="libMrsGazeboCommonResources_CameraPlugin.so">
       <alwaysOn>true</alwaysOn>
       <updateRate>{{ frame_rate }}</updateRate>
       <cameraName>{{ camera_name }}</cameraName>
@@ -1066,7 +1066,7 @@ limitations under the License.
         <env_texture_size>{{ lens_texture_size }}</env_texture_size>
       </lens>
     </camera>
-    <plugin name="{{ camera_name }}_plugin" filename="libMRSGazeboCameraPlugin.so">
+    <plugin name="{{ camera_name }}_plugin" filename="libMrsGazeboCommonResources_CameraPlugin.so">
       <alwaysOn>true</alwaysOn>
       <updateRate>{{ frame_rate }}</updateRate>
       <cameraName>{{ camera_name }}</cameraName>
@@ -1150,7 +1150,7 @@ limitations under the License.
         <stddev>0.01</stddev>
       </noise>
     </ray>
-    <plugin name="{{ sensor_name }}_plugin" filename="libgazebo_lidar_plugin.so">
+    <plugin name="{{ sensor_name }}_plugin" filename="libMrsGazeboCommonResources_2DLidarPlugin.so">
       <robotNamespace/>
       <min_distance>0.1</min_distance>
       <max_distance>35.0</max_distance>
@@ -1363,7 +1363,7 @@ limitations under the License.
         <stddev>0.01</stddev>
       </noise>
     </ray>
-    <plugin name='sweeper_plugin' filename='libMRSGazebo2DLidarPlugin.so'>
+    <plugin name='sweeper_plugin' filename='libMrsGazeboCommonResources_2DLidarPlugin.so'>
       <topicName>scanse_sweep/range</topicName>
       <frameName>{{ namespace }}/scanse_sweep</frameName>
       <parentFrameName>{{ namespace}}/fcu</parentFrameName>
@@ -1393,7 +1393,8 @@ limitations under the License.
     <pose>0 0 -0.029 0 0 {{ rad180 }}</pose>
     <geometry>
       <mesh>
-        <uri>model://mrs_robots_description/meshes/sensors/rplidar.stl</uri>
+        <uri>model://mrs_robots_description/meshes/seMrsGazeboCommonResources_3DLidarGpuPlugiMrsGazeboCommonResources_3DLidarGpuPlugii
+          .stl</uri>
         <scale>0.001 0.001 0.001</scale>
       </mesh>
     </geometry>
@@ -1489,10 +1490,10 @@ limitations under the License.
 {%- set lidar_yaw = 0  -%}
 
 {% if enable_gpu_ray %}
-  {%- set velodyne_plugin_filename ="libMRSGazebo3DLidarGpuPlugin.so" -%}
+  {%- set velodyne_plugin_filename ="libMrsGazeboCommonResources_3DLidarGpuPlugin.so" -%}
   {%- set sensor_type = "gpu_ray"  -%}
 {% else %}
-  {%- set velodyne_plugin_filename ="libMRSGazebo3DLidarPlugin.so" -%}
+  {%- set velodyne_plugin_filename ="libMrsGazeboCommonResources_3DLidarPlugin.so" -%}
   {%- set sensor_type = "ray"  -%}
 {% endif %}
 
@@ -1642,10 +1643,10 @@ limitations under the License.
 {%- set imu_yaw = 0 -%}
 
 {% if enable_gpu_ray %}
-  {%- set ouster_plugin_filename ="libMRSGazebo3DLidarGpuPlugin.so" -%}
+  {%- set ouster_plugin_filename ="libMrsGazeboCommonResources_3DLidarGpuPlugin.so" -%}
   {%- set sensor_type = "gpu_ray"  -%}
 {% else %}
-  {%- set ouster_plugin_filename ="libMRSGazebo3DLidarPlugin.so" -%}
+  {%- set ouster_plugin_filename ="libMrsGazeboCommonResources_3DLidarPlugin.so" -%}
   {%- set sensor_type = "ray"  -%}
 {% endif %}
 
@@ -2071,7 +2072,7 @@ limitations under the License.
 
 </link>
 
-<plugin name="{{ camera_name }}{{ camera_suffix }}_plugin" filename="libMRSGazeboRealsensePlugin.so">
+<plugin name="{{ camera_name }}{{ camera_suffix }}_plugin" filename="libMrsGazeboCommonResources_RealsensePlugin.so">
   <camera_name>{{ camera_name }}</camera_name>
   <camera_suffix>{{ camera_suffix }}</camera_suffix>
   <useRealistic>{{ enable_realistic_realsense }}</useRealistic>
@@ -2398,7 +2399,7 @@ limitations under the License.
         <stddev>0.01</stddev>
       </noise>
     </camera>
-    <plugin name="camera_plugin" filename="libMRSGazeboCameraPlugin.so">
+    <plugin name="camera_plugin" filename="libMrsGazeboCommonResources_CameraPlugin.so">
       <alwaysOn>true</alwaysOn>
       <updateRate>{{ camera_update_rate }}</updateRate>
       <cameraName>servo_camera</cameraName>
@@ -2423,7 +2424,7 @@ limitations under the License.
   </sensor>
 </link>
 
-<plugin name="servo_camera_plugin" filename="libMRSGazeboServoCameraPlugin.so">
+<plugin name="servo_camera_plugin" filename="libMrsGazeboCommonResources_ServoCameraPlugin.so">
   <tilt_update_rate>{{ tilt_update_rate }}</tilt_update_rate>
   <max_pitch_rate>{{ max_pitch_rate }}</max_pitch_rate>
   <max_pitch>{{ max_pitch }}</max_pitch>
@@ -2863,7 +2864,7 @@ limitations under the License.
   </visual>
 </link>
 
-<plugin name="water_gun_plugin" filename="libMRSGazeboWaterGunPlugin.so">
+<plugin name="water_gun_plugin" filename="libMrsGazeboCommonResources_WaterGunPlugin.so">
   <muzzle_velocity>{{ muzzle_velocity }}</muzzle_velocity>
   <offset_x>{{ nozzle_offset_x }}</offset_x>
   <offset_y>{{ nozzle_offset_y }}</offset_y>
@@ -2901,7 +2902,7 @@ limitations under the License.
   </visual>
 </link>
 
-<plugin name="light_plugin" filename="libMRSGazeboLightPlugin.so">
+<plugin name="light_plugin" filename="libMrsGazeboCommonResources_LightPlugin.so">
   <offset_x>{{ x }}</offset_x>
   <offset_y>{{ y }}</offset_y>
   <offset_z>{{ z }}</offset_z>
@@ -2942,7 +2943,7 @@ limitations under the License.
   {{ zero_inertial_macro() }}
 </link>
 
-<plugin name="safety_led_plugin" filename="libMRSSafetyLedPlugin.so">
+<plugin name="safety_led_plugin" filename="libMrsGazeboCommonResources_SafetyLedPlugin.so">
   <model_name>safety_led</model_name>
   <failure_duration_threshold>{{ failure_duration_threshold }}</failure_duration_threshold>
   <model_spawn_delay>5.0</model_spawn_delay>
@@ -3055,7 +3056,7 @@ limitations under the License.
   </visual>
 </link>
 
-<plugin name="parachute_plugin" filename="libMRSGazeboParachutePlugin.so">
+<plugin name="parachute_plugin" filename="libMrsGazeboCommonResources_ParachutePlugin.so">
   <air_density>1.225</air_density>
   <drag_coeff>500</drag_coeff>
   <cross_section>0.25</cross_section>
