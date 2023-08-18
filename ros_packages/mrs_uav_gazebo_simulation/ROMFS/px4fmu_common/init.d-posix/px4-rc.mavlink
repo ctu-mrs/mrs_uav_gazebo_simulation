@@ -18,3 +18,4 @@ mavlink stream -r 10 -s RC_CHANNELS -u $udp_offboard_port_local
 mavlink stream -r 10 -s SYS_STATUS -u $udp_offboard_port_local
 mavlink stream -r 100 -s HEARTBEAT -u $udp_offboard_port_local
 mavlink stream -r 100 -s DISTANCE_SENSOR -u $udp_offboard_port_local
+mavlink stream -r 100 -s ODOMETRY -u $udp_offboard_port_local
