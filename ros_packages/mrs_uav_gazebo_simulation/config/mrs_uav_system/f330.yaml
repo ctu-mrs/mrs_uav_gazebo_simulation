@@ -51,17 +51,13 @@ mrs_uav_managers:
 
   constraint_manager:
 
-    constraint_management:
-
-      # those gains will be used automatically when a localization mode switches
-      # and the current gains are not in the allowed list (next paragraphs)
-      fallback_constraints:
-        gps_garmin: "fast"
-        gps_baro: "fast"
-        rtk: "fast"
-        aloam: "slow"
-        hector_garmin: "slow"
-        vio: "slow"
-        optflow: "slow"
-        other: "slow"
-        ground_truth: "fast"
+    default_constraints:
+      gps_garmin: "fast"
+      gps_baro: "fast"
+      rtk: "fast"
+      aloam: "slow"
+      hector_garmin: "slow"
+      vio: "slow"
+      optflow: "slow"
+      other: "slow"
+      ground_truth: "fast"

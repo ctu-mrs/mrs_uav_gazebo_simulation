@@ -32,7 +32,11 @@ windows:
   - control:
       layout: tiled
       panes:
-        - waitForHw; roslaunch mrs_uav_core platform_config:=`rospack find mrs_uav_gazebo_simulation`/config/mrs_uav_system/$UAV_TYPE.yaml core.launch custom_config:=./custom_configs/custom_config.yaml
+        - waitForHw; roslaunch mrs_uav_core core.launch
+          platform_config:=`rospack find mrs_uav_gazebo_simulation`/config/mrs_uav_system/$UAV_TYPE.yaml
+          custom_config:=./config/custom_config.yaml
+          world_config:=./config/world_config.yaml
+          network_config:=./config/network_config.yaml
   - takeoff:
       layout: tiled
       panes:
