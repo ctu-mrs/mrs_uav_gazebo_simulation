@@ -29,7 +29,7 @@ windows:
       layout: tiled
       panes:
         - waitForTime; roslaunch mrs_uav_px4_api api.launch
-  - control:
+  - core:
       layout: tiled
       panes:
         - waitForHw; roslaunch mrs_uav_core core.launch
