@@ -52,12 +52,12 @@ mrs_uav_managers:
   constraint_manager:
 
     default_constraints:
-      gps_garmin: "fast"
-      gps_baro: "fast"
-      rtk: "fast"
+      gps_garmin: "medium"
+      gps_baro: "medium"
+      rtk: "medium"
       aloam: "slow"
       hector_garmin: "slow"
       vio: "slow"
       optflow: "slow"
       other: "slow"
-      ground_truth: "fast"
+      ground_truth: "medium"
