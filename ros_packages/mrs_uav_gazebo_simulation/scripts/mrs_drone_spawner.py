@@ -435,7 +435,7 @@ class MrsDroneSpawner():
                     allowed_vehicle_types = self.spawner_params[pname][2]
                 # print('For param ' + str(pname) + ' allowed: ' + str(allowed_vehicle_types))
                     if vehicle_type not in allowed_vehicle_types:
-                        raise Exception('Param \'' + str(pname) + '\' cannot be used with vehicle type \'' + str(vehicle_type) + '\' ....... !')
+                        raise Exception('Param \'' + str(pname) + '\' cannot be used with vehicle type \'' + str(vehicle_type) + '\'!')
 
                 print('\t' + str(pname) + ': ' + str(pval))
             params_dict.update(custom_params)
