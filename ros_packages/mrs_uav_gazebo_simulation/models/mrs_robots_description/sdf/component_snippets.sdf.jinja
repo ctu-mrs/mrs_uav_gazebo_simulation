@@ -439,7 +439,7 @@ limitations under the License.
   <enableMotorCrash>{{ enable_motor_crash }}</enableMotorCrash>
 </plugin>
 
-<plugin name="motor{{ motor_number }}_speed_republisher_plugin" filename="libMRSGazeboMotorSpeedRepublisherPlugin.so">
+<plugin name="motor{{ motor_number }}_speed_republisher_plugin" filename="libMrsGazeboCommonResources_MotorSpeedRepublisherPlugin.so.so">
   <robotNamespace/>
   <motorSpeedTopic>/motor_speed/{{ motor_number }}</motorSpeedTopic>
 </plugin>
@@ -539,7 +539,107 @@ limitations under the License.
   <enableMotorCrash>{{ enable_motor_crash }}</enableMotorCrash>
 </plugin>
 
-<plugin name="motor{{ motor_number }}_speed_republisher_plugin" filename="libMRSGazeboMotorSpeedRepublisherPlugin.so">
+<plugin name="motor{{ motor_number }}_speed_republisher_plugin" filename="libMrsGazeboCommonResources_MotorSpeedRepublisherPlugin.so">
+  <robotNamespace/>
+  <motorSpeedTopic>/motor_speed/{{ motor_number }}</motorSpeedTopic>
+</plugin>
+
+<joint name="prop_{{ motor_number }}_joint" type="revolute">
+  <parent>{{ parent }}</parent>
+  <child>prop_{{ motor_number }}_link</child>
+  <axis>
+    <xyz>0 0 1</xyz>
+    <limit>
+      <lower>-1e+16</lower>
+      <upper>1e+16</upper>
+    </limit>
+    <dynamics>
+      <spring_reference>0</spring_reference>
+      <spring_stiffness>0</spring_stiffness>
+    </dynamics>
+    <use_parent_model_frame>1</use_parent_model_frame>
+  </axis>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Prop macro with 2 meshes mrs motor model{-->
+{%- macro prop_macro_2_meshes_mrs_motor_model(direction, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, time_constant_up, time_constant_down, max_rot_velocity, motor_number, rotor_drag_coefficient, rolling_moment_coefficient, enable_motor_crash, color, mesh_file_1, mesh_file_2, meshes_z_offset,  mesh_scale, x, y, z, roll, pitch, yaw, ixx, ixy, ixz, iyy, iyz, izz) -%}
+<link name="prop_{{ motor_number }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <inertial>
+    <mass>{{ mass }}</mass>
+    <inertia>
+      <ixx>{{ ixx }}</ixx>
+      <ixy>{{ ixy }}</ixy>
+      <ixz>{{ ixz }}</ixz>
+      <iyy>{{ iyy }}</iyy>
+      <iyz>{{ iyz }}</iyz>
+      <izz>{{ izz }}</izz>
+    </inertia>
+  </inertial>
+  <visual name="visual_1">
+    <geometry>
+      <mesh>
+        <uri>{{ mesh_file_1 }}</uri>
+        <scale>{{ mesh_scale }}</scale>
+      </mesh>
+    </geometry>
+  </visual>
+  <visual name="visual_2">
+    <pose>{{ 0 }} {{ 0 }} {{ meshes_z_offset }} {{ 0 }} {{ 0 }} {{ 0 }}</pose>
+    <geometry>
+      <mesh>
+        <uri>{{ mesh_file_2 }}</uri>
+        <scale>{{ mesh_scale }}</scale>
+      </mesh>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/{{ color }}</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <collision name="prop_{{ motor_number }}_link_collision">
+    <pose>0 0 0 0 {{ rad90 }} 0</pose>
+    <geometry>
+      <cylinder>
+        <length>{{ 2*radius }}</length>
+        <radius>0.01</radius>
+      </cylinder>
+    </geometry>
+    <surface>
+      <contact>
+        <ode/>
+      </contact>
+      <friction>
+        <ode/>
+      </friction>
+    </surface>
+  </collision>
+</link>
+
+<plugin name="motor{{ motor_number }}_plugin" filename="libMrsGazeboCommonResources_MotorPropModelPlugin.so">
+  <robotNamespace/>
+  <jointName>prop_{{ motor_number }}_joint</jointName>
+  <linkName>prop_{{ motor_number }}_link</linkName>
+  <turningDirection>{{ direction }}</turningDirection>
+  <timeConstantUp>{{ time_constant_up }}</timeConstantUp>
+  <timeConstantDown>{{ time_constant_down }}</timeConstantDown>
+  <maxRotVelocity>{{ max_rot_velocity }}</maxRotVelocity>
+  <motorConstant>{{ motor_constant }}</motorConstant>
+  <momentConstant>{{ moment_constant }}</momentConstant>
+  <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
+  <motorNumber>{{ motor_number }}</motorNumber>
+  <rotorDragCoefficient>{{ rotor_drag_coefficient }}</rotorDragCoefficient>
+  <rollingMomentCoefficient>{{ rolling_moment_coefficient }}</rollingMomentCoefficient>
+  <motorSpeedPubTopic>/motor_speed/{{ motor_number }}</motorSpeedPubTopic>
+  <rotorVelocitySlowdownSim>{{ rotor_velocity_slowdown_sim }}</rotorVelocitySlowdownSim>
+  <enableMotorCrash>{{ enable_motor_crash }}</enableMotorCrash>
+</plugin>
+
+<plugin name="motor{{ motor_number }}_speed_republisher_plugin" filename="libMrsGazeboCommonResources_MotorSpeedRepublisherPlugin.so">
   <robotNamespace/>
   <motorSpeedTopic>/motor_speed/{{ motor_number }}</motorSpeedTopic>
 </plugin>
@@ -608,6 +708,20 @@ limitations under the License.
   <robotNamespace/>
   <linkName>base_link</linkName>
   <rotorVelocitySlowdownSim>{{ rotor_velocity_slowdown_sim }}</rotorVelocitySlowdownSim>
+</plugin>
+{%- endmacro -%}
+<!--}-->
+
+<!-- Fluid resistance macro {-->
+{%- macro fluid_resistance_plugin_macro(parent_link, update_rate, uav_body_resistance_x, uav_body_resistance_y, uav_body_resistance_z) -%}
+<plugin name="fluid_resistance_plugin" filename="libMrsGazeboCommonResources_FluidResistancePlugin.so">
+  <robotNamespace/>
+  <FluidResistanceTopicName>/fluid_resistance</FluidResistanceTopicName>
+  <NameLinkToApplyResistance>{{ parent_link }}</NameLinkToApplyResistance>
+  <rate>{{ update_rate }}</rate>
+  <res_x>{{ uav_body_resistance_x }}</res_x>
+  <res_y>{{ uav_body_resistance_y }}</res_y>
+  <res_z>{{ uav_body_resistance_z }}</res_z>
 </plugin>
 {%- endmacro -%}
 <!--}-->
