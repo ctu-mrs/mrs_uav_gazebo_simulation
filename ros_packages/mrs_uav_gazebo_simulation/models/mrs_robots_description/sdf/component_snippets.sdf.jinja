@@ -713,15 +713,17 @@ limitations under the License.
 <!--}-->
 
 <!-- Fluid resistance macro {-->
-{%- macro fluid_resistance_plugin_macro(parent_link, update_rate, uav_body_resistance_x, uav_body_resistance_y, uav_body_resistance_z) -%}
+{%- macro fluid_resistance_plugin_macro(verbose, model_mass, parent_link, update_rate, uav_body_resistance_x, uav_body_resistance_y, uav_body_resistance_z) -%}
 <plugin name="fluid_resistance_plugin" filename="libMrsGazeboCommonResources_FluidResistancePlugin.so">
   <robotNamespace/>
+  <model_mass>{{ model_mass }}</model_mass>
   <FluidResistanceTopicName>/fluid_resistance</FluidResistanceTopicName>
   <NameLinkToApplyResistance>{{ parent_link }}</NameLinkToApplyResistance>
   <rate>{{ update_rate }}</rate>
   <res_x>{{ uav_body_resistance_x }}</res_x>
   <res_y>{{ uav_body_resistance_y }}</res_y>
   <res_z>{{ uav_body_resistance_z }}</res_z>
+  <verbose>{{ verbose }}</verbose>
 </plugin>
 {%- endmacro -%}
 <!--}-->
