@@ -1099,5 +1099,137 @@
     {% endif %}
     {# <!--}--> #}
 
+    <!-- custom IMU GT {-->
+    {{ components.hector_imu_macro(
+      sensor_name = "custom_imu_gt",
+      parent_link = root,
+      update_rate = 400,
+      topic_name = "/custom_imu_gt",
+      frame_name = "/custom_imu_gt",
+      accel_drift = 0.0,
+      accel_drift_frequency = 0.0,
+      accel_gaussian_noise = 0.0,
+      rate_drift = 0.0,
+      rate_drift_frequency = 0.0,
+      rate_gaussian_noise = 0.0,
+      x = 0,
+      y = 0,
+      z = 0,
+      roll = 0,
+      pitch = 0,
+      yaw = 0)
+    }}
+    <!--}-->
+
+    <!-- custom IMU 1 {-->
+    {{ components.hector_imu_macro(
+      sensor_name = "custom_imu_1",
+      parent_link = root,
+      update_rate = 400,
+      topic_name = "/custom_imu_1",
+      frame_name = "/custom_imu_1",
+      accel_drift = 0.001,
+      accel_drift_frequency = 0.001,
+      accel_gaussian_noise = 0.001,
+      rate_drift = 0.00001,
+      rate_drift_frequency = 0.001,
+      rate_gaussian_noise = 0.0001,
+      x = 0,
+      y = 0,
+      z = 0,
+      roll = 0,
+      pitch = 0,
+      yaw = 0)
+    }}
+    <!--}-->
+
+    <!-- custom IMU 2 {-->
+    {{ components.hector_imu_macro(
+      sensor_name = "custom_imu_2",
+      parent_link = root,
+      update_rate = 400,
+      topic_name = "/custom_imu_2",
+      frame_name = "/custom_imu_2",
+      accel_drift = 0.001,
+      accel_drift_frequency = 0.001,
+      accel_gaussian_noise = 0.1,
+      rate_drift = 0.00001,
+      rate_drift_frequency = 0.001,
+      rate_gaussian_noise = 0.1,
+      x = 0,
+      y = 0,
+      z = 0,
+      roll = 0,
+      pitch = 0,
+      yaw = 0)
+    }}
+    <!--}-->
+
+    <!-- custom IMU 3 {-->
+    {{ components.hector_imu_macro(
+      sensor_name = "custom_imu_3",
+      parent_link = root,
+      update_rate = 400,
+      topic_name = "/custom_imu_3",
+      frame_name = "/custom_imu_3",
+      accel_drift = 0.1,
+      accel_drift_frequency = 0.001,
+      accel_gaussian_noise = 0.001,
+      rate_drift = 0.1,
+      rate_drift_frequency = 0.001,
+      rate_gaussian_noise = 0.0001,
+      x = 0,
+      y = 0,
+      z = 0,
+      roll = 0,
+      pitch = 0,
+      yaw = 0)
+    }}
+    <!--}-->
+
+    <!-- custom IMU 4 {-->
+    {{ components.hector_imu_macro(
+      sensor_name = "custom_imu_4",
+      parent_link = root,
+      update_rate = 400,
+      topic_name = "/custom_imu_4",
+      frame_name = "/custom_imu_4",
+      accel_drift = 0.001,
+      accel_drift_frequency = 0.001,
+      accel_gaussian_noise = 0.001,
+      rate_drift = 0.00001,
+      rate_drift_frequency = 0.001,
+      rate_gaussian_noise = 0.0001,
+      x = 0,
+      y = 0,
+      z = 0,
+      roll = 0.01,
+      pitch = 0.01,
+      yaw = 0.01)
+    }}
+    <!--}-->
+
+    <!-- custom IMU 5 {-->
+    {{ components.hector_imu_macro(
+      sensor_name = "custom_imu_5",
+      parent_link = root,
+      update_rate = 400,
+      topic_name = "/custom_imu_5",
+      frame_name = "/custom_imu_5",
+      accel_drift = 0.1,
+      accel_drift_frequency = 0.001,
+      accel_gaussian_noise = 0.1,
+      rate_drift = 0.1,
+      rate_drift_frequency = 0.001,
+      rate_gaussian_noise = 0.1,
+      x = 0,
+      y = 0,
+      z = 0,
+      roll = 0.01,
+      pitch = 0.01,
+      yaw = 0.01)
+    }}
+    <!--}-->
+
   </model>
 </sdf>

@@ -13,6 +13,7 @@ set(CATKIN_DEPENDENCIES
   px4
   rospy
   std_msgs
+  hector_gazebo_plugins
   )
 
 find_package(catkin REQUIRED COMPONENTS

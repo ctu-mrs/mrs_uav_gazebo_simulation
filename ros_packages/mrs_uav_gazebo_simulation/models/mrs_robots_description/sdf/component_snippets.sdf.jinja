@@ -846,6 +846,44 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+<!-- Macro to add imu with configurable noise {-->
+
+{%- macro hector_imu_macro(sensor_name, parent_link, update_rate, topic_name, frame_name, x, y, z, roll, pitch, yaw, accel_drift, accel_drift_frequency, accel_gaussian_noise, rate_drift, rate_drift_frequency, rate_gaussian_noise) -%}
+<link name="{{ sensor_name }}_link">
+  <pose relative_to = "{{ parent_link }}">{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+</link>
+
+<joint name="{{ sensor_name }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>{{ sensor_name }}_link</child>
+</joint>
+
+<plugin name="{{ sensor_name }}_plugin" filename="libhector_gazebo_ros_imu.so">
+  <!-- <robotNamespace></robotNamespace> -->
+  <alwaysOn>true</alwaysOn>
+  <topicName>{{ topic_name }}</topicName>
+  <bodyName>{{ sensor_name }}_link</bodyName>
+  <updateRate>{{ update_rate }}</updateRate>
+  <!-- <accelOffset>{{ accel_offset }}</accelOffset>> -->
+  <accelDrift>{{ accel_drift }} {{ accel_drift }} {{ accel_drift }}</accelDrift>>
+  <accelDriftFrequency>{{ accel_drift_frequency }} {{ accel_drift_frequency }} {{ accel_drift_frequency }}</accelDriftFrequency>>
+  <accelGaussianNoise>{{ accel_gaussian_noise }} {{ accel_gaussian_noise }} {{ accel_gaussian_noise }}</accelGaussianNoise>>
+  <!-- <rateOffset>{{ rate_offset }}</rateOffset>> -->
+  <rateDrift>{{ rate_drift }} {{ rate_drift }} {{ rate_drift }}</rateDrift>>
+  <rateDriftFrequency>{{ rate_drift_frequency }} {{ rate_drift_frequency }} {{ rate_drift_frequency }}</rateDriftFrequency>>
+  <rateGaussianNoise>{{ rate_gaussian_noise }} {{ rate_gaussian_noise }} {{ rate_gaussian_noise }}</rateGaussianNoise>>
+  <!-- <yawOffset>{{ yaw_offset }}</yawOffset>> -->
+  <!-- <yawDrift>{{ yaw_drift }}</yawDrift>> -->
+  <!-- <yawDriftFrequency>{{ yaw_drift_frequency }}</yawDriftFrequency>> -->
+  <!-- <yawGaussianNoise>{{ yaw_gaussian_noise }}</yawGaussianNoise>> -->
+  <rpyOffset>{{ roll }} {{ pitch }} {{ yaw }}</rpyOffset>
+  <frameName>{{ frame_name }}</frameName>
+</plugin>
+
+{%- endmacro -%}
+<!--}-->
+
 <!-- Macro to add the wind_plugin{-->
 {%- macro wind_plugin_macro(xyz_offset, wind_direction, wind_force_mean, wind_gust_direction, wind_gust_duration, wind_gust_start, wind_gust_force_mean) -%}
 <plugin filename="libgazebo_wind_plugin.so" name="wind_plugin">

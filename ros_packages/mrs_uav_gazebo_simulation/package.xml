@@ -25,6 +25,7 @@
   <depend>px4</depend>
   <depend>rospy</depend>
   <depend>std_msgs</depend>
+  <depend>hector_gazebo_plugins</depend>
 
   <depend>python3-jinja2</depend>
 
