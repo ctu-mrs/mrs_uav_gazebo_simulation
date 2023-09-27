@@ -11,6 +11,13 @@
   <arg name="verbose" default="true" />
   <arg name="reset" default="true" />
 
+  <arg name="LOGGER_DEBUG" default="$(optenv LOGGER_DEBUG false)" />
+
+  <arg     if="$(arg LOGGER_DEBUG)" name="logger_debug_file" value="$(find mrs_uav_gazebo_simulation)/config/debug_verbosity.yaml" />
+  <arg unless="$(arg LOGGER_DEBUG)" name="logger_debug_file" value="" />
+
+  <env if="$(arg LOGGER_DEBUG)" name="ROSCONSOLE_CONFIG_FILE" value="$(arg logger_debug_file)"/>
+
     <!-- supply this argument to specify the world name within the mrs_gazebo_common_resources package -->
   <arg name="world_name" default="grass_plane" />
 
@@ -31,7 +38,7 @@
   <arg     if="$(arg verbose)" name="command_arg3" value="--verbose" />
   <arg unless="$(arg debug)" name="script_type" value="gzserver" />
   <arg     if="$(arg debug)" name="script_type" value="debug" />
-  
+
   <!-- kill previous sessions of mavros, px4 and gazebo -->
   <group if="$(arg reset)">
     <node pkg="mrs_uav_gazebo_simulation" type="kill_previous_session.sh" name="kill_previous_session" output="screen" />
