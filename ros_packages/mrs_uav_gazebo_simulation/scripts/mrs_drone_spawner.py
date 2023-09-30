@@ -19,7 +19,7 @@ from mrs_msgs.srv import StringResponse as StringSrvResponse
 from gazebo_msgs.msg import ModelStates
 from mavros_msgs.msg import State as MavrosState
 
-from mrs_msgs.msg import SpawnerDiagnostics
+from mrs_msgs.msg import GazeboSpawnerDiagnostics
 
 VEHICLE_BASE_PORT = 14000
 MAVLINK_TCP_BASE_PORT = 4560
@@ -87,7 +87,7 @@ class MrsDroneSpawner():
         # #{ setup communication
 
         # diagnostics
-        self.diagnostics_pub = rospy.Publisher('~diagnostics', SpawnerDiagnostics,queue_size=1)
+        self.diagnostics_pub = rospy.Publisher('~diagnostics', GazeboSpawnerDiagnostics,queue_size=1)
         self.diagnostics_timer = rospy.Timer(rospy.Duration(0.1), self.callback_diagnostics_timer)
         self.action_timer = rospy.Timer(rospy.Duration(0.1), self.callback_action_timer)
 
@@ -187,7 +187,7 @@ class MrsDroneSpawner():
 
     # #{ callback_diagnostics_timer
     def callback_diagnostics_timer(self, timer):
-        diagnostics = SpawnerDiagnostics()
+        diagnostics = GazeboSpawnerDiagnostics()
         diagnostics.spawn_called = self.spawn_called
         diagnostics.processing = self.processing
         diagnostics.active_vehicles = self.active_vehicles
