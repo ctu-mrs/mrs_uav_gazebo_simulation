@@ -4,12 +4,12 @@
 
 Metapackage for the MRS UAV Gazebo simulation pipeline.
 
-# Installation
+## Installation
 
 1. Install the [MRS UAV System](https://github.com/ctu-mrs/mrs_uav_system#installation)
 2. `sudo apt install ros-noetic-mrs-uav-gazebo-simulation`
 
-# Submodules
+## Submodules
 
 | Package                     | Repository                                                                            |
 |-----------------------------|---------------------------------------------------------------------------------------|
