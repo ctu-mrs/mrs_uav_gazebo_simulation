@@ -51,17 +51,12 @@ mrs_uav_managers:
 
   constraint_manager:
 
-    # the f450 can not handler the "fast constraints" so we don't load it at all
-    constraints: [
-      "slow",
-      "medium",
-    ]
-
     # list of allowed constraints per odometry mode
     allowed_constraints:
       gps_garmin: ["slow", "medium"]
       gps_baro: ["slow", "medium"]
       rtk: ["slow", "medium"]
+      rtk_garmin: ["slow", "medium"]
       aloam: ["slow"]
       hector_garmin: ["slow"]
       vio: ["slow"]
@@ -69,14 +64,3 @@ mrs_uav_managers:
       other: ["slow"]
       ground_truth: ["slow", "medium"]
       passthrough: ["slow", "medium"]
-
-    default_constraints:
-      gps_garmin: "medium"
-      gps_baro: "medium"
-      rtk: "medium"
-      aloam: "slow"
-      hector_garmin: "slow"
-      vio: "slow"
-      optflow: "slow"
-      other: "slow"
-      ground_truth: "medium"
