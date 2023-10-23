@@ -13,7 +13,7 @@ enable_realsense_front: [False, 'Add Intel Realsense D435 depth camera to the ve
 enable_realsense_up: [False, 'Add Intel Realsense D435 depth camera to the vehicle [1280x720 30hz], pointed upwards', [f450, f550, t650, x500]]
 use_realistic_realsense: [False, 'Enable a more realistic simulation of the Realsense D435 depth image (only takes effect if some Realsense is enabled)', [f330, f450, f550, t650, x500, brus, naki]]
 enable_whycon_box: [False, 'Add a Whycon box for relative localization', [f450, f550]]
-enable_bluefox_camera: [False, 'Add bluefox camera to the vehicle [752x480 50hz]', [f450, f550, t650, x500]]
+enable_bluefox_camera: [False, 'Add bluefox camera to the vehicle [752x480 50hz]', [f450, f550, t650, x500, eaglemk2]]
 enable_bluefox_camera_reverse: [False, 'Add bluefox camera to the vehicle [752x480 50hz], rotated by 180 deg', [f450, f550, t650, x500]]
 enable_fisheye_camera: [False, 'Add fisheye camera to the vehicle [752x480 180deg 45hz]', [f450]]
 enable_magnetic_gripper: [False, 'Add magnetic gripper', [f450, f550, t650]]
