@@ -1509,8 +1509,7 @@ limitations under the License.
     <pose>0 0 -0.029 0 0 {{ rad180 }}</pose>
     <geometry>
       <mesh>
-        <uri>model://mrs_robots_description/meshes/seMrsGazeboCommonResources_3DLidarGpuPlugiMrsGazeboCommonResources_3DLidarGpuPlugii
-          .stl</uri>
+        <uri>model://mrs_robots_description/meshes/sensors/rplidar.stl</uri>
         <scale>0.001 0.001 0.001</scale>
       </mesh>
     </geometry>
@@ -1559,7 +1558,7 @@ limitations under the License.
         <stddev>0.01</stddev>
       </noise>
     </ray>
-    <plugin name='rplidar_plugin' filename='libMRSGazebo2DLidarPlugin.so'>
+    <plugin name='rplidar_plugin' filename='libMrsGazeboCommonResources_2DLidarPlugin.so'>
         <topicName>rplidar/scan</topicName>
         <frameName>{{ namespace }}/rplidar</frameName>
         <parentFrameName>{{ namespace }}/fcu</parentFrameName>
