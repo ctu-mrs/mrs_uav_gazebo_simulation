@@ -6,9 +6,9 @@ motor_params:
   b: -0.17647
 
 # these model parameters can be used when
-# - 'attitude rate', and/or
+# - 'control group', and/or
 # - 'actuator control'
-# are done by the MRS system.
+# are accepted by the HW API.
 model_params:
 
   arm_length: 0.25 # [m]
