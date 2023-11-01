@@ -6,7 +6,6 @@ mrs_uav_managers:
     state_estimators: [
       "gps_garmin",
       "gps_baro",
-      "ground_truth",
     ]
 
     initial_state_estimator: "gps_baro" # will be used as the first state estimator
