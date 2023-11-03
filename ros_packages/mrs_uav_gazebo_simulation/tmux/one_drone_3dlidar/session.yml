@@ -24,8 +24,7 @@ windows:
   - spawn:
       layout: tiled
       panes:
-        # the horizontal-samples decreases the base sample rate of 20480 (=2048 points per linescan) to a user-defined value
-        - waitForGazebo; rosservice call /mrs_drone_spawner/spawn "1 $UAV_TYPE --enable-rangefinder --enable-ground-truth --enable-ouster --ouster-model OS0-128 --use-gpu-ray --horizontal-samples 1280"
+        - waitForGazebo; rosservice call /mrs_drone_spawner/spawn "1 $UAV_TYPE --enable-rangefinder --enable-ground-truth --enable-ouster --ouster-model OS0-128 --use-gpu-ray --horizontal-samples 128 --rotation-freq 10"
   - hw_api:
       layout: tiled
       panes:
