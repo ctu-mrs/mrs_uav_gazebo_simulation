@@ -1501,7 +1501,12 @@ limitations under the License.
 <!--}-->
 
   <!-- Macro to add a RPlidar A3{-->
-{%- macro rplidar_macro(namespace, parent_link, x, y, z, roll, pitch, yaw) -%}
+{%- macro rplidar_macro(namespace, parent_link, horizontal_samples, x, y, z, roll, pitch, yaw) -%}
+{% if horizontal_samples == 'None' %}
+  {%- set samples = 14400 -%}
+{% else %}
+  {%- set samples = horizontal_samples | int -%}
+{% endif %}
 <link name="rplidar_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
   {{ zero_inertial_macro() }}
@@ -1541,7 +1546,7 @@ limitations under the License.
     <ray>
       <scan>
         <horizontal>
-          <samples>{{ 14400/20 }}</samples>
+          <samples>{{ samples/20 }}</samples>
           <resolution>1</resolution>
           <min_angle>-3.1241390751</min_angle>
           <max_angle>3.1241390751</max_angle>
@@ -1580,7 +1585,7 @@ limitations under the License.
 <!--}-->
 
 <!-- Macro to add a Velodyne Lidar {-->
-{%- macro velodyne_macro(namespace, parent_link, sensor_name, rot_freq, lasers, max_range, noise, vfov_angle, enable_gpu_ray, x, y, z, roll, pitch, yaw) -%}
+{%- macro velodyne_macro(namespace, parent_link, sensor_name, rot_freq, lasers, max_range, noise, vfov_angle, enable_gpu_ray, horizontal_samples, x, y, z, roll, pitch, yaw) -%}
 
 {# The real ouster is transforming lidar data from lidar_frame to sensor_frame directly for user. #}
 {# For simplicity, we are placing sensor_frame to the same place as the lidar_frame is. #}
@@ -1610,6 +1615,12 @@ limitations under the License.
 {% else %}
   {%- set velodyne_plugin_filename ="libMrsGazeboCommonResources_3DLidarPlugin.so" -%}
   {%- set sensor_type = "ray"  -%}
+{% endif %}
+
+{% if horizontal_samples == 'None' %}
+  {%- set samples = 291200 -%}
+{% else %}
+  {%- set samples = horizontal_samples | int -%}
 {% endif %}
 
 <link name="velodyne_link">
@@ -1668,7 +1679,7 @@ limitations under the License.
     <ray>
       <scan>
         <horizontal>
-          <samples>{{ 291200/(rot_freq*lasers) }}</samples>
+          <samples>{{ samples/(rot_freq*lasers) }}</samples>
           <resolution>1</resolution>
           <min_angle>{{ -rad180 }}</min_angle>
           <max_angle>{{ rad180 }}</max_angle>
@@ -1722,7 +1733,7 @@ limitations under the License.
 <!-- Macro to add an Ouster Lidar {-->
 
 <!-- Macro to add an Generic Ouster Lidar {-->
-{%- macro generic_ouster_macro(namespace, parent_link, sensor_name, rot_freq, lasers, max_range, noise, vfov_angle, enable_gpu_ray, x, y, z, roll, pitch, yaw) -%}
+{%- macro generic_ouster_macro(namespace, parent_link, sensor_name, rot_freq, lasers, max_range, noise, vfov_angle, enable_gpu_ray, horizontal_samples, x, y, z, roll, pitch, yaw) -%}
 
 {# The real ouster is transforming lidar data from lidar_frame to sensor_frame directly for user. #}
 {# For simplicity, we are placing sensor_frame to the same place as the lidar_frame is. #}
@@ -1765,6 +1776,12 @@ limitations under the License.
   {%- set sensor_type = "ray"  -%}
 {% endif %}
 
+{% if horizontal_samples == 'None' %}
+  {%- set samples = 20480 -%}
+{% else %}
+  {%- set samples = horizontal_samples | int -%}
+{% endif %}
+
 <link name="{{ sensor_link }}">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
   {{ zero_inertial_macro() }}
@@ -1798,7 +1815,7 @@ limitations under the License.
       </script>
     </material>
   </visual>
-  
+
   {# IMU #}
   <sensor name="{{ sensor_name }}_imu_sensor" type="imu">
     <pose>{{ imu_x }} {{ imu_y }} {{ imu_z }} {{ imu_roll }} {{ imu_pitch }} {{ imu_yaw }}</pose>
@@ -1829,7 +1846,7 @@ limitations under the License.
   <!--   <headingGaussianNoise>0.005</headingGaussianNoise> -->
   <!-- </plugin> -->
   </sensor>
-  
+
   {# LIDAR #}
   <sensor name="{{ sensor_name }}_lidar_sensor" type="{{ sensor_type }}">
     <pose>{{ lidar_x }} {{ lidar_y }} {{ lidar_z }} {{ lidar_roll }} {{ lidar_pitch }} {{ lidar_yaw }}</pose>
@@ -1839,7 +1856,7 @@ limitations under the License.
     <ray>
       <scan>
         <horizontal>
-          <samples>{{ 20480/rot_freq }}</samples>
+          <samples>{{ samples/rot_freq }}</samples>
           <resolution>1</resolution>
           <min_angle>0</min_angle>
           <max_angle>{{ 2*pi }}</max_angle>
@@ -1902,7 +1919,7 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-{%- macro ouster_macro(namespace, parent_link, sensor_name, ouster_model, rot_freq, noise, enable_gpu_ray, x, y, z, roll, pitch, yaw) -%}
+{%- macro ouster_macro(namespace, parent_link, sensor_name, ouster_model, rot_freq, noise, enable_gpu_ray, horizontal_samples, x, y, z, roll, pitch, yaw) -%}
 
 <!-- Outster type selection {-->
 {#  default: OS1-16 Generation 1 - is specified in the config file #}
@@ -1999,6 +2016,7 @@ limitations under the License.
   max_range = range,
   noise = noise,
   enable_gpu_ray = enable_gpu_ray,
+  horizontal_samples = horizontal_samples,
   x = x,
   y = y,
   z = z,
