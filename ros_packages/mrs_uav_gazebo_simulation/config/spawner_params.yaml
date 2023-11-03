@@ -28,6 +28,8 @@ enable_velodyne: [False, 'Add Velodyne PUCK Lite laser scanner to the vehicle', 
 enable_ouster: [False, 'Add Ouster laser scanner to the vehicle', [f450, f550, t650, x500, eaglemk2, naki, big_dofec]]
 ouster_model: ['OS1-16', 'Choose the Ouster model. Options: OS0-32, OS0-64, OS0-128, OS1-16, OS1-32G1, OS1-32, OS1-64, OS1-128, OS2-32, OS2-64, OS2-128', [f450, f550, t650, x500, eaglemk2, naki, big_dofec]]
 use_gpu_ray: [False, 'Laser ray casting will be handled by GPU shaders', [f330, f450, f550, t650, x500, eaglemk2, naki, big_dofec]]
+horizontal_samples: [None, 'Override default number of horizontal samples for LiDARs', [f450, f550, t650, x500, naki]]
+rotation_freq: [None, 'Override default update rate for LiDARs', [f450, f550, t650, x500, naki]]
 enable_light: [False, 'Add light to the vehicle', [f450, f550, t650, x500, naki]]
 enable_servo_camera: [False, 'Add camera on virtual servo to the vehicle', [f450, f550, t650, naki]]
 enable_water_gun: [False, 'Add water gun for fire fighting', [t650]]
