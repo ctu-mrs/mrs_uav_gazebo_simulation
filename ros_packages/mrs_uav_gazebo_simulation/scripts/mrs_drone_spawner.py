@@ -26,7 +26,7 @@ MAVLINK_TCP_BASE_PORT = 4560
 MAVLINK_UDP_BASE_PORT = 14560
 LAUNCH_BASE_PORT = 14900
 DEFAULT_VEHICLE_TYPE = 't650'
-VEHICLE_TYPES = ['a300', 'f450', 'f550', 't650', 'x500', 'eaglemk2', 'f330', 'brus', 'naki', 'big_dofec']
+VEHICLE_TYPES = ['a300', 'f450', 'f550', 't650', 'x500', 'eaglemk2', 'f330', 'brus', 'naki', 'big_dofec', 'm690']
 SPAWNING_DELAY_SECONDS = 6
 
 class MrsDroneSpawner():
