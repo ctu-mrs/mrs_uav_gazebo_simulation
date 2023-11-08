@@ -261,6 +261,20 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+<!-- Collision cylinder macro {-->
+{%- macro collision_cylinder_macro(name, collision_length, collision_radius, x, y, z, roll, pitch, yaw) -%}
+<collision name="{{ name }}_collision">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <cylinder>
+      <length>{{ collision_length }}</length>
+      <radius>{{ collision_radius }}</radius>
+    </cylinder>
+  </geometry>
+</collision>
+{%- endmacro -%}
+<!--}-->
+
 <!-- Leg macro {-->
 {%- macro leg_macro(name, mesh_file, mesh_scale, color, parent, x, y, z, roll, pitch, yaw, collision_height, collision_radius) -%}
 {{ visual_mesh_macro(
@@ -2221,7 +2235,6 @@ limitations under the License.
     <visualize>0</visualize>
   </sensor>
   <!--}-->
-  <!--}-->
 
 </link>
 
@@ -2275,6 +2288,41 @@ limitations under the License.
   visual_y = 0,
   visual_z = 0,
   visual_roll = rad90,
+  visual_pitch = 0,
+  visual_yaw = 0,
+  x = x,
+  y = y,
+  z = z,
+  roll = roll,
+  pitch = pitch,
+  yaw = yaw)
+}}
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a Basler Dart camera {-->
+{%- macro basler_camera_macro(namespace, camera_name, parent_link, frame_rate, hfov, noise, x, y, z, roll, pitch, yaw) -%}
+{{ camera_macro(
+  parent_link = parent_link,
+  camera_name = camera_name,
+  parent_frame_name = namespace + "/fcu",
+  camera_frame_name = namespace + "/" + camera_name + "_optical",
+  sensor_base_frame_name = namespace  + "/" + camera_name,
+  frame_rate = frame_rate,
+  horizontal_fov = hfov,
+  image_width = 1920,
+  image_height = 1200,
+  min_distance = 0.02,
+  max_distance = 80,
+  noise_mean = 0.0,
+  noise_stddev = noise,
+  mesh_file = "model://mrs_robots_description/meshes/sensors/basler_dart.stl",
+  mesh_scale = "0.001 0.001 0.001",
+  color = "DarkGrey",
+  visual_x = 0,
+  visual_y = 0,
+  visual_z = 0,
+  visual_roll = 0,
   visual_pitch = 0,
   visual_yaw = 0,
   x = x,
