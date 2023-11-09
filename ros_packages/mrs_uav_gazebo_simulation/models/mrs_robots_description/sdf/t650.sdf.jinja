@@ -213,7 +213,7 @@
         yaw = 0)
       }}
       <!--}-->
-      
+
       <!-- pixhawk {-->
       {{ components.visual_mesh_macro(
         name = "pixhawk",
@@ -392,7 +392,7 @@
       }}
       <!--}-->
       {% endif %}
-      
+
       {% if enable_rplidar or fire_challenge_blanket %}
       <!-- RPLidar mount {-->
       {{ components.visual_mesh_macro(
@@ -409,7 +409,7 @@
       }}
       <!--}-->
       {% endif %}
-     
+
       {% if enable_realsense_front %}
       <!-- Realsense mount {-->
       {{ components.visual_mesh_macro(
@@ -426,7 +426,7 @@
       }}
       <!--}-->
       {% endif %}
-     
+
       {% if enable_ouster or enable_velodyne %}
       <!-- Ouster mount {-->
       {{ components.visual_mesh_macro(
@@ -443,7 +443,7 @@
       }}
       <!--}-->
       {% endif %}
-     
+
       <!--}-->
     </link>
 
@@ -760,6 +760,8 @@
     {{ components.rplidar_macro(
       namespace = namespace,
       parent_link = root,
+      horizontal_samples = horizontal_samples,
+      rotation_freq = rotation_freq,
       x = 0.0,
       y = 0.0,
       z = 0.107,
@@ -779,12 +781,13 @@
       namespace = namespace,
       parent_link = root,
       sensor_name = "velodyne",
-      rot_freq = 20,
+      rotation_freq = rotation_freq,
       lasers = 16,
       vfov_angle = 30,
       max_range = 100,
       noise = 0.01,
       enable_gpu_ray = use_gpu_ray,
+      horizontal_samples = horizontal_samples,
       x = 0.0,
       y = 0.0,
       z = 0.073,
@@ -804,9 +807,10 @@
       parent_link = root,
       sensor_name = "os",
       ouster_model = ouster_model,
-      rot_freq = 10,
+      rotation_freq = rotation_freq,
       noise = 0.03,
       enable_gpu_ray = use_gpu_ray,
+      horizontal_samples = horizontal_samples,
       x = 0.0,
       y = 0.0,
       z = 0.073,
@@ -817,7 +821,7 @@
     <!--}-->
     {% endif %}
     {# <!--}--> #}
-    
+
     <!-- ========================= camera sensors ========================= -->
 
     <!-- Bluefox camera placements{-->
@@ -1269,10 +1273,10 @@
       yaw=-2.5665787)
     }}
     <!--}-->
-    
+
     <!--}-->
     {% endif %}
-    
+
     {% if fire_challenge_blanket %}
     <!-- fire_challenge_blanket {-->
 
@@ -1289,7 +1293,7 @@
       yaw = 0)
     }}
     <!--}-->
-    
+
     <!-- rplidar {-->
     {{ components.rplidar_macro(
       namespace = namespace,
@@ -1344,7 +1348,7 @@
       yaw = 0)
     }}
     <!--}-->
-    
+
     <!--}-->
     {% endif %}
     {# <!--}--> #}

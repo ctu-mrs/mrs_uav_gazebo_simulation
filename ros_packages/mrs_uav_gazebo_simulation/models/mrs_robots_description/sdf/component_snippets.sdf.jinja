@@ -261,6 +261,20 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+<!-- Collision cylinder macro {-->
+{%- macro collision_cylinder_macro(name, collision_length, collision_radius, x, y, z, roll, pitch, yaw) -%}
+<collision name="{{ name }}_collision">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <cylinder>
+      <length>{{ collision_length }}</length>
+      <radius>{{ collision_radius }}</radius>
+    </cylinder>
+  </geometry>
+</collision>
+{%- endmacro -%}
+<!--}-->
+
 <!-- Leg macro {-->
 {%- macro leg_macro(name, mesh_file, mesh_scale, color, parent, x, y, z, roll, pitch, yaw, collision_height, collision_radius) -%}
 {{ visual_mesh_macro(
@@ -1536,7 +1550,20 @@ limitations under the License.
 <!--}-->
 
   <!-- Macro to add a RPlidar A3{-->
-{%- macro rplidar_macro(namespace, parent_link, x, y, z, roll, pitch, yaw) -%}
+{%- macro rplidar_macro(namespace, parent_link, horizontal_samples, rotation_freq, x, y, z, roll, pitch, yaw) -%}
+
+{% if horizontal_samples == 'None' %}
+  {%- set samples = 1600 -%}
+{% else %}
+  {%- set samples = horizontal_samples | int -%}
+{% endif %}
+
+{% if rotation_freq == 'None' %}
+  {%- set update_rate = 20 -%}
+{% else %}
+  {%- set update_rate = rotation_freq | int -%}
+{% endif %}
+
 <link name="rplidar_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
   {{ zero_inertial_macro() }}
@@ -1544,8 +1571,7 @@ limitations under the License.
     <pose>0 0 -0.029 0 0 {{ rad180 }}</pose>
     <geometry>
       <mesh>
-        <uri>model://mrs_robots_description/meshes/seMrsGazeboCommonResources_3DLidarGpuPlugiMrsGazeboCommonResources_3DLidarGpuPlugii
-          .stl</uri>
+        <uri>model://mrs_robots_description/meshes/sensors/rplidar.stl</uri>
         <scale>0.001 0.001 0.001</scale>
       </mesh>
     </geometry>
@@ -1573,11 +1599,11 @@ limitations under the License.
   </visual>
   <sensor name='rplidar_sensor' type='ray'>
     <visualize>false</visualize>
-    <update_rate>20</update_rate>
+    <update_rate>{{ update_rate }}</update_rate>
     <ray>
       <scan>
         <horizontal>
-          <samples>{{ 14400/20 }}</samples>
+          <samples>{{ samples }}</samples>
           <resolution>1</resolution>
           <min_angle>-3.1241390751</min_angle>
           <max_angle>3.1241390751</max_angle>
@@ -1594,7 +1620,7 @@ limitations under the License.
         <stddev>0.01</stddev>
       </noise>
     </ray>
-    <plugin name='rplidar_plugin' filename='libMRSGazebo2DLidarPlugin.so'>
+    <plugin name='rplidar_plugin' filename='libMrsGazeboCommonResources_2DLidarPlugin.so'>
         <topicName>rplidar/scan</topicName>
         <frameName>{{ namespace }}/rplidar</frameName>
         <parentFrameName>{{ namespace }}/fcu</parentFrameName>
@@ -1616,7 +1642,7 @@ limitations under the License.
 <!--}-->
 
 <!-- Macro to add a Velodyne Lidar {-->
-{%- macro velodyne_macro(namespace, parent_link, sensor_name, rot_freq, lasers, max_range, noise, vfov_angle, enable_gpu_ray, x, y, z, roll, pitch, yaw) -%}
+{%- macro velodyne_macro(namespace, parent_link, sensor_name, rotation_freq, lasers, max_range, noise, vfov_angle, enable_gpu_ray, horizontal_samples, x, y, z, roll, pitch, yaw) -%}
 
 {# The real ouster is transforming lidar data from lidar_frame to sensor_frame directly for user. #}
 {# For simplicity, we are placing sensor_frame to the same place as the lidar_frame is. #}
@@ -1646,6 +1672,18 @@ limitations under the License.
 {% else %}
   {%- set velodyne_plugin_filename ="libMrsGazeboCommonResources_3DLidarPlugin.so" -%}
   {%- set sensor_type = "ray"  -%}
+{% endif %}
+
+{% if horizontal_samples == 'None' %}
+  {%- set samples = 3600 -%}
+{% else %}
+  {%- set samples = horizontal_samples | int -%}
+{% endif %}
+
+{% if rotation_freq == 'None' %}
+  {%- set update_rate = 20 -%}
+{% else %}
+  {%- set update_rate = rotation_freq | int -%}
 {% endif %}
 
 <link name="velodyne_link">
@@ -1700,11 +1738,11 @@ limitations under the License.
     <pose>{{ lidar_x }} {{ lidar_y }} {{ lidar_z }} {{ lidar_roll }} {{ lidar_pitch }} {{ lidar_yaw }}</pose>
     {# <pose>0 0 0 0 0 0</pose> #}
     <visualize>false</visualize>
-    <update_rate>{{ rot_freq }}</update_rate>
+    <update_rate>{{ update_rate }}</update_rate>
     <ray>
       <scan>
         <horizontal>
-          <samples>{{ 291200/(rot_freq*lasers) }}</samples>
+          <samples>{{ samples }}</samples>
           <resolution>1</resolution>
           <min_angle>{{ -rad180 }}</min_angle>
           <max_angle>{{ rad180 }}</max_angle>
@@ -1758,7 +1796,7 @@ limitations under the License.
 <!-- Macro to add an Ouster Lidar {-->
 
 <!-- Macro to add an Generic Ouster Lidar {-->
-{%- macro generic_ouster_macro(namespace, parent_link, sensor_name, rot_freq, lasers, max_range, noise, vfov_angle, enable_gpu_ray, x, y, z, roll, pitch, yaw) -%}
+{%- macro generic_ouster_macro(namespace, parent_link, sensor_name, rotation_freq, lasers, max_range, noise, vfov_angle, enable_gpu_ray, horizontal_samples, x, y, z, roll, pitch, yaw) -%}
 
 {# The real ouster is transforming lidar data from lidar_frame to sensor_frame directly for user. #}
 {# For simplicity, we are placing sensor_frame to the same place as the lidar_frame is. #}
@@ -1801,6 +1839,18 @@ limitations under the License.
   {%- set sensor_type = "ray"  -%}
 {% endif %}
 
+{% if horizontal_samples == 'None' %}
+  {%- set samples = 2048 -%}
+{% else %}
+  {%- set samples = horizontal_samples | int -%}
+{% endif %}
+
+{% if rotation_freq == 'None' %}
+  {%- set update_rate = 10 -%}
+{% else %}
+  {%- set update_rate = rotation_freq | int -%}
+{% endif %}
+
 <link name="{{ sensor_link }}">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
   {{ zero_inertial_macro() }}
@@ -1834,7 +1884,7 @@ limitations under the License.
       </script>
     </material>
   </visual>
-  
+
   {# IMU #}
   <sensor name="{{ sensor_name }}_imu_sensor" type="imu">
     <pose>{{ imu_x }} {{ imu_y }} {{ imu_z }} {{ imu_roll }} {{ imu_pitch }} {{ imu_yaw }}</pose>
@@ -1865,17 +1915,17 @@ limitations under the License.
   <!--   <headingGaussianNoise>0.005</headingGaussianNoise> -->
   <!-- </plugin> -->
   </sensor>
-  
+
   {# LIDAR #}
   <sensor name="{{ sensor_name }}_lidar_sensor" type="{{ sensor_type }}">
     <pose>{{ lidar_x }} {{ lidar_y }} {{ lidar_z }} {{ lidar_roll }} {{ lidar_pitch }} {{ lidar_yaw }}</pose>
     {# <pose>0 0 0 0 0 0</pose> #}
     <visualize>false</visualize>
-    <update_rate>{{ rot_freq }}</update_rate>
+    <update_rate>{{ update_rate }}</update_rate>
     <ray>
       <scan>
         <horizontal>
-          <samples>{{ 20480/rot_freq }}</samples>
+          <samples>{{ samples }}</samples>
           <resolution>1</resolution>
           <min_angle>0</min_angle>
           <max_angle>{{ 2*pi }}</max_angle>
@@ -1938,7 +1988,7 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-{%- macro ouster_macro(namespace, parent_link, sensor_name, ouster_model, rot_freq, noise, enable_gpu_ray, x, y, z, roll, pitch, yaw) -%}
+{%- macro ouster_macro(namespace, parent_link, sensor_name, ouster_model, rotation_freq, noise, enable_gpu_ray, horizontal_samples, x, y, z, roll, pitch, yaw) -%}
 
 <!-- Outster type selection {-->
 {#  default: OS1-16 Generation 1 - is specified in the config file #}
@@ -2029,12 +2079,13 @@ limitations under the License.
   namespace = namespace,
   parent_link = parent_link,
   sensor_name = sensor_name,
-  rot_freq = rot_freq,
+  rotation_freq = rotation_freq,
   lasers = lasers,
   vfov_angle = vfov_angle,
   max_range = range,
   noise = noise,
   enable_gpu_ray = enable_gpu_ray,
+  horizontal_samples = horizontal_samples,
   x = x,
   y = y,
   z = z,
@@ -2219,7 +2270,6 @@ limitations under the License.
     <visualize>0</visualize>
   </sensor>
   <!--}-->
-  <!--}-->
 
 </link>
 
@@ -2273,6 +2323,41 @@ limitations under the License.
   visual_y = 0,
   visual_z = 0,
   visual_roll = rad90,
+  visual_pitch = 0,
+  visual_yaw = 0,
+  x = x,
+  y = y,
+  z = z,
+  roll = roll,
+  pitch = pitch,
+  yaw = yaw)
+}}
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a Basler Dart camera {-->
+{%- macro basler_camera_macro(namespace, camera_name, parent_link, frame_rate, hfov, noise, x, y, z, roll, pitch, yaw) -%}
+{{ camera_macro(
+  parent_link = parent_link,
+  camera_name = camera_name,
+  parent_frame_name = namespace + "/fcu",
+  camera_frame_name = namespace + "/" + camera_name + "_optical",
+  sensor_base_frame_name = namespace  + "/" + camera_name,
+  frame_rate = frame_rate,
+  horizontal_fov = hfov,
+  image_width = 1920,
+  image_height = 1200,
+  min_distance = 0.02,
+  max_distance = 80,
+  noise_mean = 0.0,
+  noise_stddev = noise,
+  mesh_file = "model://mrs_robots_description/meshes/sensors/basler_dart.stl",
+  mesh_scale = "0.001 0.001 0.001",
+  color = "DarkGrey",
+  visual_x = 0,
+  visual_y = 0,
+  visual_z = 0,
+  visual_roll = 0,
   visual_pitch = 0,
   visual_yaw = 0,
   x = x,

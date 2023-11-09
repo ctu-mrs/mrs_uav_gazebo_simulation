@@ -1,9 +1,9 @@
-uav_mass: 1.7
+uav_mass: 4.65
 
 motor_params:
   n_motors: 4
-  a:  0.37119
-  b: -0.17647
+  a:  0.19174
+  b: -0.15
 
 # these model parameters can be used when
 # - 'control group', and/or
@@ -11,18 +11,18 @@ motor_params:
 # are accepted by the HW API.
 model_params:
 
-  arm_length: 0.225 # [m]
-  body_height: 0.1  # [m]
+  arm_length: 0.345 # [m]
+  body_height: 0.20 # [m]
 
   propulsion:
 
     # force [N] = force_constant * rpm^2
-    force_constant: 0.00000012216
+    force_constant: 0.00000096809
 
     # torque [Nm] = torque_constant * force [N]
     torque_constant: 0.07
 
-    prop_radius: 0.11 # [m]
+    prop_radius: 0.2286 # [m]
 
     # allocation motors -> torques
 
@@ -35,7 +35,7 @@ model_params:
     allocation_matrix: [
       -0.707, 0.707, 0.707,  -0.707, # *= force_constant*arm_length
       -0.707, 0.707, -0.707, 0.707,  # *= force_constant*arm_length
-      -1,     -1,    1,      1,      # *= moment_constant*force_constant
+      -1,     -1,    1,      1,      # *= torque_constant*force_constant
       1,      1,     1,      1,      # *= force_constant
     ]
 
@@ -44,23 +44,20 @@ model_params:
     # inertia_matrix: []
 
     rpm:
-      min: 1360  # [revolutions/minute]
-      max: 9068  # [revolutions/minute]
+      min: 801.55 # [revolutions/minute]
+      max: 5337.0 # [revolutions/minute]
 
 mrs_uav_managers:
 
   constraint_manager:
 
-    # list of allowed constraints per odometry mode
-    allowed_constraints:
-      gps_garmin: ["slow", "medium"]
-      gps_baro: ["slow", "medium"]
-      rtk: ["slow", "medium"]
-      rtk_garmin: ["slow", "medium"]
-      aloam: ["slow"]
-      hector_garmin: ["slow"]
-      vio: ["slow"]
-      optflow: ["slow"]
-      other: ["slow"]
-      ground_truth: ["slow", "medium"]
-      passthrough: ["slow", "medium"]
+    default_constraints:
+      gps_garmin: "medium"
+      gps_baro: "medium"
+      rtk: "medium"
+      aloam: "slow"
+      hector_garmin: "slow"
+      vio: "slow"
+      optflow: "slow"
+      other: "slow"
+      ground_truth: "medium"
