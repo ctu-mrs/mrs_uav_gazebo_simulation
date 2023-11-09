@@ -80,6 +80,7 @@
   {%- set realsense_mount_mesh_file = "model://mrs_robots_description/meshes/x500v2/realsense_mount_mesh_file.stl" -%}
   {%- set bluefox_mount_mesh_file = "model://mrs_robots_description/meshes/x500v2/bluefox_mount_mesh_file.stl" -%}
   {%- set uvdar_mount_mesh = "model://mrs_robots_description/meshes/dji/f450/dji_f450_uvdar_mount.dae" -%}
+  {%- set qorvo_dw1000_mount_file = "model://mrs_robots_description/meshes/x500v2/qorvo_dw1000_mount.stl" -%}
   {# <!--}--> #}
 
   {# Scales {--> #}
@@ -542,6 +543,24 @@
       <!--}-->
       {% endif %}
       
+
+      {% if enable_qorvo_dw1000 %}
+      <!-- Qorvo DW1000 mount {-->
+      {{components.visual_mesh_macro(
+        name = "qorvo_dw1000_mount",
+        mesh_file = qorvo_dw1000_mount_file,
+        mesh_scale = mesh_scale_milimeters,
+        color = "DarkGrey",
+        x = 0.0,
+        y = -0.01,
+        z = -0.078,
+        roll = 0,
+        pitch = 0,
+        yaw = 0)
+      }}
+      <!--}-->
+      {% endif %}
+
       <!--}-->
     
     </link>
@@ -1101,6 +1120,25 @@
     <!--}-->
     {% endif %}
     {# <!--}--> #}
+
+    {# Qorvo UWB {--> #}
+    {% if enable_qorvo_dw1000 %}
+    <!-- Qorvo DW1000 {-->
+        {{ components.uwb_range_macro(
+            parent_link = root,
+            uwb_id = uwb_id,
+            uav_name = namespace,
+            x = 0.0,
+            y = 0.08,
+            z = -0.10,
+            roll = 0.0,
+            pitch = 0.0,
+            yaw = 0.0)
+    }}
+    <!--}-->
+    {% endif %}
+    {# <!--}--> #}
+
 
   </model>
 </sdf>

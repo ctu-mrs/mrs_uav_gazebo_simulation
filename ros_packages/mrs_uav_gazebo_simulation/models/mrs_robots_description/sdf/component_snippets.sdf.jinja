@@ -1434,6 +1434,41 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+<!-- Macro to add a UWB Range{-->
+{%- macro uwb_range_macro(namespace, parent_link, uwb_id, uav_name, x, y, z, roll, pitch, yaw) -%}
+<link name="uwb_range_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <sensor name="uwb_range_sensor" type="wireless_transmitter">
+    <update_rate>10</update_rate>
+    <always_on>1</always_on>
+    <plugin name="uwb_range_plugin" filename="libuwb_range.so">
+      <uwb_id>{{uwb_id}}</uwb_id>
+      <publish_topic>/{{ uav_name }}/uwb_range/range</publish_topic>
+      <frame_name>{{ uav_name }}/uwb</frame_name>
+      <sensitivity>-150</sensitivity>
+      <stddev>0.1</stddev>
+    </plugin>
+    <transceiver>
+      <frequency>6489.6</frequency>
+      <min_frequency>6240.0</min_frequency>
+      <max_frequency>6739.2</max_frequency>
+      <power>14.5</power>
+      <gain>2.5</gain>
+    </transceiver>
+  </sensor>
+</link> 
+
+<joint name="uwb_range_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>uwb_range_link</child>
+  <disableFixedJointLumping>true</disableFixedJointLumping>
+  <preserveFixedJoint>true</preserveFixedJoint>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+
 <!-- ========================== LIDAR sensors ========================= -->
 
 <!-- Macro to add a Scanse Sweeper{-->
