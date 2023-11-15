@@ -844,29 +844,27 @@ limitations under the License.
 
 <!-- Macro to add the gps_plugin {-->
 {%- macro gps_macro(gps_name, parent_link, update_rate, gps_noise, gps_xy_random_walk, gps_z_random_walk, gps_xy_noise_density, gps_z_noise_density, gps_vxy_noise_density, gps_vz_noise_density, x, y, z, roll, pitch, yaw) -%}
-<model name="{{ gps_name }}">
-  <link name="link">
-    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-    {{ zero_inertial_macro() }}
-    <sensor name="gps_sensor" type="gps">
-      <plugin name="gps_plugin" filename="libgazebo_gps_plugin.so">
-        <robotNamespace/>
-        <update_rate>{{ update_rate }}</update_rate>
-        <gpsNoise>{{ gps_noise }}</gpsNoise>
-        <gpsXYRandomWalk>{{ gps_xy_random_walk }}</gpsXYRandomWalk>
-        <gpsZRandomWalk>{{ gps_z_random_walk }}</gpsZRandomWalk>
-        <gpsXYNoiseDensity>{{ gps_xy_noise_density }}</gpsXYNoiseDensity>
-        <gpsZNoiseDensity>{{ gps_z_noise_density }}</gpsZNoiseDensity>
-        <gpsVXYNoiseDensity>{{ gps_vxy_noise_density }}</gpsVXYNoiseDensity>
-        <gpsVZNoiseDensity>{{ gps_vz_noise_density }}</gpsVZNoiseDensity>
-        <topic>{{ gps_name }}</topic>
-      </plugin>
-    </sensor>
-  </link>
-</model>
+<link name="{{ gps_name }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <sensor name="gps_sensor" type="gps">
+    <plugin name="gps_plugin" filename="libgazebo_gps_plugin.so">
+      <robotNamespace/>
+      <update_rate>{{ update_rate }}</update_rate>
+      <gpsNoise>{{ gps_noise }}</gpsNoise>
+      <gpsXYRandomWalk>{{ gps_xy_random_walk }}</gpsXYRandomWalk>
+      <gpsZRandomWalk>{{ gps_z_random_walk }}</gpsZRandomWalk>
+      <gpsXYNoiseDensity>{{ gps_xy_noise_density }}</gpsXYNoiseDensity>
+      <gpsZNoiseDensity>{{ gps_z_noise_density }}</gpsZNoiseDensity>
+      <gpsVXYNoiseDensity>{{ gps_vxy_noise_density }}</gpsVXYNoiseDensity>
+      <gpsVZNoiseDensity>{{ gps_vz_noise_density }}</gpsVZNoiseDensity>
+      <topic>{{ gps_name }}</topic>
+    </plugin>
+  </sensor>
+</link>
 
 <joint name='{{ gps_name }}_joint' type='fixed'>
-  <child>{{ gps_name }}::link</child>
+  <child>{{ gps_name }}_link</child>
   <parent>{{ parent_link }}</parent>
 </joint>
 
@@ -1238,7 +1236,7 @@ limitations under the License.
 
 <!-- Macro to add a garmin (connected to the pixhawk) {-->
 {%- macro garmin_macro(sensor_name, parent_link, x, y, z, roll, pitch, yaw) -%}
-<link name="{{ sensor_name }}::link">
+<link name="{{ sensor_name }}_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
   {{ zero_inertial_macro() }}
   <visual name="visual">
@@ -1290,7 +1288,7 @@ limitations under the License.
 
 <joint name="{{ sensor_name }}_joint" type="fixed">
   <parent>{{ parent_link }}</parent>
-  <child>{{ sensor_name }}::link</child>
+  <child>{{ sensor_name }}_link</child>
 </joint>
 {%- endmacro -%}
 <!--}-->
