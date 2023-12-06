@@ -11,6 +11,7 @@ import yaml
 import math
 import random
 import json
+import atexit
 
 from utils import print_error, print_info, print_ok, is_number, rinfo, rwarn, rerr
 
@@ -28,6 +29,8 @@ LAUNCH_BASE_PORT = 14900
 DEFAULT_VEHICLE_TYPE = 't650'
 VEHICLE_TYPES = ['a300', 'f450', 'f550', 't650', 'x500', 'eaglemk2', 'f330', 'brus', 'naki', 'big_dofec', 'm690']
 SPAWNING_DELAY_SECONDS = 6
+
+glob_running_processes = []
 
 class MrsDroneSpawner():
 
@@ -80,7 +83,6 @@ class MrsDroneSpawner():
         self.queued_vehicles = []
         self.got_mavlink = {}
         self.mavlink_sub = {}
-        self.running_processes= []
         self.assigned_ids = {} # dictionary {id: process_handle}
         # #}
 
@@ -173,7 +175,7 @@ class MrsDroneSpawner():
             roslaunch.pmon._init_signal_handlers = orig_signal_handler
 
             if process_handle is not None:
-                self.running_processes.append(process_handle)
+                glob_running_processes.append(process_handle)
             else:
                 self.process_queue_mutex.acquire()
                 self.process_queue.append((process, args))
@@ -581,8 +583,9 @@ class MrsDroneSpawner():
             launch.shutdown()
             return None
 
+        process_name = 'uav' + str(ID) + '_firmware'
         rinfo('Firmware for uav' + str(ID) + ' started!')
-        return launch
+        return launch, process_name
     # #}
 
     # #{ spawn_gazebo_model
@@ -602,7 +605,8 @@ class MrsDroneSpawner():
         rinfo('Gazebo model for uav' + str(ID) + ' spawned!')
         self.queued_vehicles.remove('uav' + str(ID))
         self.active_vehicles.append('uav' + str(ID))
-        return launch
+        process_name = 'uav' + str(ID) + '_simulation_model'
+        return launch, process_name
     # #}
 
     # #{ launch_mavros
@@ -627,14 +631,38 @@ class MrsDroneSpawner():
             launch.shutdown()
             return None
 
+        process_name = 'uav' + str(ID) + '_mavros'
         rinfo('Mavros for uav' + str(ID) + ' started!')
-        return launch
+        return launch, process_name
     # #}
 
     # #{ dummy_function
     def dummy_function(self):
         pass
     # #}
+
+# #{ exit_handler
+def exit_handler():
+    print('[INFO] [MrsDroneSpawner]: Exit requested')
+
+    if len(glob_running_processes) > 0:
+        print(f'[INFO] [MrsDroneSpawner]: Shutting down {len(glob_running_processes)} subprocesses')
+
+        num_zombies = 0
+        for p, pid in glob_running_processes:
+            try:
+                p.shutdown()
+                print(f'[INFO] [MrsDroneSpawner]: Process {pid} shutdown')
+            except:
+                num_zombies += 1
+
+        if num_zombies > 0:
+            print(f'\033[91m[ERROR] [MrsDroneSpawner]: Could not stop {num_zombies} subprocesses\033[91m')
+            exit(1)
+
+    print('[INFO] [MrsDroneSpawner]: Exited gracefully')
+    exit(0)
+# #}
 
 if __name__ == '__main__':
 
@@ -643,6 +671,8 @@ if __name__ == '__main__':
         show_help = False
 
     verbose = 'verbose' in sys.argv
+
+    atexit.register(exit_handler)
 
     try:
         spawner = MrsDroneSpawner(show_help, verbose)
