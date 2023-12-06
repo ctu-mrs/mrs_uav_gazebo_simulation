@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import copy
 import csv
 import os
@@ -666,6 +668,8 @@ def exit_handler():
 
 if __name__ == '__main__':
 
+    print('[INFO] [MrsDroneSpawner]: Starting')
+
     show_help = True
     if 'no_help' in sys.argv:
         show_help = False
@@ -676,7 +680,5 @@ if __name__ == '__main__':
 
     try:
         spawner = MrsDroneSpawner(show_help, verbose)
-
     except rospy.ROSInterruptException:
         pass
-
