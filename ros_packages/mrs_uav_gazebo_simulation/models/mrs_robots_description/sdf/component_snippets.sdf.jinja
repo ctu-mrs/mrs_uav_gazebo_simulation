@@ -261,6 +261,20 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+<!-- Collision cylinder macro {-->
+{%- macro collision_cylinder_macro(name, collision_length, collision_radius, x, y, z, roll, pitch, yaw) -%}
+<collision name="{{ name }}_collision">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <cylinder>
+      <length>{{ collision_length }}</length>
+      <radius>{{ collision_radius }}</radius>
+    </cylinder>
+  </geometry>
+</collision>
+{%- endmacro -%}
+<!--}-->
+
 <!-- Leg macro {-->
 {%- macro leg_macro(name, mesh_file, mesh_scale, color, parent, x, y, z, roll, pitch, yaw, collision_height, collision_radius) -%}
 {{ visual_mesh_macro(
@@ -830,29 +844,27 @@ limitations under the License.
 
 <!-- Macro to add the gps_plugin {-->
 {%- macro gps_macro(gps_name, parent_link, update_rate, gps_noise, gps_xy_random_walk, gps_z_random_walk, gps_xy_noise_density, gps_z_noise_density, gps_vxy_noise_density, gps_vz_noise_density, x, y, z, roll, pitch, yaw) -%}
-<model name="{{ gps_name }}">
-  <link name="link">
-    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-    {{ zero_inertial_macro() }}
-    <sensor name="gps_sensor" type="gps">
-      <plugin name="gps_plugin" filename="libgazebo_gps_plugin.so">
-        <robotNamespace/>
-        <update_rate>{{ update_rate }}</update_rate>
-        <gpsNoise>{{ gps_noise }}</gpsNoise>
-        <gpsXYRandomWalk>{{ gps_xy_random_walk }}</gpsXYRandomWalk>
-        <gpsZRandomWalk>{{ gps_z_random_walk }}</gpsZRandomWalk>
-        <gpsXYNoiseDensity>{{ gps_xy_noise_density }}</gpsXYNoiseDensity>
-        <gpsZNoiseDensity>{{ gps_z_noise_density }}</gpsZNoiseDensity>
-        <gpsVXYNoiseDensity>{{ gps_vxy_noise_density }}</gpsVXYNoiseDensity>
-        <gpsVZNoiseDensity>{{ gps_vz_noise_density }}</gpsVZNoiseDensity>
-        <topic>{{ gps_name }}</topic>
-      </plugin>
-    </sensor>
-  </link>
-</model>
+<link name="{{ gps_name }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <sensor name="gps_sensor" type="gps">
+    <plugin name="gps_plugin" filename="libgazebo_gps_plugin.so">
+      <robotNamespace/>
+      <update_rate>{{ update_rate }}</update_rate>
+      <gpsNoise>{{ gps_noise }}</gpsNoise>
+      <gpsXYRandomWalk>{{ gps_xy_random_walk }}</gpsXYRandomWalk>
+      <gpsZRandomWalk>{{ gps_z_random_walk }}</gpsZRandomWalk>
+      <gpsXYNoiseDensity>{{ gps_xy_noise_density }}</gpsXYNoiseDensity>
+      <gpsZNoiseDensity>{{ gps_z_noise_density }}</gpsZNoiseDensity>
+      <gpsVXYNoiseDensity>{{ gps_vxy_noise_density }}</gpsVXYNoiseDensity>
+      <gpsVZNoiseDensity>{{ gps_vz_noise_density }}</gpsVZNoiseDensity>
+      <topic>{{ gps_name }}</topic>
+    </plugin>
+  </sensor>
+</link>
 
 <joint name='{{ gps_name }}_joint' type='fixed'>
-  <child>{{ gps_name }}::link</child>
+  <child>{{ gps_name }}_link</child>
   <parent>{{ parent_link }}</parent>
 </joint>
 
@@ -1224,7 +1236,7 @@ limitations under the License.
 
 <!-- Macro to add a garmin (connected to the pixhawk) {-->
 {%- macro garmin_macro(sensor_name, parent_link, x, y, z, roll, pitch, yaw) -%}
-<link name="{{ sensor_name }}::link">
+<link name="{{ sensor_name }}_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
   {{ zero_inertial_macro() }}
   <visual name="visual">
@@ -1276,7 +1288,7 @@ limitations under the License.
 
 <joint name="{{ sensor_name }}_joint" type="fixed">
   <parent>{{ parent_link }}</parent>
-  <child>{{ sensor_name }}::link</child>
+  <child>{{ sensor_name }}_link</child>
 </joint>
 {%- endmacro -%}
 <!--}-->
@@ -1419,6 +1431,41 @@ limitations under the License.
 </joint>
 {%- endmacro -%}
 <!--}-->
+
+<!-- Macro to add a UWB Range{-->
+{%- macro uwb_range_macro(namespace, parent_link, uwb_id, uav_name, x, y, z, roll, pitch, yaw) -%}
+<link name="uwb_range_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <sensor name="uwb_range_sensor" type="wireless_transmitter">
+    <update_rate>10</update_rate>
+    <always_on>1</always_on>
+    <plugin name="uwb_range_plugin" filename="libuwb_range.so">
+      <uwb_id>{{uwb_id}}</uwb_id>
+      <publish_topic>/{{ uav_name }}/uwb_range/range</publish_topic>
+      <frame_name>{{ uav_name }}/uwb</frame_name>
+      <sensitivity>-150</sensitivity>
+      <stddev>0.1</stddev>
+    </plugin>
+    <transceiver>
+      <frequency>6489.6</frequency>
+      <min_frequency>6240.0</min_frequency>
+      <max_frequency>6739.2</max_frequency>
+      <power>14.5</power>
+      <gain>2.5</gain>
+    </transceiver>
+  </sensor>
+</link> 
+
+<joint name="uwb_range_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>uwb_range_link</child>
+  <disableFixedJointLumping>true</disableFixedJointLumping>
+  <preserveFixedJoint>true</preserveFixedJoint>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
 
 <!-- ========================== LIDAR sensors ========================= -->
 
@@ -2221,7 +2268,6 @@ limitations under the License.
     <visualize>0</visualize>
   </sensor>
   <!--}-->
-  <!--}-->
 
 </link>
 
@@ -2275,6 +2321,41 @@ limitations under the License.
   visual_y = 0,
   visual_z = 0,
   visual_roll = rad90,
+  visual_pitch = 0,
+  visual_yaw = 0,
+  x = x,
+  y = y,
+  z = z,
+  roll = roll,
+  pitch = pitch,
+  yaw = yaw)
+}}
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add a Basler Dart camera {-->
+{%- macro basler_camera_macro(namespace, camera_name, parent_link, frame_rate, hfov, noise, x, y, z, roll, pitch, yaw) -%}
+{{ camera_macro(
+  parent_link = parent_link,
+  camera_name = camera_name,
+  parent_frame_name = namespace + "/fcu",
+  camera_frame_name = namespace + "/" + camera_name + "_optical",
+  sensor_base_frame_name = namespace  + "/" + camera_name,
+  frame_rate = frame_rate,
+  horizontal_fov = hfov,
+  image_width = 1920,
+  image_height = 1200,
+  min_distance = 0.02,
+  max_distance = 80,
+  noise_mean = 0.0,
+  noise_stddev = noise,
+  mesh_file = "model://mrs_robots_description/meshes/sensors/basler_dart.stl",
+  mesh_scale = "0.001 0.001 0.001",
+  color = "DarkGrey",
+  visual_x = 0,
+  visual_y = 0,
+  visual_z = 0,
+  visual_roll = 0,
   visual_pitch = 0,
   visual_yaw = 0,
   x = x,
