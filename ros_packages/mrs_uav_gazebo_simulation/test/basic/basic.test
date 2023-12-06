@@ -1,0 +1,7 @@
+<launch>
+
+  <include file="$(find mrs_uav_gazebo_simulation)/test/basic/launch/mrs_uav_system.launch" />
+
+  <test pkg="mrs_uav_gazebo_simulation" type="test_basic" test-name="basic" time-limit="120.0" />
+
+</launch>
