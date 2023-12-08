@@ -29,7 +29,7 @@ MAVLINK_TCP_BASE_PORT = 4560
 MAVLINK_UDP_BASE_PORT = 14560
 LAUNCH_BASE_PORT = 14900
 DEFAULT_VEHICLE_TYPE = 't650'
-VEHICLE_TYPES = ['a300', 'f450', 'f550', 't650', 'x500', 'eaglemk2', 'f330', 'brus', 'naki', 'big_dofec', 'm690']
+VEHICLE_TYPES = ['a300', 'f450', 'f550', 't650', 'x500', 'eaglemk2', 'f330', 'brus', 'naki', 'big_dofec', 'm690', 'x400']
 SPAWNING_DELAY_SECONDS = 6
 
 glob_running_processes = []
@@ -438,8 +438,8 @@ class MrsDroneSpawner():
                 # check if the customized param is allowed for the desired vehicle type
                     allowed_vehicle_types = self.spawner_params[pname][2]
                 # print('For param ' + str(pname) + ' allowed: ' + str(allowed_vehicle_types))
-                    if vehicle_type not in allowed_vehicle_types:
-                        raise Exception('Param \'' + str(pname) + '\' cannot be used with vehicle type \'' + str(vehicle_type) + '\'!')
+                    # if vehicle_type not in allowed_vehicle_types:
+                    #     raise Exception('Param \'' + str(pname) + '\' cannot be used with vehicle type \'' + str(vehicle_type) + '\'!')
 
                 print('\t' + str(pname) + ': ' + str(pval))
             params_dict.update(custom_params)

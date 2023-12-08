@@ -1,6 +1,6 @@
 <launch>
 
-  <node name="mrs_drone_spawner" pkg="mrs_uav_gazebo_simulation" type="mrs_drone_spawner.py" output="screen" args="no_help verbose">
+  <node name="mrs_drone_spawner" pkg="mrs_uav_gazebo_simulation" type="updated_drone_spawner.py" output="screen" args="no_help verbose">
 
     <remap from="~gazebo_model_states" to="/gazebo/model_states" />
 

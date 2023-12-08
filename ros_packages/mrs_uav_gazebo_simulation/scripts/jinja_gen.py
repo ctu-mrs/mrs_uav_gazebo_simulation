@@ -48,7 +48,7 @@ if __name__ == "__main__":
     parser.add_argument('--namespace', default="uav", help="drone namespace")
     args, _ = parser.parse_known_args()
 
-    # print('Generating a templated model using jinja')
+    print('Generating a templated model using jinja')
 
     filename = os.path.basename(args.filepath)
     model_name = filename.split('.')[0]
@@ -59,7 +59,11 @@ if __name__ == "__main__":
     mrs_uav_gazebo_simulation_path = os.path.realpath(rospack.get_path('mrs_uav_gazebo_simulation'))
     mrs_models_dir = os.path.join(mrs_uav_gazebo_simulation_path, 'models')
 
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader((model_dir, mrs_models_dir)))
+    print('[AAAAAAAAAAAAAAA]: ', model_dir)
+    print('[AAAAAAAAAAAAAAA]: ', mrs_models_dir)
+    print('[AAAAAAAAAAAAAAA]: ', filename)
+
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader([model_dir, mrs_models_dir]))
     # print("Jinja env. directories:\n\t{}\n\t{}".format(model_dir, mrs_models_dir))
     
     template = env.get_template(filename)
@@ -99,7 +103,7 @@ if __name__ == "__main__":
     if args.output_file:
         filename_out = args.output_file
     else:
-        if not args.filename.endswith('.sdf.jinja'):
+        if not filename.endswith('.sdf.jinja'):
             raise Exception("ERROR: Output file can only be determined automatically for " + \
                             "input files with the .sdf.jinja extension")
         filename_out = filename.replace('.sdf.jinja', '.sdf')
