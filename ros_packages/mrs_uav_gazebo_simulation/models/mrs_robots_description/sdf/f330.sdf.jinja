@@ -684,6 +684,62 @@
 
     <!--}-->
 
+    <!-- Picoflexx placements { -->
+  <!-- pixhawk_offset 0 0 0.0073 [m] = 7.33mm -->
+  <!-- pico1  0.023 0.075 0.073 yaw=+70deg [m] -->
+  <!-- pico2  0.023 -0.075 0.073 yaw=-70deg [m] -->
+  <!-- oakdw  -0.067 -0.075 0.073 yaw=-70deg [m] -->
+  
+    {% if enable_uas_mapping %}
+    <!-- uas mapping challenge picoflexx setup (uses modified PicoFlexx plugin) {-->
+    {{ components.picoflexx_macro(
+      namespace = namespace,
+      camera_name = "picoflexx_left",
+      camera_suffix="",
+      parent_link = root,
+      enable_realistic_picoflexx = enable_realistic_picoflexx,
+      x = 0.023,
+      y = 0.075,
+      z = -0.025,
+      roll = -components.rad90,
+      pitch = 0,
+      yaw = components.rad70)
+    }}
+
+    {{ components.picoflexx_macro(
+      namespace = namespace,
+      camera_name = "picoflexx_right",
+      camera_suffix="",
+      parent_link = root,
+      enable_realistic_picoflexx = enable_realistic_picoflexx,
+      x = 0.023,
+      y = -0.075,
+      z = -0.025,
+      roll = -components.rad90,
+      pitch = 0,
+      yaw = -components.rad70)
+    }}
+
+    <!-- uas mapping challenge oakd camera setup (uses MRS RealSense plugin) {-->
+    {{ components.oakd_macro(
+      namespace = namespace,
+      camera_name = "oakd",
+      camera_suffix="",
+      parent_link = root,
+      enable_realistic_oakd = enable_realistic_oakd,
+      x = 0.055,
+      y = 0.0485,
+      z = -0.008,
+      roll = 0,
+      pitch = components.rad5,
+      yaw = 0)
+    }}
+    <!--}-->
+    {% endif %}
+
+      
+    <!-- } -->
+
     <!-- VIO placements {-->
 
     {% if enable_vio %}

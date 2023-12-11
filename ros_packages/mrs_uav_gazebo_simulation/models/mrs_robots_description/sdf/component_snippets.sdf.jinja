@@ -2298,6 +2298,342 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+<!-- Test Macro to add a picoflexx2 ToF camera {-->
+{%- macro picoflexx_macro(namespace, camera_name, camera_suffix, parent_link, enable_realistic_picoflexx, x, y, z, roll, pitch, yaw) -%}
+{# -- frame names -- #}
+{%- set frame_fcu = namespace + "/fcu" -%}
+
+<link name="{{ camera_name }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="body_visual">
+    <pose>0 0 0 0 0 0</pose>
+    <geometry>
+      <mesh>
+        <uri>model://mrs_robots_description/meshes/sensors/pmd_pico_flexx2.stl</uri>
+        <scale>0.001 0.001 0.001</scale>
+      </mesh>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Blue</name>
+        <uri>/usr/share/gazebo-11/media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+
+  <!-- sensors {-->
+  <!-- IR camera {-->
+  <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_infra" type="camera">
+    {# <pose>0 -0.046 0.004 0 0 0</pose> #}
+    {# <pose>0 0 -0.0115 0 0 0</pose> #}
+    <pose>0 0 0.0 0 0 0</pose>
+      <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_infra">
+      {# <horizontal_fov>1.211259</horizontal_fov> #}
+      <horizontal_fov>0.977384</horizontal_fov>
+      <image>
+        <width>224</width>
+        <height>172</height>
+        <format>L_INT8</format>
+      </image>
+      <clip>
+        <near>0.1</near>
+        <far>7</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.005</stddev>
+      </noise>
+    </camera>
+    <always_on>1</always_on>
+    <update_rate>60</update_rate>
+    <visualize>0</visualize>
+  </sensor>
+  <!--}-->
+
+  <!-- (unused) infra2 {-->
+    <!-- <sensor name="infra2" type="camera"> -->
+    <!-- <parent link="${camera_name}${camera_suffix}_camera_${camera_suffix}"/> -->
+    <!-- <pose>0 -1.0325 0 0 0 0</pose> -->
+    <!--   <pose frame="${camera_name}${camera_suffix}/camera_infra2">0 -1.0325 0 0 0 0</pose> -->
+    <!--   <camera name="${camera_name}${camera_suffix}/camera_${camera_suffix}_infra2"> -->
+      <!-- <horizontal_fov>1.7523106</horizontal_fov> -->
+      <!--     <horizontal_fov>1.211259</horizontal_fov> -->
+      <!--     <image> -->
+        <!--       <width>1280</width> -->
+        <!--       <height>720</height> -->
+        <!--       <format>L_INT8</format> -->
+        <!--     </image> -->
+      <!--     <clip> -->
+        <!--       <near>0.1</near> -->
+        <!--       <far>10</far> -->
+        <!--     </clip> -->
+      <!--     <noise> -->
+        <!--       <type>gaussian</type> -->
+        <!--       <mean>0.0</mean> -->
+        <!--       <stddev>0.05</stddev> -->
+        <!--     </noise> -->
+      <!--   </camera> -->
+    <!--   <always_on>1</always_on> -->
+    <!--   <update_rate>60</update_rate> -->
+    <!--   <visualize>0</visualize> -->
+      <!-- </sensor> -->
+      <!--}-->
+
+  <!-- ToF depth camera {-->
+  <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_tof_depth" type="depth">
+    <pose>0 -0.0115 0.0 0 0 0</pose>
+    <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_tof_depth">
+      <!-- 56 deg hfov -->
+      <horizontal_fov>0.977384</horizontal_fov>
+      <image>
+        {% if enable_realistic_picoflexx %}
+          <width>224</width>
+          <height>172</height>
+        {% else %}
+          <width>224</width>
+          <height>172</height>
+        {% endif %}
+      </image>
+      <clip>
+        <near>0.1</near>
+        <far>7</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>5000.0</stddev>
+      </noise>
+    </camera>
+    <always_on>1</always_on>
+    <update_rate>60</update_rate>
+    <visualize>0</visualize>
+  </sensor>
+  <!--}-->
+
+</link>
+
+<plugin name="{{ camera_name }}{{ camera_suffix }}_plugin" filename="libMrsGazeboCommonResources_PicoflexxPlugin.so">
+  <camera_name>{{ camera_name }}</camera_name>
+  <camera_suffix>{{ camera_suffix }}</camera_suffix>
+  <useRealistic>{{ enable_realistic_picoflexx }}</useRealistic>
+  <noisePerMeter>0.2</noisePerMeter>
+  <minNoiseDistance>4.0</minNoiseDistance>
+  <perlinEmptyThreshold>0.8</perlinEmptyThreshold>
+  <perlinEmptySpeed>0.2</perlinEmptySpeed>
+  <imageScaling>4</imageScaling>
+  <blurSize>15</blurSize>
+  <erosionSize>5</erosionSize>
+  <parentFrameName>{{ frame_fcu }}</parentFrameName>
+  <x>{{ x }}</x>
+  <y>{{ y }}</y>
+  <z>{{ z }}</z>
+  <roll>{{ roll }}</roll>
+  <pitch>{{ pitch }}</pitch>
+  <yaw>{{ yaw }}</yaw>
+</plugin>
+
+<joint name="{{ camera_name }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>{{ camera_name }}_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
+
+
+<!-- Macro to add a OAK-D W Pro Camera {-->
+{%- macro oakd_macro(namespace, camera_name, camera_suffix, parent_link, enable_realistic_oakd, x, y, z, roll, pitch, yaw) -%}
+{# -- frame names -- #}
+{%- set frame_fcu = namespace + "/fcu" -%}
+
+<link name="{{ camera_name }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="body_visual">
+    <pose>0 0 0 {{ -rad90 }} 0 {{ -rad90 }}</pose>
+    <geometry>
+      <mesh>
+        <uri>model://mrs_robots_description/meshes/sensors/oakd_w_pro_body.stl</uri>
+        <scale>0.001 0.001 0.001</scale>
+      </mesh>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/White</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+
+  <!-- OAKD rgb camera {-->
+  <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_color" type="camera">
+    {# <pose>0 -0.046 0.004 0 0 0</pose> #}
+    <pose>0 0 0 0 0 0</pose>
+      <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_color">
+      {# <horizontal_fov>1.211259</horizontal_fov> #}
+      <!-- 95 deg HFOV -->
+      <horizontal_fov>1.65806</horizontal_fov>
+      <!-- 70 deg VFOV -->
+      <!-- <vertical_fov>1.22173</vertical_fov> -->
+      <image>
+        <width>4056</width>
+        <height>3040</height>
+        <format>RGB_INT8</format>
+      </image>
+      <clip>
+        <near>0.6</near>
+        <far>100</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.007</stddev>
+      </noise>
+    </camera>
+    <always_on>1</always_on>
+    <update_rate>60</update_rate>
+    <visualize>0</visualize>
+  </sensor>
+  <!--}-->
+
+  <!-- infra stereo {-->
+  <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_infra_stereo" type="multicamera">
+    <always_on>1</always_on>
+    <update_rate>30</update_rate>
+    <visualize>0</visualize>
+    <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_infra1">
+      <!-- <pose>0 0 0 0 0 0</pose> -->
+      {# <horizontal_fov>1.7523106</horizontal_fov> #}
+      <horizontal_fov>2.23402</horizontal_fov>
+      <!-- 89.5 deg HFOV -->
+      <image>
+        <width>1200</width>
+        <height>800</height>
+        <format>L_INT8</format>
+      </image>
+      <clip>
+        <near>0.18</near>
+        <far>50</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.005</stddev>
+      </noise>
+    </camera>
+    <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_infra2">
+      <!-- <pose>0 0 0 0 0 0</pose> -->
+      {# <horizontal_fov>1.7523106</horizontal_fov> #}
+      <horizontal_fov>2.23402</horizontal_fov>
+      <image>
+        <width>1280</width>
+        <height>800</height>
+        <format>L_INT8</format>
+      </image>
+      <clip>
+        <near>0.1</near>
+        <far>50</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.005</stddev>
+      </noise>
+    </camera>
+  </sensor>
+  <!--}-->
+
+  <!-- (unused) infra2 {-->
+    <!-- <sensor name="infra2" type="camera"> -->
+    <!-- <parent link="${camera_name}${camera_suffix}_camera_${camera_suffix}"/> -->
+    <!-- <pose>0 -1.0325 0 0 0 0</pose> -->
+    <!--   <pose frame="${camera_name}${camera_suffix}/camera_infra2">0 -1.0325 0 0 0 0</pose> -->
+    <!--   <camera name="${camera_name}${camera_suffix}/camera_${camera_suffix}_infra2"> -->
+      <!-- <horizontal_fov>1.7523106</horizontal_fov> -->
+      <!--     <horizontal_fov>1.211259</horizontal_fov> -->
+      <!--     <image> -->
+        <!--       <width>1280</width> -->
+        <!--       <height>720</height> -->
+        <!--       <format>L_INT8</format> -->
+        <!--     </image> -->
+      <!--     <clip> -->
+        <!--       <near>0.1</near> -->
+        <!--       <far>10</far> -->
+        <!--     </clip> -->
+      <!--     <noise> -->
+        <!--       <type>gaussian</type> -->
+        <!--       <mean>0.0</mean> -->
+        <!--       <stddev>0.05</stddev> -->
+        <!--     </noise> -->
+      <!--   </camera> -->
+    <!--   <always_on>1</always_on> -->
+    <!--   <update_rate>60</update_rate> -->
+    <!--   <visualize>0</visualize> -->
+      <!-- </sensor> -->
+      <!--}-->
+
+  <!-- OAKD Depth Camera {-->
+  <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_aligned_depth_to_color" type="depth">
+    <!-- <pose>0 0.0 0.0 0 0 0</pose> -->
+    <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_aligned_depth_to_color">
+      <!-- 127 deg HFOV 79.5 VFOV-->
+      <horizontal_fov>2.21657</horizontal_fov>
+      <!-- 79.5 deg VFOV 79.5 VFOV-->
+      <!-- <vertical_fov>1.387537</vertical_fov> -->
+      <image>
+        {% if enable_realistic_oakd %}
+          <width>1280</width>
+          <height>800</height>
+        {% else %}
+          <width>1280</width>
+          <height>800</height>
+        {% endif %}
+      </image>
+      <clip>
+        <near>0.4</near>
+        <far>6</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>5000.0</stddev>
+      </noise>
+    </camera>
+    <always_on>1</always_on>
+    <update_rate>60</update_rate>
+    <visualize>0</visualize>
+  </sensor>
+  <!--}-->
+
+</link>
+
+<plugin name="{{ camera_name }}{{ camera_suffix }}_plugin" filename="libMrsGazeboCommonResources_OakdPlugin.so">
+  <camera_name>{{ camera_name }}</camera_name>
+  <camera_suffix>{{ camera_suffix }}</camera_suffix>
+  <useRealistic>{{ enable_realistic_oakd }}</useRealistic>
+  <noisePerMeter>0.2</noisePerMeter>
+  <minNoiseDistance>4.0</minNoiseDistance>
+  <perlinEmptyThreshold>0.8</perlinEmptyThreshold>
+  <perlinEmptySpeed>0.2</perlinEmptySpeed>
+  <imageScaling>4</imageScaling>
+  <blurSize>15</blurSize>
+  <erosionSize>5</erosionSize>
+  <parentFrameName>{{ frame_fcu }}</parentFrameName>
+  <x>{{ x }}</x>
+  <y>{{ y }}</y>
+  <z>{{ z }}</z>
+  <roll>{{ roll }}</roll>
+  <pitch>{{ pitch }}</pitch>
+  <yaw>{{ yaw }}</yaw>
+</plugin>
+
+<joint name="{{ camera_name }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>{{ camera_name }}_link</child>
+</joint>
+{%- endmacro -%}
+
 <!-- Macro to add a Bluefox camera {-->
 {%- macro bluefox_camera_macro(namespace, camera_name, parent_link, frame_rate, hfov, noise, x, y, z, roll, pitch, yaw) -%}
 {{ camera_macro(

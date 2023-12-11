@@ -60,3 +60,4 @@ enable_omni_ultrasounds: [False, 'Add omnidirectional ultrasonic sensors (up, do
 enable_safety_led: [False, 'Add a safety LED', [naki]]
 model_package: ["mrs_uav_gazebo_simulation", 'package name for the UAV models', [f330, f450, f550, t650, x500, eaglemk2, brus, naki, big_dofec, a300, m690]]
 disable_motor_crash: [False, 'Disables motor failure after crash with the environment', [f330, f450, f550, t650, x500, eaglemk2, brus, naki, big_dofec, a300]]
+enable_uas_mapping: [False, 'Add UAS Mapping Challenge camera setup', [f330]]
