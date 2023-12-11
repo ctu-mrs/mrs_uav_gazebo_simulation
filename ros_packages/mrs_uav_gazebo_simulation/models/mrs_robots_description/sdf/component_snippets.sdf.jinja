@@ -29,48 +29,6 @@ limitations under the License.
 -->
 <!--}-->
 
-<!-- Math constants {-->
-<!-- Functions and constants from the python math module (e.g. pi and trigonometric functions) are available for use -->
-
-{%- set pi = 3.14159265359 -%}
-
-{%- macro rad(deg) -%}
-{{ deg * pi / 180 }}
-{%- endmacro -%}
-
-{%- set rad0 = 0.0 -%}
-{%- set rad10 = 10 * pi / 180 -%}
-{%- set rad20 = 20 * pi / 180 -%}
-{%- set rad30 = 30 * pi / 180 -%}
-{%- set rad45 = 45 * pi / 180 -%}
-{%- set rad60 = 60 * pi / 180 -%}
-{%- set rad65 = 65 * pi / 180 -%}
-{%- set rad70 = 70 * pi / 180 -%}
-{%- set rad85 = 85 * pi / 180 -%}
-{%- set rad90 = 90 * pi / 180 -%}
-{%- set rad95 = 95 * pi / 180 -%}
-{%- set rad115 = 115 * pi / 180 -%}
-{%- set rad120 = 120 * pi / 180 -%}
-{%- set rad135 = 135 * pi / 180 -%}
-{%- set rad150 = 150 * pi / 180 -%}
-{%- set rad180 = 180 * pi / 180 -%}
-{%- set rad210 = 210 * pi / 180 -%}
-{%- set rad270 = 270 * pi / 180 -%}
-{%- set rad330 = 330 * pi / 180 -%}
-
-{%- set sin30 = 0.5 -%}
-{%- set sin45 = 0.70710678118 -%}
-{%- set sin60 = 0.86602540378 -%}
-{%- set sin90 = 1.0 -%}
-
-{%- set cos30 = 0.86602540378 -%}
-{%- set cos45 = 0.70710678118 -%}
-{%- set cos60 = 0.5 -%}
-{%- set cos90 = 0.0 -%}
-
-{%- set sqrt2 = 1.41421356237 -%}
-<!--}-->
-
 <!-- ================================================================== -->
 <!-- ||                          code blocks                         || -->
 <!-- ================================================================== -->
@@ -416,7 +374,7 @@ limitations under the License.
     </material>
   </visual>
   <collision name="prop_{{ motor_number }}_link_collision">
-    <pose>0 0 0 0 {{ rad90 }} 0</pose>
+    <pose>0 0 0 0 {{ math.radians(90) }} 0</pose>
     <geometry>
       <cylinder>
         <length>{{ 2*radius }}</length>
@@ -516,7 +474,7 @@ limitations under the License.
     </material>
   </visual>
   <collision name="prop_{{ motor_number }}_link_collision">
-    <pose>0 0 0 0 {{ rad90 }} 0</pose>
+    <pose>0 0 0 0 {{ math.radians(90) }} 0</pose>
     <geometry>
       <cylinder>
         <length>{{ 2*radius }}</length>
@@ -616,7 +574,7 @@ limitations under the License.
     </material>
   </visual>
   <collision name="prop_{{ motor_number }}_link_collision">
-    <pose>0 0 0 0 {{ rad90 }} 0</pose>
+    <pose>0 0 0 0 {{ math.radians(90) }} 0</pose>
     <geometry>
       <cylinder>
         <length>{{ 2*radius }}</length>
@@ -992,35 +950,39 @@ limitations under the License.
 <!--}-->
 
 <!-- Macro to add the odometry_plugin{-->
-{%- macro odometry_plugin_macro(odometry_sensor_name, parent_link, topic_name, noise, frame_name, frame_rate, x, y, z, roll, pitch, yaw) -%}
-<link name="{{ odometry_sensor_name }}_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
-</link>
-<joint name="{{ odometry_sensor_name }}_joint" type="revolute">
-  <parent>{{ parent_link }}</parent>
-  <child>{{ odometry_sensor_name }}_link</child>
-  <axis>
-    <xyz>0 0 1</xyz>
-    <limit>
-      <lower>0</lower>
-      <upper>0</upper>
-      <velocity>0</velocity>
-      <effort>0</effort>
-    </limit>
-    <use_parent_model_frame>1</use_parent_model_frame>
-  </axis>
-</joint>
-<plugin name="{{ odometry_sensor_name }}_plugin" filename="libgazebo_ros_p3d.so">
-  <alwaysOn>true</alwaysOn>
-  <updateRate>{{ frame_rate }}</updateRate>
-  <bodyName>{{ odometry_sensor_name }}_link</bodyName>
-  <topicName>{{ topic_name }}</topicName>
-  <gaussianNoise>{{ noise }}</gaussianNoise>
-  <frameName>{{ frame_name }}</frameName>
-  <xyzOffset>{{ x }} {{ y }} {{ z }}</xyzOffset>
-  <rpyOffset>{{ roll }} {{ pitch }} {{ yaw }}</rpyOffset>
-</plugin>
+{%- macro odometry_plugin_macro(odometry_sensor_name, parent_link, topic_name, noise, frame_name, frame_rate, x, y, z, roll, pitch, yaw, enable_ground_truth) -%}
+  {%- if enable_ground_truth -%}
+  <!-- Ground truth {-->
+  <link name="{{ odometry_sensor_name }}_link">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    {{ zero_inertial_macro() }}
+  </link>
+  <joint name="{{ odometry_sensor_name }}_joint" type="revolute">
+    <parent>{{ parent_link }}</parent>
+    <child>{{ odometry_sensor_name }}_link</child>
+    <axis>
+      <xyz>0 0 1</xyz>
+      <limit>
+        <lower>0</lower>
+        <upper>0</upper>
+        <velocity>0</velocity>
+        <effort>0</effort>
+      </limit>
+      <use_parent_model_frame>1</use_parent_model_frame>
+    </axis>
+  </joint>
+  <plugin name="{{ odometry_sensor_name }}_plugin" filename="libgazebo_ros_p3d.so">
+    <alwaysOn>true</alwaysOn>
+    <updateRate>{{ frame_rate }}</updateRate>
+    <bodyName>{{ odometry_sensor_name }}_link</bodyName>
+    <topicName>{{ topic_name }}</topicName>
+    <gaussianNoise>{{ noise }}</gaussianNoise>
+    <frameName>{{ frame_name }}</frameName>
+    <xyzOffset>{{ x }} {{ y }} {{ z }}</xyzOffset>
+    <rpyOffset>{{ roll }} {{ pitch }} {{ yaw }}</rpyOffset>
+  </plugin>
+  <!--}-->
+  {%- endif -%}
 {%- endmacro -%}
 <!--}-->
 
@@ -1295,49 +1257,53 @@ limitations under the License.
 
 <!-- Macro to add an external garmin (not connected to the pixhawk) {-->
 <!-- Orientation empty for down looking garmin, _up for upward looking sensor -->
-{%- macro external_garmin_macro(namespace, parent_link, orientation, x, y, z, roll, pitch, yaw) -%}
-<link name="garmin{{ orientation }}_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
-  <visual name="visual">
-    <origin xyz="0.015 0 0" rpy="0 0 0" />
-    <geometry>
-      <mesh>
-        <uri>model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl</uri>
-        <scale>0.001 0.001 0.001</scale>
-      </mesh>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/DarkGrey</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  {{ rangefinder_sensor_macro(
-    name = "garmin" + orientation,
-    parent_frame_name = namespace + "/fcu",
-    rangefinder_frame_name = namespace + "/garmin" + orientation,
-    topic = "garmin" + orientation + "/range",
-    frame_rate = 100,
-    fov = 0.03,
-    min_distance = 0.1,
-    max_distance = 40.0,
-    resolution = 0.005,
-    noise = 0.01,
-    x = x,
-    y = y,
-    z = z,
-    roll = roll,
-    pitch = pitch,
-    yaw = yaw)
-  }}
-</link>
-
-<joint name="garmin{{ orientation }}_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>garmin{{ orientation }}_link</child>
-</joint>
+{%- macro external_garmin_macro(namespace, parent_link, orientation, x, y, z, roll, pitch, yaw, enable_rangefinder) -%}
+  {%- if enable_rangefinder -%}
+  <!-- Garmin {-->
+  <link name="garmin{{ orientation }}_link">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    {{ zero_inertial_macro() }}
+    <visual name="visual">
+      <origin xyz="0.015 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh>
+          <uri>model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl</uri>
+          <scale>0.001 0.001 0.001</scale>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <name>Gazebo/DarkGrey</name>
+          <uri>file://media/materials/scripts/gazebo.material</uri>
+        </script>
+      </material>
+    </visual>
+    {{ rangefinder_sensor_macro(
+      name = "garmin" + orientation,
+      parent_frame_name = namespace + "/fcu",
+      rangefinder_frame_name = namespace + "/garmin" + orientation,
+      topic = "garmin" + orientation + "/range",
+      frame_rate = 100,
+      fov = 0.03,
+      min_distance = 0.1,
+      max_distance = 40.0,
+      resolution = 0.005,
+      noise = 0.01,
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+  </link>
+  
+  <joint name="garmin{{ orientation }}_joint" type="fixed">
+    <parent>{{ parent_link }}</parent>
+    <child>garmin{{ orientation }}_link</child>
+  </joint>
+  <!--}-->
+  {%- endif -%}
 {%- endmacro -%}
 <!--}-->
 
@@ -1566,7 +1532,7 @@ limitations under the License.
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
   {{ zero_inertial_macro() }}
   <visual name="base_visual">
-    <pose>0 0 -0.029 0 0 {{ rad180 }}</pose>
+    <pose>0 0 -0.029 0 0 {{ math.radians(180) }}</pose>
     <geometry>
       <mesh>
         <uri>model://mrs_robots_description/meshes/sensors/rplidar.stl</uri>
@@ -1742,14 +1708,14 @@ limitations under the License.
         <horizontal>
           <samples>{{ samples }}</samples>
           <resolution>1</resolution>
-          <min_angle>{{ -rad180 }}</min_angle>
-          <max_angle>{{ rad180 }}</max_angle>
+          <min_angle>{{ -math.radians(180) }}</min_angle>
+          <max_angle>{{ math.radians(180) }}</max_angle>
         </horizontal>
         <vertical>
           <samples>{{ lasers }}</samples>
           <resolution>1</resolution>
-          <min_angle>{{ -vfov_angle/2*rad180/180.0 }}</min_angle>
-          <max_angle>{{ vfov_angle/2*rad180/180.0 }}</max_angle>
+          <min_angle>{{ -vfov_angle/2*math.radians(180)/180.0 }}</min_angle>
+          <max_angle>{{ vfov_angle/2*math.radians(180)/180.0 }}</max_angle>
         </vertical>
       </scan>
       <range>
@@ -1853,7 +1819,7 @@ limitations under the License.
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
   {{ zero_inertial_macro() }}
   <visual name="base_visual">
-    <pose>0 0 0 0 0 {{ rad90 }}</pose>
+    <pose>0 0 0 0 0 {{ math.radians(90) }}</pose>
     <geometry>
       <mesh>
         <uri>model://mrs_robots_description/meshes/sensors/os1_64.dae</uri>
@@ -1931,8 +1897,8 @@ limitations under the License.
         <vertical>
           <samples>{{ lasers }}</samples>
           <resolution>1</resolution>
-          <min_angle>{{ -vfov_angle/2*rad180/180.0 }}</min_angle>
-          <max_angle>{{ vfov_angle/2*rad180/180.0 }}</max_angle>
+          <min_angle>{{ -vfov_angle/2*math.radians(180)/180.0 }}</min_angle>
+          <max_angle>{{ vfov_angle/2*math.radians(180)/180.0 }}</max_angle>
         </vertical>
       </scan>
       <range>
@@ -1958,7 +1924,7 @@ limitations under the License.
       <lidar_z>0</lidar_z>
       <lidar_roll>0</lidar_roll>
       <lidar_pitch>0</lidar_pitch>
-      <lidar_yaw>{{ rad180 }}</lidar_yaw>
+      <lidar_yaw>{{ math.radians(180) }}</lidar_yaw>
       <topicName>{{ topic_lidar }}</topicName>
       <topicDiagName>{{ topic_diag }}</topicDiagName>
       <min_range>0.1</min_range>
@@ -2106,7 +2072,7 @@ limitations under the License.
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
   {{ zero_inertial_macro() }}
   <visual name="body_visual">
-    <pose>0 0 0 {{ -rad90 }} 0 {{ -rad90 }}</pose>
+    <pose>0 0 0 {{ -math.radians(90) }} 0 {{ -math.radians(90) }}</pose>
     <geometry>
       <mesh>
         <uri>model://mrs_robots_description/meshes/sensors/realsense_body.stl</uri>
@@ -2121,7 +2087,7 @@ limitations under the License.
     </material>
   </visual>
   <visual name="glass_visual">
-    <pose>0 0 0 {{ -rad90 }} 0 {{ -rad90 }}</pose>
+    <pose>0 0 0 {{ -math.radians(90) }} 0 {{ -math.radians(90) }}</pose>
     <geometry>
       <mesh>
         <uri>model://mrs_robots_description/meshes/sensors/realsense_glass.stl</uri>
@@ -2297,6 +2263,7 @@ limitations under the License.
 </joint>
 {%- endmacro -%}
 <!--}-->
+<!--}-->
 
 <!-- Macro to add a Bluefox camera {-->
 {%- macro bluefox_camera_macro(namespace, camera_name, parent_link, frame_rate, hfov, noise, x, y, z, roll, pitch, yaw) -%}
@@ -2320,7 +2287,7 @@ limitations under the License.
   visual_x = 0,
   visual_y = 0,
   visual_z = 0,
-  visual_roll = rad90,
+  visual_roll = math.radians(90),
   visual_pitch = 0,
   visual_yaw = 0,
   x = x,
@@ -2378,7 +2345,7 @@ limitations under the License.
   sensor_base_frame_name = namespace  + "/" + camera_name,
   parent_link = parent_link,
   frame_rate = frame_rate,
-  horizontal_fov = rad180,
+  horizontal_fov = math.radians(180),
   image_width = 752,
   image_height = 480,
   lens_type = "custom",
@@ -2387,7 +2354,7 @@ limitations under the License.
   lens_f = 1.0,
   lens_fun = "tan",
   lens_scale = True,
-  lens_cutoff_angle = rad90,
+  lens_cutoff_angle = math.radians(90),
   lens_texture_size = 512,
   min_distance = 0.02,
   max_distance = 40,
@@ -2399,7 +2366,7 @@ limitations under the License.
   visual_x = 0,
   visual_y = 0,
   visual_z = 0,
-  visual_roll = rad90,
+  visual_roll = math.radians(90),
   visual_pitch = 0,
   visual_yaw = 0,
   x = x,
@@ -2524,7 +2491,7 @@ limitations under the License.
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
   {{ zero_inertial_macro() }}
   <visual name="visual">
-    <pose>0 0 0 {{ rad90 }} 0 0</pose>
+    <pose>0 0 0 {{ math.radians(90) }} 0 0</pose>
     <geometry>
       <mesh>
         <uri>model://mrs_robots_description/meshes/sensors/bluefox.dae</uri>
@@ -2742,9 +2709,9 @@ limitations under the License.
   x = 0,
   y = 0,
   z = 0,
-  roll = -rad90,
+  roll = -math.radians(90),
   pitch = 0,
-  yaw = -rad90)
+  yaw = -math.radians(90))
 }}
 {%- endmacro -%}
 <!--}-->
@@ -2818,13 +2785,13 @@ limitations under the License.
 {%- macro teraranger_evo_tower_macro(parent_link, visualize, frame_name, parent_frame_name, gaussian_noise, x, y, z, roll, pitch, yaw) -%}
 {# -- parameters of sensors -- (id, x, y, z, roll, pitch, yaw) #}
 {%- set sensor_parameters = [(0,  0.046,  0.0,   0.001, 0.0, 0.0,  0.0),
-                             (1,  0.032,  0.032, 0.001, 0.0, 0.0,  rad45),
-                             (2,  0.000,  0.046, 0.001, 0.0, 0.0,  rad90),
-                             (3, -0.032,  0.032, 0.001, 0.0, 0.0,  rad135),
-                             (4, -0.046,  0.000, 0.001, 0.0, 0.0,  rad180),
-                             (5, -0.032, -0.032, 0.001, 0.0, 0.0, -rad135),
-                             (6,  0.000, -0.046, 0.001, 0.0, 0.0, -rad90),
-                             (7,  0.032, -0.032, 0.001, 0.0, 0.0, -rad45)] -%}
+                             (1,  0.032,  0.032, 0.001, 0.0, 0.0,  math.radians(45)),
+                             (2,  0.000,  0.046, 0.001, 0.0, 0.0,  math.radians(90)),
+                             (3, -0.032,  0.032, 0.001, 0.0, 0.0,  math.radians(135)),
+                             (4, -0.046,  0.000, 0.001, 0.0, 0.0,  math.radians(180)),
+                             (5, -0.032, -0.032, 0.001, 0.0, 0.0, -math.radians(135)),
+                             (6,  0.000, -0.046, 0.001, 0.0, 0.0, -math.radians(90)),
+                             (7,  0.032, -0.032, 0.001, 0.0, 0.0, -math.radians(45))] -%}
 
 <link name="teraranger_evo_tower_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
@@ -2875,7 +2842,7 @@ limitations under the License.
 {%- macro gps_satelites_blocking_macro(parent_link) -%}
 {# not supported in the current version #}
 <link name="gps_blocking_link">
-  <pose>0 0 0 0 {{ -rad90 }} 0</pose>
+  <pose>0 0 0 0 {{ -math.radians(90) }} 0</pose>
   {{ zero_inertial_macro() }}
   <sensor name='gps_blocking_sensor' type='ray'>
     <visualize>false</visualize>
@@ -3082,7 +3049,7 @@ limitations under the License.
     </material>
   </visual>
   <visual name="nozzle_visual">
-    <pose>{{ nozzle_offset_x - 0.08/2 }} {{ nozzle_offset_y }} {{ nozzle_offset_z - 0.006/2 }} 0 {{ rad90 }} 0</pose>
+    <pose>{{ nozzle_offset_x - 0.08/2 }} {{ nozzle_offset_y }} {{ nozzle_offset_z - 0.006/2 }} 0 {{ math.radians(90) }} 0</pose>
     <geometry>
       <cylinder>
         <length>0.08</length>

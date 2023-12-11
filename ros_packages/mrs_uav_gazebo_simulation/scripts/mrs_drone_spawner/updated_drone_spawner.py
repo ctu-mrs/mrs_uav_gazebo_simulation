@@ -2,8 +2,11 @@
 import atexit
 import sys
 import rospkg
-import jinja2
-from jinja2 import meta
+import re
+import math
+import xml.dom.minidom
+
+import jinja_utils
 
 glob_running_processes = []
 
@@ -30,9 +33,6 @@ def exit_handler():
     exit(0)
 # #}
 
-def filter_jinja_templates(template_name):
-    return template_name.endswith('.sdf.jinja')
-
 class MrsDroneSpawner:
 
     def __init__(self, show_help=False, verbose=False):
@@ -45,11 +45,12 @@ class MrsDroneSpawner:
         self.resource_paths.append(self.rospack.get_path('mrs_uav_gazebo_simulation'))
         self.resource_paths.append(self.rospack.get_path('external_gazebo_models'))
 
-
-        self.jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(self.resource_paths))
+        # self.jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(self.resource_paths))
+        self.jinja_env = jinja_utils.configure_jinja2_environment(self.resource_paths)
 
         print('Jinja templates available:')
-        print(self.jinja_env.list_templates(filter_func=filter_jinja_templates))
+        print(jinja_utils.get_all_templates(self.jinja_env))
+        print('------------------------')
 
         # load all available models
             # from current package
@@ -67,7 +68,27 @@ class MrsDroneSpawner:
                     content = f.read()
                     parsed_content = self.jinja_env.parse(content)
                     variable_names = meta.find_undeclared_variables(parsed_content)
+                    # used_subtemplates = meta.find_referenced_templates(parsed_content)
                     return sorted(variable_names)
+
+    def render(self, model_name, output):
+        for n in jinja_utils.get_all_templates(self.jinja_env):
+            if model_name in n:
+                template = self.jinja_env.get_template(n)
+                params = {
+                    "name": "uav1",
+                    "namespace": "uav1",
+                    "enable_rangefinder": True,
+                          }
+                context = template.new_context(params)
+                rendered_template = template.render(context)
+                root = xml.dom.minidom.parseString(rendered_template)
+                ugly_xml = root.toprettyxml(indent='  ')
+                # Remove empty lines
+                pretty_xml = "\n".join(line for line in ugly_xml.split("\n") if line.strip())
+                with open(output, 'w') as f:
+                    f.write(pretty_xml)
+
 
 if __name__ == '__main__':
 
@@ -80,7 +101,8 @@ if __name__ == '__main__':
 
     try:
         spawner = MrsDroneSpawner(show_help, verbose)
-        params = spawner.extract_jinja_params('x400')
+        params = jinja_utils.get_all_params('f400', spawner.jinja_env)
         print(params)
+        spawner.render('f400', '/home/mrs/devel_workspace/src/external_gazebo_models/models/f400/sdf/f400.sdf')
     except rospy.ROSInterruptException:
         pass

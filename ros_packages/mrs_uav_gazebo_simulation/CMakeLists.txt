@@ -79,3 +79,6 @@ install(DIRECTORY scripts/
   USE_SOURCE_PERMISSIONS
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   )
+
+catkin_install_python(PROGRAMS scripts/mrs_drone_spawner/components.py
+                      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
