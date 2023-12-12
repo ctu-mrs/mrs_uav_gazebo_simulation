@@ -39,6 +39,20 @@ def get_template_filepath(model_name, jinja_env):
             return template_filepath
 # #}
 
+# #{
+def get_macros_from_template(jinja_env, template_path):
+    template_source = jinja_env.loader.get_source(jinja_env, template_path)
+    preprocessed_template = template_source[0].replace('\n', '')
+    parsed_template = jinja_env.parse(preprocessed_template)
+    macro_nodes = [node for node in parsed_template.find_all(jinja2.nodes.Macro)]
+    for node in macro_nodes:
+        for elem in node.body:
+            if isinstance(elem, jinja2.nodes.Assign) and elem.target.name == 'spawner_help':
+                print(node.name, ':')
+                print(elem.node.value)
+    return macro_nodes
+# #}
+
 # #{ get_all_templates
 def get_all_templates(jinja_env):
     '''Return all templates loaded by the given jinja environment'''

@@ -5,6 +5,8 @@ import rospkg
 import re
 import math
 import xml.dom.minidom
+from inspect import getmembers, isfunction
+from jinja2 import meta
 
 import jinja_utils
 
@@ -61,15 +63,17 @@ class MrsDroneSpawner:
         # display help (params) for individual models
 
     def extract_jinja_params(self, model_name):
-        for n in self.jinja_env.list_templates(filter_func=filter_jinja_templates):
+        for n in self.jinja_env.list_templates(filter_func=jinja_utils.filter_templates):
             if model_name in n:
                 template_filepath = self.jinja_env.get_template(n).filename
                 with open(template_filepath, 'r') as f:
                     content = f.read()
                     parsed_content = self.jinja_env.parse(content)
-                    variable_names = meta.find_undeclared_variables(parsed_content)
+                    macros = [node.name for node in parsed_content.find_all(meta.Macro)]
+                    print(macros)
+                    # variable_names = meta.find_undeclared_variables(parsed_content)
                     # used_subtemplates = meta.find_referenced_templates(parsed_content)
-                    return sorted(variable_names)
+                    # return sorted(variable_names)
 
     def render(self, model_name, output):
         for n in jinja_utils.get_all_templates(self.jinja_env):
@@ -81,13 +85,18 @@ class MrsDroneSpawner:
                     "enable_rangefinder": True,
                           }
                 context = template.new_context(params)
-                rendered_template = template.render(context)
-                root = xml.dom.minidom.parseString(rendered_template)
-                ugly_xml = root.toprettyxml(indent='  ')
-                # Remove empty lines
-                pretty_xml = "\n".join(line for line in ugly_xml.split("\n") if line.strip())
-                with open(output, 'w') as f:
-                    f.write(pretty_xml)
+                print('MACROS:')
+                for m in getmembers(macros):
+                    print(m)
+                    print('##################')
+                # print(macros)
+                # rendered_template = template.render(context)
+                # root = xml.dom.minidom.parseString(rendered_template)
+                # ugly_xml = root.toprettyxml(indent='  ')
+                # # Remove empty lines
+                # pretty_xml = "\n".join(line for line in ugly_xml.split("\n") if line.strip())
+                # with open(output, 'w') as f:
+                #     f.write(pretty_xml)
 
 
 if __name__ == '__main__':
@@ -101,8 +110,17 @@ if __name__ == '__main__':
 
     try:
         spawner = MrsDroneSpawner(show_help, verbose)
-        params = jinja_utils.get_all_params('f400', spawner.jinja_env)
-        print(params)
-        spawner.render('f400', '/home/mrs/devel_workspace/src/external_gazebo_models/models/f400/sdf/f400.sdf')
+
+        for template in jinja_utils.get_all_templates(spawner.jinja_env):
+            print(template)
+            macros = jinja_utils.get_macros_from_template(spawner.jinja_env, template)
+            # print(macros)
+            print()
+
+        # params = jinja_utils.get_all_params('x555', spawner.jinja_env)
+        # params = jinja_utils.get_all_params('f400', spawner.jinja_env)
+        # print(params)
+        # spawner.render('x555', '/home/mrs/devel_workspace/src/external_gazebo_models/models/x555/sdf/x555.sdf')
+        # spawner.render('f400', '/home/mrs/devel_workspace/src/external_gazebo_models/models/f400/sdf/f400.sdf')
     except rospy.ROSInterruptException:
         pass

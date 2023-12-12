@@ -114,7 +114,8 @@ limitations under the License.
 <!--}-->
 
 <!-- Visual mesh macro {-->
-{%- macro visual_mesh_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw) -%}
+  {%- macro visual_mesh_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw) -%}
+  {% set spawner_help = 'this is a visual mesh macro' %}
 <visual name="{{ name }}_visual">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
   <geometry>
@@ -235,6 +236,7 @@ limitations under the License.
 
 <!-- Leg macro {-->
 {%- macro leg_macro(name, mesh_file, mesh_scale, color, parent, x, y, z, roll, pitch, yaw, collision_height, collision_radius) -%}
+  {% set spawner_help = 'this is a drone leg macro' %}
 {{ visual_mesh_macro(
   name = name,
   mesh_file = mesh_file,
