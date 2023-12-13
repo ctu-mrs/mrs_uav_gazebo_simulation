@@ -79,24 +79,25 @@ class MrsDroneSpawner:
         for n in jinja_utils.get_all_templates(self.jinja_env):
             if model_name in n:
                 template = self.jinja_env.get_template(n)
+                spawner_args = {
+                    "enable_component_with_args": [0.01, 0.38],
+                }
                 params = {
-                    "name": "uav1",
-                    "namespace": "uav1",
-                    "enable_rangefinder": True,
+                    "spawner_args": spawner_args
+                #     "name": "uav1",
+                #     "namespace": "uav1",
+                #     "enable_rangefinder": True,
+                #     "enable_component": True,
+                #     "spawner_args": {'roll': 0.1, 'pitch': 0.1}
                           }
                 context = template.new_context(params)
-                print('MACROS:')
-                for m in getmembers(macros):
-                    print(m)
-                    print('##################')
-                # print(macros)
-                # rendered_template = template.render(context)
-                # root = xml.dom.minidom.parseString(rendered_template)
-                # ugly_xml = root.toprettyxml(indent='  ')
-                # # Remove empty lines
-                # pretty_xml = "\n".join(line for line in ugly_xml.split("\n") if line.strip())
-                # with open(output, 'w') as f:
-                #     f.write(pretty_xml)
+                rendered_template = template.render(context)
+                root = xml.dom.minidom.parseString(rendered_template)
+                ugly_xml = root.toprettyxml(indent='  ')
+                # Remove empty lines
+                pretty_xml = "\n".join(line for line in ugly_xml.split("\n") if line.strip())
+                with open(output, 'w') as f:
+                    f.write(pretty_xml)
 
 
 if __name__ == '__main__':
@@ -122,5 +123,6 @@ if __name__ == '__main__':
         # print(params)
         # spawner.render('x555', '/home/mrs/devel_workspace/src/external_gazebo_models/models/x555/sdf/x555.sdf')
         # spawner.render('f400', '/home/mrs/devel_workspace/src/external_gazebo_models/models/f400/sdf/f400.sdf')
+        spawner.render('dummy', '/home/mrs/devel_workspace/src/external_gazebo_models/dummy.sdf')
     except rospy.ROSInterruptException:
         pass
