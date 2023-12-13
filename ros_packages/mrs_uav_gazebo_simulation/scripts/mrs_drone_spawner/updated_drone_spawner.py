@@ -2,11 +2,11 @@
 import atexit
 import sys
 import rospkg
-import re
 import math
 import xml.dom.minidom
 from inspect import getmembers, isfunction
 from jinja2 import meta
+from datatypes import TemplateWrapper
 
 import jinja_utils
 
@@ -82,6 +82,7 @@ class MrsDroneSpawner:
                 spawner_args = {
                     "enable_component_with_args": [0.01, 0.38],
                 }
+
                 params = {
                     "spawner_args": spawner_args
                 #     "name": "uav1",
@@ -112,11 +113,37 @@ if __name__ == '__main__':
     try:
         spawner = MrsDroneSpawner(show_help, verbose)
 
-        for template in jinja_utils.get_all_templates(spawner.jinja_env):
-            print(template)
-            macros = jinja_utils.get_macros_from_template(spawner.jinja_env, template)
-            # print(macros)
-            print()
+        loaded_templates = []
+
+        for t in jinja_utils.get_all_templates(spawner.jinja_env):
+            # print('Template:', t)
+
+            imports = jinja_utils.get_imported_templates(spawner.jinja_env, t)
+            macros = jinja_utils.get_macros_from_template(spawner.jinja_env, t)
+            # for macro_name, component in macros.items():
+            #     print('\tMacro:', macro_name)
+            #     print('\t\tKeyword:', component.keyword)
+            #     print('\t\tDescription:', component.description)
+            #     print('\t\tDefaultArgs:', component.default_args)
+            # # print(macros)
+            # print()
+            
+            template_wrapper = TemplateWrapper(t, imports, macros)
+            loaded_templates.append(template_wrapper)
+
+        for temp in loaded_templates:
+            print('Template:', temp.jinja_template)
+            print('\tImports:')
+            for imported_template in temp.imported_templates:
+                print('\t\t', imported_template)
+
+            print('\tMacros:')
+            for macro_name, component in temp.components.items():
+                print('\t\tMacro:', macro_name)
+                print('\t\t\tKeyword:', component.keyword)
+                print('\t\t\tDescription:', component.description)
+                print('\t\t\tDefaultArgs:', component.default_args)
+
 
         # params = jinja_utils.get_all_params('x555', spawner.jinja_env)
         # params = jinja_utils.get_all_params('f400', spawner.jinja_env)

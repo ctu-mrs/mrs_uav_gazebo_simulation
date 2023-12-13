@@ -1,7 +1,7 @@
 import math
 import jinja2
 import jinja2.meta
-import optionals
+from datatypes import SpawnerComponent
 
 from inspect import getmembers, isclass
 
@@ -16,9 +16,7 @@ def configure_jinja2_environment(resource_paths):
     )
     # Allows use of math module directly in the templates
     env.globals['math'] = math
-    env.globals['optionals'] = optionals
 
-    print(getmembers(optionals, isclass))
     return env
 # #}
 
@@ -41,32 +39,44 @@ def get_template_filepath(model_name, jinja_env):
 
 # #{ get_macros_from_template
 def get_macros_from_template(jinja_env, template_path):
+    # TODO
+    # this needs to recursively check all imported sub-templates, and load macros from them as well
+    # TODO
     template_source = jinja_env.loader.get_source(jinja_env, template_path)
     preprocessed_template = template_source[0].replace('\n', '')
     parsed_template = jinja_env.parse(preprocessed_template)
     macro_nodes = [node for node in parsed_template.find_all(jinja2.nodes.Macro)]
-    spawner_help = None
-    spawner_args_default = None
     spawner_keyword = None
+    spawner_description= None
+    spawner_default_args = None
+    spawner_components = {}
     for node in macro_nodes:
         for elem in node.body:
-            if isinstance(elem, jinja2.nodes.Assign) and elem.target.name == 'spawner_help':
-                spawner_help = elem.node.value
-            if isinstance(elem, jinja2.nodes.Assign) and elem.target.name == 'spawner_args_default':
+            if isinstance(elem, jinja2.nodes.Assign) and elem.target.name == 'spawner_description':
+                spawner_description = elem.node.value
+            if isinstance(elem, jinja2.nodes.Assign) and elem.target.name == 'spawner_default_args':
                 if isinstance(elem.node, jinja2.nodes.Const):
-                    spawner_args_default = elem.node.value
+                    spawner_default_args = elem.node.value
                 elif isinstance(elem.node, jinja2.nodes.List):
-                    spawner_args_default = []
+                    spawner_default_args = []
                     for e in elem.node.items:
-                        spawner_args_default.append(e.value)
+                        spawner_default_args.append(e.value)
+                else:
+                    print(f'Unsupported param type {type(elem.node)}')
             if isinstance(elem, jinja2.nodes.Assign) and elem.target.name == 'spawner_keyword':
                 spawner_keyword = elem.node.value
-        if None not in (spawner_help, spawner_keyword):
-            print(node.name, ':')
-            print('\tKeyword:', spawner_keyword)
-            print('\tHelp:', spawner_help)
-            print('\tDefaultArgs:', spawner_args_default)
-    return macro_nodes
+        if spawner_keyword is not None:
+            spawner_components[node.name] = SpawnerComponent(spawner_keyword, spawner_description, spawner_default_args)
+    return spawner_components
+# #}
+
+# #{ get_imported_templates
+def get_imported_templates(jinja_env, template_path):
+    template_source = jinja_env.loader.get_source(jinja_env, template_path)
+    preprocessed_template = template_source[0].replace('\n', '')
+    parsed_template = jinja_env.parse(preprocessed_template)
+    imports = [node.template.value for node in parsed_template.find_all(jinja2.nodes.Import)]
+    return imports
 # #}
 
 # #{ get_all_templates
