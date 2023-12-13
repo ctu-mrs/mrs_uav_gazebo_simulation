@@ -39,17 +39,33 @@ def get_template_filepath(model_name, jinja_env):
             return template_filepath
 # #}
 
-# #{
+# #{ get_macros_from_template
 def get_macros_from_template(jinja_env, template_path):
     template_source = jinja_env.loader.get_source(jinja_env, template_path)
     preprocessed_template = template_source[0].replace('\n', '')
     parsed_template = jinja_env.parse(preprocessed_template)
     macro_nodes = [node for node in parsed_template.find_all(jinja2.nodes.Macro)]
+    spawner_help = None
+    spawner_args_default = None
+    spawner_keyword = None
     for node in macro_nodes:
         for elem in node.body:
             if isinstance(elem, jinja2.nodes.Assign) and elem.target.name == 'spawner_help':
-                print(node.name, ':')
-                print(elem.node.value)
+                spawner_help = elem.node.value
+            if isinstance(elem, jinja2.nodes.Assign) and elem.target.name == 'spawner_args_default':
+                if isinstance(elem.node, jinja2.nodes.Const):
+                    spawner_args_default = elem.node.value
+                elif isinstance(elem.node, jinja2.nodes.List):
+                    spawner_args_default = []
+                    for e in elem.node.items:
+                        spawner_args_default.append(e.value)
+            if isinstance(elem, jinja2.nodes.Assign) and elem.target.name == 'spawner_keyword':
+                spawner_keyword = elem.node.value
+        if None not in (spawner_help, spawner_keyword):
+            print(node.name, ':')
+            print('\tKeyword:', spawner_keyword)
+            print('\tHelp:', spawner_help)
+            print('\tDefaultArgs:', spawner_args_default)
     return macro_nodes
 # #}
 
