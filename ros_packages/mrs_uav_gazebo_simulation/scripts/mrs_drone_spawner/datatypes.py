@@ -11,3 +11,9 @@ class TemplateWrapper:
         self.jinja_template = jinja_template
         self.imported_templates = imported_templates
         self.components = components
+
+
+    def __eq__(self, other):
+        if isinstance(other, TemplateWrapper):
+            return self.jinja_template.filename == other.jinja_template.filename
+        return False

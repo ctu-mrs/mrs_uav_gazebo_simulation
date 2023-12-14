@@ -51,7 +51,7 @@ class MrsDroneSpawner:
         self.jinja_env = jinja_utils.configure_jinja2_environment(self.resource_paths)
 
         print('Jinja templates available:')
-        print(jinja_utils.get_all_templates(self.jinja_env))
+        print([t.filename for t in jinja_utils.get_all_templates(self.jinja_env)])
         print('------------------------')
 
         # load all available models
@@ -76,11 +76,12 @@ class MrsDroneSpawner:
                     # return sorted(variable_names)
 
     def render(self, model_name, output):
-        for n in jinja_utils.get_all_templates(self.jinja_env):
-            if model_name in n:
-                template = self.jinja_env.get_template(n)
+        for tw in jinja_utils.build_template_hierarchy(self.jinja_env):
+            if model_name in tw.jinja_template.filename:
                 spawner_args = {
                     "enable_component_with_args": [0.01, 0.38],
+                    "enable_second_order_component": None,
+                    "enable_third_order_component": None,
                 }
 
                 params = {
@@ -91,8 +92,8 @@ class MrsDroneSpawner:
                 #     "enable_component": True,
                 #     "spawner_args": {'roll': 0.1, 'pitch': 0.1}
                           }
-                context = template.new_context(params)
-                rendered_template = template.render(context)
+                context = tw.jinja_template.new_context(params)
+                rendered_template = tw.jinja_template.render(context)
                 root = xml.dom.minidom.parseString(rendered_template)
                 ugly_xml = root.toprettyxml(indent='  ')
                 # Remove empty lines
@@ -115,41 +116,45 @@ if __name__ == '__main__':
 
         loaded_templates = []
 
-        for t in jinja_utils.get_all_templates(spawner.jinja_env):
-            # print('Template:', t)
+        jinja_utils.build_template_hierarchy(spawner.jinja_env)
 
-            imports = jinja_utils.get_imported_templates(spawner.jinja_env, t)
-            macros = jinja_utils.get_macros_from_template(spawner.jinja_env, t)
-            # for macro_name, component in macros.items():
-            #     print('\tMacro:', macro_name)
-            #     print('\t\tKeyword:', component.keyword)
-            #     print('\t\tDescription:', component.description)
-            #     print('\t\tDefaultArgs:', component.default_args)
-            # # print(macros)
-            # print()
+        # for t in jinja_utils.get_all_templates(spawner.jinja_env):
+        #     # print('Template:', t)
+
+        #     imports = jinja_utils.get_imported_templates(spawner.jinja_env, t)
+        #     macros = jinja_utils.get_macros_from_template(spawner.jinja_env, t)
+        #     # for macro_name, component in macros.items():
+        #     #     print('\tMacro:', macro_name)
+        #     #     print('\t\tKeyword:', component.keyword)
+        #     #     print('\t\tDescription:', component.description)
+        #     #     print('\t\tDefaultArgs:', component.default_args)
+        #     # # print(macros)
+        #     # print()
             
-            template_wrapper = TemplateWrapper(t, imports, macros)
-            loaded_templates.append(template_wrapper)
-
-        for temp in loaded_templates:
-            print('Template:', temp.jinja_template)
-            print('\tImports:')
-            for imported_template in temp.imported_templates:
-                print('\t\t', imported_template)
-
-            print('\tMacros:')
-            for macro_name, component in temp.components.items():
-                print('\t\tMacro:', macro_name)
-                print('\t\t\tKeyword:', component.keyword)
-                print('\t\t\tDescription:', component.description)
-                print('\t\t\tDefaultArgs:', component.default_args)
+        #     template_wrapper = TemplateWrapper(t, imports, macros)
+        #     loaded_templates.append(template_wrapper)
 
 
-        # params = jinja_utils.get_all_params('x555', spawner.jinja_env)
-        # params = jinja_utils.get_all_params('f400', spawner.jinja_env)
-        # print(params)
-        # spawner.render('x555', '/home/mrs/devel_workspace/src/external_gazebo_models/models/x555/sdf/x555.sdf')
-        # spawner.render('f400', '/home/mrs/devel_workspace/src/external_gazebo_models/models/f400/sdf/f400.sdf')
+
+        # for temp in loaded_templates:
+        #     print('Template:', temp.jinja_template)
+        #     print('\tImports:')
+        #     for imported_template in temp.imported_templates:
+        #         print('\t\t', imported_template)
+
+        #     print('\tMacros:')
+        #     for macro_name, component in temp.components.items():
+        #         print('\t\tMacro:', macro_name)
+        #         print('\t\t\tKeyword:', component.keyword)
+        #         print('\t\t\tDescription:', component.description)
+        #         print('\t\t\tDefaultArgs:', component.default_args)
+
+
+        # # params = jinja_utils.get_all_params('x555', spawner.jinja_env)
+        # # params = jinja_utils.get_all_params('f400', spawner.jinja_env)
+        # # print(params)
+        # # spawner.render('x555', '/home/mrs/devel_workspace/src/external_gazebo_models/models/x555/sdf/x555.sdf')
+        # # spawner.render('f400', '/home/mrs/devel_workspace/src/external_gazebo_models/models/f400/sdf/f400.sdf')
         spawner.render('dummy', '/home/mrs/devel_workspace/src/external_gazebo_models/dummy.sdf')
     except rospy.ROSInterruptException:
         pass
