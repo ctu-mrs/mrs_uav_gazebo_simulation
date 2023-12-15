@@ -2,10 +2,13 @@ import math
 import jinja2
 import jinja2.meta
 from datatypes import TemplateWrapper, SpawnerComponent
+import sys
+import os.path
 
 from inspect import getmembers, isclass
 
 TEMPLATE_SUFFIX = '.sdf.jinja'
+sys.setrecursionlimit(1000)
 
 # #{ configure_jinja2_environment
 def configure_jinja2_environment(resource_paths):
@@ -26,22 +29,8 @@ def filter_templates(template_name):
     return template_name.endswith(TEMPLATE_SUFFIX)
 # #}
 
-# #{ get_template_filepath
-def get_template_filepath(model_name, jinja_env):
-    '''Return a filepath to a template with given name (without suffix)
-    or None if a matching template is not found
-    '''
-    for n in jinja_env.list_templates(filter_func=filter_templates):
-        if model_name in n:
-            template_filepath = jinja_env.get_template(n).filename
-            return template_filepath
-# #}
-
-# #{ get_macros_from_template
-def get_macros_from_template(jinja_env, template):
-    # TODO
-    # this needs to recursively check all imported sub-templates, and load macros from them as well
-    # TODO
+# #{ get_spawner_components_from_template
+def get_spawner_components_from_template(jinja_env, template):
     with open(template.filename, 'r') as f:
         template_source = f.read()
         preprocessed_template = template_source.replace('\n', '')
@@ -71,44 +60,22 @@ def get_macros_from_template(jinja_env, template):
         return spawner_components
 # #}
 
-# #{ get_imported_templates
-def get_imported_templates(jinja_env, template_path):
-    template_source = jinja_env.loader.get_source(jinja_env, template_path)
-    preprocessed_template = template_source[0].replace('\n', '')
-    parsed_template = jinja_env.parse(preprocessed_template)
-    imports = [node.template.value for node in parsed_template.find_all(jinja2.nodes.Import)]
-    jinja_templates = []
-    for i in imports:
-        jinja_templates.append(jinja_env.get_template(i))
-    return jinja_templates
-# #}
-
 # #{ get_all_templates
 def get_all_templates(jinja_env):
-    '''Return all templates loaded by the given jinja environment'''
+    '''
+    Get all templates loaded by the given jinja environment
+    :returns a list of tuples, consisting of (str_name, jinja2.Template)
+    '''
     template_names = jinja_env.list_templates(filter_func=filter_templates)
     templates = []
-    for name in template_names:
-        print(f'getting template {name}')
-        templates.append(jinja_env.get_template(name))
+    for i, full_name in enumerate(template_names):
+        print(f'\t({i+1}/{len(template_names)}): {full_name}') 
+        template_name = full_name.split(os.path.sep)[-1][:-(len(TEMPLATE_SUFFIX))]
+        templates.append((template_name, jinja_env.get_template(full_name)))
     return templates
 # #}
 
-# #{ get_all_params
-def get_all_params(model_name, jinja_env, sort=True):
-    '''Return a list of all params that can be used with a template of given name'''
-    filepath = get_template_filepath(model_name, jinja_env)
-    if filepath is None:
-        return None
-    with open(filepath, 'r') as f:
-        content = f.read()
-        parsed_content = jinja_env.parse(content)
-        variable_names = list(jinja2.meta.find_undeclared_variables(parsed_content))
-        if sort:
-            variable_names = sorted(variable_names)
-        return variable_names
-# #}
-
+# #{ get_template_imports
 def get_template_imports(jinja_env, template):
     with open(template.filename, 'r') as f:
         template_source = f.read()
@@ -120,72 +87,47 @@ def get_template_imports(jinja_env, template):
             template = jinja_env.get_template(i)
             imported_templates.append(template)
         return imported_templates 
+# #}
 
-def get_all_macros(template_wrapper):
-    macros = template_wrapper.components
-    current_node = template_wrapper
-    for i in current_node.imported_templates:
-        macros.update(get_all_macros(i))
-    return macros
+def get_all_available_components(template_wrapper, all_components):
+    all_components.update(template_wrapper.components)
+    for i in template_wrapper.imported_templates:
+        try:
+            all_components.update(get_all_available_components(i, all_components))
+        except RecursionError as err:
+            raise RecursionError(f'Cyclic import detected in file {template_wrapper.jinja_template.filename}. Fix your templates')
+    return all_components
 
-def build_template_hierarchy(jinja_env):
 
-    template_wrappers = []
+# #{ build_template_database
+def build_template_database(jinja_env):
+
+    template_wrappers = {}
     
+    print('Loading all templates')
     all_templates = get_all_templates(jinja_env)
-    for t in all_templates:
-        print(t.filename)
-        imports = get_template_imports(jinja_env, t)
-        print('\t imports:')
-        for i in imports:
-            print('\t\t', i.filename)
-        macros = get_macros_from_template(jinja_env, t)
-        print('\t macros:')
-        for m in macros.keys():
-            print('\t\t', m)
-        wrapper = TemplateWrapper(t, imports, macros)
-        template_wrappers.append(wrapper)
+    for name, template in all_templates:
+        imports = get_template_imports(jinja_env, template)
+        components = get_spawner_components_from_template(jinja_env, template)
+        wrapper = TemplateWrapper(template, imports, components)
+        template_wrappers[name] = wrapper
 
-    for w in template_wrappers:
-        print(w.jinja_template.filename)
-        for i, it in enumerate(w.imported_templates):
+    print('Reindexing imported templates')
+    for name, wrapper in template_wrappers.items():
+        for i, it in enumerate(wrapper.imported_templates):
             if not isinstance(it, TemplateWrapper):
-                for ww in template_wrappers:
+                for ww in template_wrappers.values():
                     if ww.jinja_template == it:
-                        w.imported_templates[i] = ww
-                        print('Template', ww.jinja_template.filename, 'reindexed')
+                        wrapper.imported_templates[i] = ww
 
-    print('$$$$$$$$$$$$$$$$$$$$$$')
+    print('Adding available components from dependencies')
+    for _, wrapper in template_wrappers.items():
+        prev_limit = sys.getrecursionlimit()
+        sys.setrecursionlimit(len(template_wrappers))
+        wrapper.components = get_all_available_components(wrapper, {})
+        sys.setrecursionlimit(prev_limit)
 
-    for w in template_wrappers:
-        print(w.jinja_template.filename)
-        macros = get_all_macros(w)
-        for name, component in macros.items():
-            print('\t', name)
-            print('\t\t', component.keyword)
-            print('\t\t', component.description)
-            print('\t\t', component.default_args)
+    print('Template database built')
 
     return template_wrappers
-
-#             if it.jinja_template.filename
-#                 # w.imported_templates[i] = template_wrappers[index]
-#                 # print('Template', it.jinja_template.filename, 'reindexed')
-#             except ValueError:
-#                 print('Imported template', it.filename , 'was not loaded??')
-
-    # print('#################')
-
-    # for w in template_wrappers:
-        # print(w.name, w.jinja_template.filename)
-        # for i in w.imported_templates:
-        #     print('\t', i.name, i.jinja_template.filename)
-
-
-
-
-        # for i in imports:
-        #     already_used = template_wrappers
-
-
-
+# #}
