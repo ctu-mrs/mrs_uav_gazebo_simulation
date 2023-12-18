@@ -92,6 +92,7 @@ class MrsDroneSpawner:
                 print('Using template', template_name)
                 spawner_args = {
                     "enable_component_with_args": [0.01, 0.38],
+                    "enable_component_with_args_as_dict": {'roll': 0},
                     # "enable_second_order_component": None,
                     # "enable_third_order_component": None,
                 }

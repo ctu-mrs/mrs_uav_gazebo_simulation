@@ -8,7 +8,6 @@ import os.path
 from inspect import getmembers, isclass
 
 TEMPLATE_SUFFIX = '.sdf.jinja'
-sys.setrecursionlimit(1000)
 
 # #{ configure_jinja2_environment
 def configure_jinja2_environment(resource_paths):
@@ -51,6 +50,10 @@ def get_spawner_components_from_template(jinja_env, template):
                         spawner_default_args = []
                         for e in elem.node.items:
                             spawner_default_args.append(e.value)
+                    elif isinstance(elem.node, jinja2.nodes.Dict):
+                        spawner_default_args = {}
+                        for pair in elem.node.items:
+                            spawner_default_args[pair.key.value] = pair.value.value
                     else:
                         print(f'Unsupported param type {type(elem.node)}')
                 if isinstance(elem, jinja2.nodes.Assign) and elem.target.name == 'spawner_keyword':
@@ -69,7 +72,7 @@ def get_all_templates(jinja_env):
     template_names = jinja_env.list_templates(filter_func=filter_templates)
     templates = []
     for i, full_name in enumerate(template_names):
-        print(f'\t({i+1}/{len(template_names)}): {full_name}') 
+        print(f'\t({i+1}/{len(template_names)}): {full_name}')
         template_name = full_name.split(os.path.sep)[-1][:-(len(TEMPLATE_SUFFIX))]
         templates.append((template_name, jinja_env.get_template(full_name)))
     return templates
@@ -86,9 +89,10 @@ def get_template_imports(jinja_env, template):
         for i in import_names:
             template = jinja_env.get_template(i)
             imported_templates.append(template)
-        return imported_templates 
+        return imported_templates
 # #}
 
+# #{ get_all_available_components
 def get_all_available_components(template_wrapper, all_components):
     all_components.update(template_wrapper.components)
     for i in template_wrapper.imported_templates:
@@ -97,13 +101,13 @@ def get_all_available_components(template_wrapper, all_components):
         except RecursionError as err:
             raise RecursionError(f'Cyclic import detected in file {template_wrapper.jinja_template.filename}. Fix your templates')
     return all_components
-
+# #}
 
 # #{ build_template_database
 def build_template_database(jinja_env):
 
     template_wrappers = {}
-    
+
     print('Loading all templates')
     all_templates = get_all_templates(jinja_env)
     for name, template in all_templates:
@@ -123,7 +127,7 @@ def build_template_database(jinja_env):
     print('Adding available components from dependencies')
     for _, wrapper in template_wrappers.items():
         prev_limit = sys.getrecursionlimit()
-        sys.setrecursionlimit(len(template_wrappers))
+        sys.setrecursionlimit(len(template_wrappers) + 1)
         wrapper.components = get_all_available_components(wrapper, {})
         sys.setrecursionlimit(prev_limit)
 
