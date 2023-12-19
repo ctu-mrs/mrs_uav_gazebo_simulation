@@ -1,11 +1,13 @@
 import math
 import jinja2
 import jinja2.meta
-from datatypes import TemplateWrapper, SpawnerComponent
 import sys
 import os.path
 
 from inspect import getmembers, isclass
+
+from component_wrapper import ComponentWrapper
+from template_wrapper import TemplateWrapper
 
 TEMPLATE_SUFFIX = '.sdf.jinja'
 
@@ -30,6 +32,11 @@ def filter_templates(template_name):
 
 # #{ get_spawner_components_from_template
 def get_spawner_components_from_template(jinja_env, template):
+    '''
+    Builds a dict of spawner-compatible macros in a given template and their corresponding ComponentWrapper objects
+    Does NOT check for macros imported from other templates
+    :return a dict in format {macro name: component_wrapper.ComponentWrapper}
+    '''
     with open(template.filename, 'r') as f:
         template_source = f.read()
         preprocessed_template = template_source.replace('\n', '')
@@ -59,7 +66,7 @@ def get_spawner_components_from_template(jinja_env, template):
                 if isinstance(elem, jinja2.nodes.Assign) and elem.target.name == 'spawner_keyword':
                     spawner_keyword = elem.node.value
             if spawner_keyword is not None:
-                spawner_components[node.name] = SpawnerComponent(spawner_keyword, spawner_description, spawner_default_args)
+                spawner_components[node.name] = ComponentWrapper(spawner_keyword, spawner_description, spawner_default_args)
         return spawner_components
 # #}
 

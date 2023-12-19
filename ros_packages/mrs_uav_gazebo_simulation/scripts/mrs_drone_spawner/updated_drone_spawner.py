@@ -8,7 +8,6 @@ import rospy
 import xml.dom.minidom
 from inspect import getmembers, isfunction
 from jinja2 import meta
-from datatypes import TemplateWrapper
 
 import jinja_utils
 
@@ -39,17 +38,16 @@ def exit_handler():
 
 class MrsDroneSpawner:
 
+    # #{ __init__
     def __init__(self, show_help=False, verbose=False):
 
         self.verbose = verbose
         self.rospack = rospkg.RosPack()
 
-
         self.resource_paths = []
         self.resource_paths.append(self.rospack.get_path('mrs_uav_gazebo_simulation'))
         self.resource_paths.append(self.rospack.get_path('external_gazebo_models'))
 
-        # self.jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(self.resource_paths))
         self.jinja_env = jinja_utils.configure_jinja2_environment(self.resource_paths)
 
         try:
@@ -70,7 +68,9 @@ class MrsDroneSpawner:
 
         # display help (params) for individual models
 
+    # #} end init
 
+    # #{ get_help_for_model(self, model_name)
     def get_help_for_model(self, model_name):
         print(f'Getting help for model {model_name}')
         response = ''
@@ -84,7 +84,9 @@ class MrsDroneSpawner:
             response += f'{component.keyword}\n\tDescription: {component.description}\n\tDefault args: {component.default_args}\n\n'
         
         return response
+    # #} end get_help_for_model
 
+    # #{ render(self, model_name, output)
     def render(self, model_name, output):
         print('Rendering model', model_name)
         for template_name, template_wrapper in self.jinja_templates.items():
@@ -115,7 +117,7 @@ class MrsDroneSpawner:
                     f.write(pretty_xml)
                     print('Rendered model written to', output)
                     return
-
+        # #} end render
 
 if __name__ == '__main__':
 
