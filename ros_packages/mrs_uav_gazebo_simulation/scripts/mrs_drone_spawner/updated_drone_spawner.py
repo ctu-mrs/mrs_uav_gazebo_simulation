@@ -63,6 +63,7 @@ class MrsDroneSpawner:
         rospack = rospkg.RosPack()
 
         resource_paths = []
+        # TODO make this dynamic
         resource_paths.append(rospack.get_path('mrs_uav_gazebo_simulation'))
         resource_paths.append(rospack.get_path('external_gazebo_models'))
 
@@ -232,11 +233,18 @@ class MrsDroneSpawner:
             component args following a keyword (values separated by spaces or a python dictionary)
         '''
 
+        input_dict = {}
+
+        # look for --help
+        if '--help' in input_str:
+            input_dict['help'] = True
+            input_str = input_str.replace('--help', '')
+        else:
+            input_dict['help'] = False
+
         # parse out the keywords starting with '--'
         pattern = re.compile(r"(--\S*)")
         substrings = [m.strip() for m in re.split(pattern, input_str) if len(m.strip()) > 0]
-
-        input_dict = {}
 
         # before the first keyword, there should be only device IDs
         if '--' not in substrings[0]:
@@ -262,12 +270,8 @@ class MrsDroneSpawner:
                 del input_dict[k]
                 break
 
-        if 'model' not in input_dict.keys():
+        if 'help' not in input_dict.keys() and 'model' not in input_dict.keys():
             raise ValueError('Model name not defined. Specify a model with a keyword (e.g. "--x500")')
-        print('Model name not defined!')
-
-        # look for --help
-        ## TODO implement help
 
         return input_dict
     # #}
@@ -303,17 +307,26 @@ class MrsDroneSpawner:
         return None
     # #}
 
-    # --------------------------------------------------------------
-    # |                           Testing                          |
-    # --------------------------------------------------------------
+    # #{ get_help_text(self, input_dict):
+    def get_help_text(self, input_dict):
+        if 'help' not in input_dict.keys():
+            return
 
-    # #{ get_help_for_model(self, model_name)
-    def get_help_for_model(self, model_name):
+        if 'model' not in input_dict.keys():
+            display_text = self.get_spawner_help_text()
+        else:
+            display_text = self.get_model_help_text(input_dict['model'])
+
+        return display_text
+    # #}
+
+    # #{ get_model_help_text(self, model_name)
+    def get_model_help_text(self, model_name):
         print(f'Getting help for model {model_name}')
         response = ''
         try:
             template_wrapper = self.jinja_templates[model_name]
-            print(f'Template loaded with {len(template_wrapper.components)} components')
+            print(f'Template {template_wrapper.jinja_template.name} loaded with {len(template_wrapper.components)} components')
         except ValueError:
             return f"Template for model {model_name} not found"
 
@@ -321,7 +334,22 @@ class MrsDroneSpawner:
             response += f'{component.keyword}\n\tDescription: {component.description}\n\tDefault args: {component.default_args}\n\n'
 
         return response
-    # #} end get_help_for_model
+    # #} end get_model_help_text
+
+    # #{ get_spawner_help_text(self)
+    def get_spawner_help_text(self):
+        print(f'Getting generic spawner help')
+        response = 'Expected input:\n'
+        response += '\tdevice ids (integers separated by spaces)\n'
+        response += '\tkeywords (specified in jinja components starting with \'--\')\n'
+        response += '\tcomponent args following a keyword (values separated by spaces or a python dictionary)'
+        return response
+    # #}
+
+
+    # --------------------------------------------------------------
+    # |                           Testing                          |
+    # --------------------------------------------------------------
 
     # #{ render(self, model_name, output)
     def render(self, model_name, output, spawner_args):
@@ -377,19 +405,19 @@ if __name__ == '__main__':
         # spawner.parse_as_dict('{"aaa": "bbb", "ccc": 22, "ddd": {"u":"v", "w":1}, "eee": None}')
 
         # spawner_args = spawner.parse_user_input('2 10 --enable_component_with_args 0.01 0.38 1E10 --enable_component_with_args_as_dict {"roll": 0, "pitch": 0, "aaa": "bbbb"} --enable-noargs')
-        spawner_args = spawner.parse_user_input('2 10 --enable_component_with_args 0.01 0.38 1E10 --enable_component_with_args_as_dict {"roll": 0, "pitch": 0, "aaa": "bbbb"} --enable-noargs --f450')
+        spawner_args = spawner.parse_user_input('--help 2 10 --enable_component_with_args 0.01 0.38 1E10 --enable_component_with_args_as_dict {"roll": 0, "pitch": 22, "aaa": "bbbb"} --enable-noargs --dummy')
 
-        for kw, args in spawner_args.items():
-            print(kw)
-            print('\t', args, type(args))
-            if isinstance(args, dict):
-                for e in args.values():
-                    print('\t\t', e, type(e))
-            elif isinstance(args, list):
-                for e in args:
-                    print('\t\t', e, type(e))
-            else:
-                print('\t\t', args)
+        # for kw, args in spawner_args.items():
+        #     print(kw)
+        #     print('\t', args, type(args))
+        #     if isinstance(args, dict):
+        #         for e in args.values():
+        #             print('\t\t', e, type(e))
+        #     elif isinstance(args, list):
+        #         for e in args:
+        #             print('\t\t', e, type(e))
+        #     else:
+        #         print('\t\t', args)
 
         # # params = jinja_utils.get_all_params('x555', spawner.jinja_env)
         # # params = jinja_utils.get_all_params('f400', spawner.jinja_env)
@@ -397,6 +425,10 @@ if __name__ == '__main__':
         # # spawner.render('x555', '/home/mrs/devel_workspace/src/external_gazebo_models/models/x555/sdf/x555.sdf')
         # # spawner.render('f400', '/home/mrs/devel_workspace/src/external_gazebo_models/models/f400/sdf/f400.sdf')
 
-        spawner.render('dummy', '/home/mrs/devel_workspace/src/external_gazebo_models/dummy.sdf', spawner_args)
+        help_text = spawner.get_help_text(spawner_args)
+        if help_text is not None:
+            print(help_text)
+        else:
+            spawner.render('dummy', '/home/mrs/devel_workspace/src/external_gazebo_models/dummy.sdf', spawner_args)
     except rospy.ROSInterruptException:
         pass
