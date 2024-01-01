@@ -1,7 +1,12 @@
 <launch>
+  
+  <arg name="custom_config" default="" />
 
   <node name="mrs_drone_spawner" pkg="mrs_uav_gazebo_simulation" type="updated_drone_spawner.py" output="screen" args="no_help verbose">
 
+    <rosparam file="$(find mrs_uav_gazebo_simulation)/config/spawner_params.yaml" />
+    <rosparam if="$(eval not arg('custom_config') == '')" file="$(arg custom_config)" />
+      
     <remap from="~gazebo_model_states" to="/gazebo/model_states" />
 
   </node>
