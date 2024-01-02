@@ -690,8 +690,8 @@
   <!-- pico2  0.023 -0.075 0.073 yaw=-70deg [m] -->
   <!-- oakdw  -0.067 -0.075 0.073 yaw=-70deg [m] -->
   
-    {% if enable_uas_mapping %}
     <!-- uas mapping challenge picoflexx setup (uses modified PicoFlexx plugin) {-->
+    {% if enable_uas_mapping %}
     {{ components.picoflexx_macro(
       namespace = namespace,
       camera_name = "picoflexx_left",
@@ -718,6 +718,20 @@
       roll = -components.rad90,
       pitch = 0,
       yaw = -components.rad70)
+      }}
+
+    {{ components.picoflexx_macro(
+      namespace = namespace,
+      camera_name = "picoflexx_down",
+      camera_suffix="",
+      parent_link = root,
+      enable_realistic_picoflexx = enable_realistic_picoflexx,
+      x = 0.0,
+      y = -0.0,
+      z = -0.05,
+      roll =  0,
+      pitch = components.rad90,
+      yaw = 0)
     }}
 
     <!-- uas mapping challenge oakd camera setup (uses MRS RealSense plugin) {-->
