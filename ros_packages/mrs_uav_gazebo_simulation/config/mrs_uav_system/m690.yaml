@@ -27,7 +27,6 @@ model_params:
     # allocation motors -> torques
 
     # quadrotor X configuration
-    # hexarotor X configuration
     # [roll torque,      [            [RPM_1^2,
     #  pitch torque,  =    Alloc    *  RPM_2^2,
     #  yaw torque,         Matrix       ...
