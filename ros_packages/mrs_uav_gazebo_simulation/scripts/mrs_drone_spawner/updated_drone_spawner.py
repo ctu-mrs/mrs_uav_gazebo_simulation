@@ -1,15 +1,19 @@
 #!/usr/bin/python3
 import ast
 import atexit
+import copy
 import csv
+import datetime
 import jinja2
 import jinja2.meta
 import math
 import os
 import re
+import roslaunch
 import rospkg
 import rospy
 import sys
+import tempfile
 import xml.dom.minidom
 import yaml
 
@@ -18,19 +22,41 @@ from inspect import getmembers, isfunction
 from component_wrapper import ComponentWrapper
 from template_wrapper import TemplateWrapper
 
+from mrs_msgs.srv import String as StringSrv
+from mrs_msgs.srv import StringResponse as StringSrvResponse
+from mrs_msgs.srv import StringRequest as StringSrvRequest
+from gazebo_msgs.msg import ModelStates
+from gazebo_msgs.srv import SpawnModel as SpawnModelSrv
+from geometry_msgs.msg import Pose
 
 glob_running_processes = []
 
+# #{ Exceptions and Errors
+
 # #{ NoFreeIDAvailable(RuntimeError)
 class NoFreeIDAvailable(RuntimeError):
-    '''Signal that the vehicle limit imposed by px4 sitl has been reached'''
+    '''Indicate that the vehicle limit imposed by px4 sitl has been reached'''
     pass
 # #}
 
-# #{ FormattingError(RuntimeError)
-class FormattingError(RuntimeError):
-    '''Signal that the input is not properly formatted'''
+# #{ FormattingError(ValueError)
+class FormattingError(ValueError):
+    '''Indicate that the input is not properly formatted'''
     pass
+# #}
+
+# #{ WrongNumberOfArguments(ValueError)
+class WrongNumberOfArguments(ValueError):
+    '''Indicate that the expected number of arguments is different'''
+    pass
+# #}
+
+# #{ SuffixError(NameError)
+class SuffixError(NameError):
+    '''Indicate that the file has an unexpected suffix'''
+    pass
+# #}
+
 # #}
 
 # #{ filter_templates(template_name)
@@ -76,15 +102,18 @@ class MrsDroneSpawner:
 
         resource_paths = []
         rospack = rospkg.RosPack()
-        resource_paths.append(rospack.get_path('mrs_uav_gazebo_simulation'))
+        resource_paths.append(os.path.join(rospack.get_path('mrs_uav_gazebo_simulation'), 'models', 'mrs_robots_description', 'sdf'))
 
         # # #{ load required params
         try:
             self.vehicle_base_port = rospy.get_param('~vehicle_base_port')
             self.mavlink_tcp_base_port = rospy.get_param('~mavlink_tcp_base_port')
             self.mavlink_udp_base_port = rospy.get_param('~mavlink_udp_base_port')
-            self.launch_base_port = rospy.get_param('~launch_base_port')
+            self.qgc_udp_port = rospy.get_param('~qgc_udp_port')
+            self.sdk_udp_port = rospy.get_param('~sdk_udp_port')
             self.template_suffix = rospy.get_param('~template_suffix')
+            self.default_robot_name = rospy.get_param('~default_robot_name')
+            self.save_sdf_files = rospy.get_param('~save_sdf_files')
         except KeyError as err:
             rospy.logerr(f'[MrsDroneSpawner]: Could not load required param {err}')
             raise rospy.ROSInterruptException
@@ -116,6 +145,19 @@ class MrsDroneSpawner:
         for name in self.jinja_templates.keys():
             rospy.loginfo(f'[MrsDroneSpawner]: "{name}" from "{self.jinja_templates[name].jinja_template.filename}"')
         rospy.loginfo(f'[MrsDroneSpawner]: ------------------------')
+
+
+        # # #{ setup communication
+
+        # self.diagnostics_pub = rospy.Publisher('~diagnostics', GazeboSpawnerDiagnostics, queue_size=1)
+        # self.diagnostics_timer = rospy.Timer(rospy.Duration(0.1), self.callback_diagnostics_timer)
+        self.spawn_server = rospy.Service('~spawn', StringSrv, self.callback_spawn, buff_size=20)
+        
+        self.gazebo_spawn_proxy = rospy.ServiceProxy('~gazebo_spawn_model', SpawnModelSrv)
+        # # #}
+
+        rospy.spin()
+
 
         # load all available models
         # from current package
@@ -268,23 +310,24 @@ class MrsDroneSpawner:
         return env
     # #}
 
-    # #{ render(self, model_name, output)
-    def render(self, model_name, output, spawner_args):
+    # #{ render(self, spawner_args)
+    def render(self, spawner_args):
         '''
-        Renders a jinja template into a sdf file
-        :param model_name: name of the model, has to match a key in the self.jinja_templates database
-        :param output: full filepath to write the output into
-        :param spawner_args: spawner args specified by the user, will be passed into the template
+        Renders a jinja template into a sdf, creates a formatted xml
+        Input has to specify the template name in spawner_args["model"]
+        :param spawner_args: a dict to be passed into the template as variables, format {component_name (string): args (list or dict)}
+        :return: content of the xml file as a string
         '''
 
         params = {
             "spawner_args": spawner_args
-            #     "name": "uav1",
-            #     "namespace": "uav1",
-            #     "enable_rangefinder": True,
-            #     "enable_component": True,
-            #     "spawner_args": {'roll': 0.1, 'pitch': 0.1}
         }
+
+        try:
+            model_name = spawner_args['model']
+        except KeyError:
+            rospy.logerr(f'[MrsDroneSpawner]: Cannot render template, model not specified')
+            return
 
         try:
             template_wrapper = self.jinja_templates[model_name]
@@ -298,13 +341,11 @@ class MrsDroneSpawner:
         rendered_template = template_wrapper.jinja_template.render(context)
         root = xml.dom.minidom.parseString(rendered_template)
         ugly_xml = root.toprettyxml(indent='  ')
+        
         # Remove empty lines
         pretty_xml = '\n'.join(line for line in ugly_xml.split('\n') if line.strip())
 
-        with open(output, 'w') as f:
-            f.write(pretty_xml)
-            rospy.loginfo(f'[MrsDroneSpawner]: Rendered model written to {output}')
-            return
+        return pretty_xml
 
     # #} end render
 
@@ -321,13 +362,16 @@ class MrsDroneSpawner:
             keywords (specified in jinja components starting with '--')
             component args following a keyword (values separated by spaces or a python dictionary)
         :param input_str: string containing all args in the format specified above
-        :return: a dict in format {keyword: component_args}, always contains keys "help", "model" and "ids"
+        :return: a dict in format {keyword: component_args}, always contains keys "help", "model", "ids", "names", "spawn_poses"
+        NOTE: arguments of a component/keyword will always be parsed as a list/dict, even for a single value
         '''
 
         input_dict = {
-            "help": False,
-            "model": None,
-            "ids": None,
+            'help': False,
+            'model': None,
+            'ids': [],
+            'names': [],
+            'spawn_poses': [],
         }
 
         # look for --help
@@ -342,11 +386,6 @@ class MrsDroneSpawner:
         # before the first keyword, there should be only device IDs
         if '--' not in substrings[0]:
             input_dict['ids'] = self.parse_string_to_objects(substrings[0])
-        # else:
-        #     # TODO: parse IDs from pos file
-        #     free_id = self.assign_free_id()
-        #     input_dict['ids'] = [free_id]
-        #     rospy.logwarn(f'[MrsDroneSpawner]: Vehicle ID not specified. Number {free_id} assigned automatically')
 
         # pair up keywords with args
         for i in range(1, len(substrings)):
@@ -359,13 +398,34 @@ class MrsDroneSpawner:
                 if len(input_keys) > 1:
                     input_dict[input_keys[-1]] = self.parse_string_to_objects(substrings[i])
 
-        if 'pos_file' in input_dict.keys():
+        if 'pos' in input_dict.keys():
+            try:
+                input_dict['spawn_poses'] = self.get_spawn_poses_from_args(input_dict['pos'], input_dict['ids'])
+            except (WrongNumberOfArguments, ValueError) as err:
+                rospy.logerr(f'[MrsDroneSpawner]: While parsing args for "--pos": {err}')
+            finally:
+                del input_dict['pos']
+
+        elif 'pos_file' in input_dict.keys():
             try:
                 input_dict['spawn_poses'] = self.get_spawn_poses_from_file(input_dict['pos_file'][0], input_dict['ids'])
-            except (FileNotFoundError, NameError, FormattingError, ValueError) as err:
-                rospy.logerr(f'[MrsDroneSpawner]: {err}')
+            except (FileNotFoundError, SuffixError, FormattingError, WrongNumberOfArguments, ValueError) as err:
+                rospy.logerr(f'[MrsDroneSpawner]: While parsing args for "--pos_file": {err}')
             finally:
                 del input_dict['pos_file']
+
+        else:
+            # TODO: auto assign randomly generated spawn poses
+            rospy.logerr('[MrsDroneSpawner]: TODO: auto assign randomly generated spawn poses')
+            pass
+
+        if 'name' in input_dict.keys():
+            for ID in input_dict['ids']:
+                input_dict['names'].append(str(input_dict['name'][0]) + str(ID))
+            del input_dict['name']
+        else:
+            for ID in input_dict['ids']:
+                input_dict['names'].append(str(self.default_robot_name) + str(ID))
 
         # attempt to match model to available templates
         for k in input_dict.keys():
@@ -474,15 +534,18 @@ class MrsDroneSpawner:
     # |                    ROS service callbacks                   |
     # --------------------------------------------------------------
 
-    # #{ callback_spawn
+    # #{ callback_spawn(self, req)
     def callback_spawn(self, req):
 
+        rospy.loginfo(f'[MrsDroneSpawner]: Spawn requested with args "{req.value}"')
+        res = StringSrvResponse()
+        res.success = False
+        
         # #{ check gazebo running
         try:
+            rospy.loginfo('[MrsDroneSpawner]: Waiting for /gazebo/model_states')
             rospy.wait_for_message('/gazebo/model_states', ModelStates, 60)
-        except:
-            res = StringSrvResponse()
-            res.success = False
+        except rospy.exceptions.ROSException:
             res.message = str('Gazebo model state topic not found. Is Gazebo running?')
             return res
         # #}
@@ -491,53 +554,137 @@ class MrsDroneSpawner:
         params_dict = None
         try:
             params_dict = self.parse_user_input(req.value)
-        except ValueError as e:
-            res = StringSrvResponse()
-            res.success = False
-            res.message = str(e.args[0])
-            return res
-
-        if params_dict is None:
-            res = StringSrvResponse()
-            res.success = False
-            res.message = str('Cannot process input parameters')
-            return res
-        # #}
-
-        # #{ roslaunch args generation
-        roslaunch_args = None
-        try:
-            roslaunch_args = self.generate_launch_args(params_dict)
         except Exception as e:
-            res = StringSrvResponse()
-            res.success = False
+            rospy.logwarn(f'[MrsDroneSpawner]: While parsing user input: {e}')
             res.message = str(e.args[0])
             return res
-
-        if roslaunch_args is None:
-            res = StringSrvResponse()
-            res.success = False
-            res.message = str('Cannot generate roslaunch arguments')
-            return res
         # #}
 
-        # #{ prepare id <-> process map
-        self.spawn_called = True
-        for ID in params_dict['uav_ids']:
-            self.assigned_ids[ID] = None
+        # #{ render and spawn sdf models
+        for i, ID in enumerate(params_dict['ids']):
+
+            # # #{ render template into sdf
+            robot_params = self.get_jinja_params_for_one_robot(params_dict, i, ID)
+
+            sdf_content = self.render(robot_params)
+            
+            name = robot_params['name']
+
+            if self.save_sdf_files:
+                fd, filepath = tempfile.mkstemp(prefix='mrs_drone_spawner_', suffix='_' + str(params_dict['model']) + '_' + str(name) + '.sdf')
+                with os.fdopen(fd, 'w') as output_file:
+                    output_file.write(sdf_content)
+                    rospy.loginfo(f'[MrsDroneSpawner]: Model for {name} written to {filepath}')
+
+            # # #}
+
+            # # #{ send sdf to gazebo spawn service
+            spawn_pose = Pose()
+            spawn_pose.position.x = params_dict['spawn_poses'][ID]['x']
+            spawn_pose.position.y = params_dict['spawn_poses'][ID]['y']
+            spawn_pose.position.z = params_dict['spawn_poses'][ID]['z']
+            spawn_pose.orientation.w = math.cos(params_dict['spawn_poses'][ID]['heading'] / 2.0)
+            spawn_pose.orientation.x = 0
+            spawn_pose.orientation.y = 0
+            spawn_pose.orientation.z = math.sin(params_dict['spawn_poses'][ID]['heading'] / 2.0)
+            
+            rospy.loginfo(f'[MrsDroneSpawner]: Spawning gazebo model for {name}')
+            try:
+                response = self.gazebo_spawn_proxy(name, sdf_content, name, spawn_pose, "")
+                if not response.success:
+                    rospy.logerr(f'MrsDroneSpawner]: While calling {self.gazebo_spawn_proxy.resolved_name}: {response.status_message}')
+            except rospy.service.ServiceException as e:
+                    rospy.logerr(f'[MrsDroneSpawner]: While calling {self.gazebo_spawn_proxy.resolved_name}: {e}')
+            # # #}
+
         # #}
 
-        # #{ queue new launch processes
-        self.process_queue_mutex.acquire()
-        self.processing = True
-        for i, uav_roslaunch_args in enumerate(roslaunch_args):
-            ID = params_dict['uav_ids'][i]
-            self.queued_vehicles.append('uav' + str(ID))
-            self.process_queue.append((self.launch_mavros, (ID, uav_roslaunch_args)))
-            self.process_queue.append((self.spawn_simulation_model, (ID, uav_roslaunch_args)))
-            self.process_queue.append((self.launch_firmware, (ID, uav_roslaunch_args)))
-        self.process_queue_mutex.release()
+        # #{ run px4 firmware
+
+        ## TODO improve this hardcoded hacky way of launching
+        for i, ID in enumerate(params_dict['ids']):
+            name = robot_params['name']
+            rospy.loginfo(f'[MrsDroneSpawner]: Running px4 firmware for {name}')
+            uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+            roslaunch.configure_logging(uuid)
+            roslaunch_args = [
+                'ID:=' + str(ID),
+                'PX4_SIM_MODEL:=' + str(params_dict['model'])
+            ]
+            roslaunch_sequence = [('/home/mrs/devel_workspace/src/mrs_uav_gazebo_simulation/ros_packages/mrs_uav_gazebo_simulation/launch/run_simulation_firmware.launch', roslaunch_args)]
+
+            orig_signal_handler = roslaunch.pmon._init_signal_handlers
+            roslaunch.pmon._init_signal_handlers = self.dummy_function
+
+            launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_sequence)
+            launch.start()
+
+            roslaunch.pmon._init_signal_handlers = orig_signal_handler
+    
+            if launch is not None:
+                glob_running_processes.append((launch, str(name) + '_firmware'))
+
         # #}
+
+        # #{ run mavros
+
+        ## TODO improve this hardcoded hacky way of launching
+        for i, ID in enumerate(params_dict['ids']):
+            name = robot_params['name']
+            rospy.loginfo(f'[MrsDroneSpawner]: Running px4 firmware for {name}')
+            uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+            roslaunch.configure_logging(uuid)
+            roslaunch_args = [
+                'ID:=' + str(ID),
+                'fcu_url:=' + f'udp://127.0.0.1:{self.vehicle_base_port + (4 * ID) + 2}@127.0.0.1:{self.vehicle_base_port + (4 * ID) + 1}',
+                'vehicle:=' + str(params_dict['model']) # TODO: rename this to PX4_SIM_MODEL
+            ]
+            roslaunch_sequence = [('/opt/ros/noetic/share/mrs_uav_px4_api/launch/mavros_gazebo_simulation.launch', roslaunch_args)]
+
+            orig_signal_handler = roslaunch.pmon._init_signal_handlers
+            roslaunch.pmon._init_signal_handlers = self.dummy_function
+
+            launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_sequence)
+            launch.start()
+
+            roslaunch.pmon._init_signal_handlers = orig_signal_handler
+    
+            if launch is not None:
+                glob_running_processes.append((launch, str(name) + '_mavros'))
+
+        # #}
+        # # #{ roslaunch args generation
+        # roslaunch_args = None
+        # try:
+        #     roslaunch_args = self.generate_launch_args(params_dict)
+        # except Exception as e:
+        #     res = StringSrvResponse()
+        #     res.message = str(e.args[0])
+        #     return res
+
+        # if roslaunch_args is None:
+        #     res = StringSrvResponse()
+        #     res.message = str('Cannot generate roslaunch arguments')
+        #     return res
+        # # #}
+
+        # # #{ prepare id <-> process map
+        # self.spawn_called = True
+        # for ID in params_dict['ids']:
+        #     self.assigned_ids[ID] = None
+        # # #}
+
+        # # #{ queue new launch processes
+        # self.process_queue_mutex.acquire()
+        # self.processing = True
+        # for i, uav_roslaunch_args in enumerate(roslaunch_args):
+        #     ID = params_dict['ids'][i]
+        #     self.queued_vehicles.append('uav' + str(ID))
+        #     self.process_queue.append((self.launch_mavros, (ID, uav_roslaunch_args)))
+        #     self.process_queue.append((self.spawn_simulation_model, (ID, uav_roslaunch_args)))
+        #     self.process_queue.append((self.launch_firmware, (ID, uav_roslaunch_args)))
+        # self.process_queue_mutex.release()
+        # # #}
 
         res = StringSrvResponse()
         res.success = True
@@ -552,19 +699,48 @@ class MrsDroneSpawner:
 
     # #{ assign_free_id(self)
     def assign_free_id(self):
-        for i in range(0, 255): # hard limit of px4 sitl
+        '''
+        Assign an unused ID in range <0, 255>
+        :return: unused ID for a robot (int)
+        :raise NoFreeIDAvailable: if max vehicle count has been reached
+        '''
+        for i in range(0, 256): # 255 is a hard limit of px4 sitl
             if i not in self.assigned_ids:
                 return i
         raise NoFreeIDAvailable('Cannot assign a free ID')
     # #}
 
-    # #{ get_spawn_poses_from_file
-    def get_spawn_poses_from_file(self, filename, uav_ids):
+    # #{ get_spawn_poses_from_file(self, filename, ids)
+    def get_spawn_poses_from_file(self, filename, ids):
+        '''
+        Parses an input file and extracts spawn poses for vehicles. The file must be either ".csv" or ".yaml"
+        
+        CSV files have to include one line per robot, formatting: X, Y, Z, HEADING
+        YAML files have to include one block per robot, formatting:
+        block_header: # not used 
+            id: int
+            x: float
+            y: float
+            z: float
+            heading: float
+
+
+        The file must contain spawn poses for all vehicles
+        :param fileame: full path to a file
+        :param ids: a list of ints containing unique vehicle IDs
+        :return: a dict in format {id: {'x': pos_x, 'y', pos_y, 'z': pos_z, 'heading': pos_heading}}
+
+        Raises: 
+        FileNotFoundError - if filename does not exist
+        FormattingError - if the csv or yaml file does not match the expected structure
+        SuffixError - filename has other suffix than ".csv" or ".yaml"
+        WrongNumberOfArguments - number of poses defined in the file does not match the number of ids
+        ValueError - spawn poses are not numbers
+        '''
+
         rospy.loginfo(f'[MrsDroneSpawner]: Loading spawn poses from file "{filename}"')
         if not os.path.isfile(filename):
             raise FileNotFoundError(f'File "{filename}" does not exist!')
-
-        # else:
 
         spawn_poses = {}
 
@@ -574,7 +750,7 @@ class MrsDroneSpawner:
             for row in array_string:
                 if (len(row)!=5):
                     raise FormattingError(f'Incorrect data in file "{filename}"! Data in ".csv" file type should be in format [id, x, y, z, heading] (types: int, float, float, float, float)')
-                if int(row[0]) in uav_ids:
+                if int(row[0]) in ids:
                     spawn_poses[int(row[0])] = {'x' : float(row[1]), 'y' : float(row[2]), 'z' : float(row[3]), 'heading' : float(row[4])}
         # #}
 
@@ -585,18 +761,102 @@ class MrsDroneSpawner:
                 if (len(data.keys())!=5):
                     raise FormattingError(f'Incorrect data in file "{filename}"! Data  in ".yaml" file type should be in format \n uav_name: \n\t id: (int) \n\t x: (float) \n\t y: (float) \n\t z: (float) \n\t heading: (float)')
 
-                if int(data['id']) in uav_ids:
+                if int(data['id']) in ids:
                     spawn_poses[data['id']] = {'x' : float(data['x']), 'y' : float(data['y']), 'z' : float(data['z']), 'heading' : float(data['heading'])}
         # #}
 
         else:
-            raise NameError(f'Incorrect file format! Must be either ".csv" or ".yaml"')
+            raise SuffixError(f'Incorrect file type! Suffix must be either ".csv" or ".yaml"')
 
-        if len(spawn_poses.keys()) != len(uav_ids) or set(spawn_poses.keys()) != set(uav_ids):
-            raise ValueError(f'File "{filename}" does not cover all the UAV poses!')
+        if len(spawn_poses.keys()) != len(ids) or set(spawn_poses.keys()) != set(ids):
+            raise WrongNumberOfArguments(f'File "{filename}" does not specify poses for all robots!')
 
         rospy.loginfo(f'[MrsDroneSpawner]: Spawn poses returned: {spawn_poses}')
         return spawn_poses
+    # #}
+
+    # #{ get_spawn_poses_from_args(self, pos_args, ids)
+    def get_spawn_poses_from_args(self, pos_args, ids):
+        '''
+        Parses the input args extracts spawn poses for vehicles.
+        If more vehicles are spawned at the same time, the given pose is used for the first vehicle.
+        Additional vehicles are spawned with an offset of 2 meters in X
+
+        :param pos_args: a list of 4 numbers [x,y,z,heading]
+        :param ids: a list of ints containing unique vehicle IDs
+        :return: a dict in format {id: {'x': pos_x, 'y', pos_y, 'z': pos_z, 'heading': pos_heading}}
+
+        Raises:
+        WrongNumberOfArguments - pos_args does not contain exactly 4 values
+        ValueError - input cannot be converted into numbers
+        '''
+        spawn_poses = {}
+        if len(pos_args) != 4:
+            raise WrongNumberOfArguments(f'Expected exactly 4 args after keyword "--pos", got {len(pos_args)}')
+
+        x = float(pos_args[0])
+        y = float(pos_args[1])
+        z = float(pos_args[2])
+        heading = float(pos_args[3])
+
+        spawn_poses[ids[0]] = {'x': x, 'y': y, 'z': z, 'heading': heading}
+
+        if len(ids) > 1:
+            rospy.logwarn(f'[MrsDroneSpawner]: Spawning more than one vehicle with "--pos". Each additional vehicle will be offset by 2 meters in X')
+            for i in range(len(ids)):
+                x += 2
+                spawn_poses[ids[i]] = {'x': x, 'y': y, 'z': z, 'heading': heading}
+
+        rospy.loginfo(f'[MrsDroneSpawner]: Spawn poses returned: {spawn_poses}')
+        return spawn_poses
+    # #}
+
+    # #{ get_jinja_params_for_one_robot(self, params_dict, index, ID)
+    def get_jinja_params_for_one_robot(self, params_dict, index, ID):
+        '''Makes a deep copy of params dict, removes entries of other robots, assigns mavlink ports
+        :param index: index of the robot in the input sequence
+        :param ID: ID of the robot, should match the value in params_dict['ids'][index]
+        :return: a dict of params to be used in rendering the jinja template
+        '''
+        
+        robot_params = copy.deepcopy(params_dict)
+        robot_params['name'] = params_dict['names'][index]
+
+        del robot_params['names']
+        del robot_params['help']
+        del robot_params['ids']
+        del robot_params['spawn_poses']
+
+        robot_params['mavlink_config'] = self.get_mavlink_config_for_robot(ID)
+       
+        return robot_params
+    # #}
+
+    # #{ get_mavlink_config_for_robot(self, ID)
+    def get_mavlink_config_for_robot(self, ID):
+        '''Creates a mavlink port configuration based on default values offset by ID
+
+        NOTE: The offsets have to match values assigned in px4-rc.* files located in mrs_uav_gazebo_simulation/ROMFS/px4fmu_common/init.d-posix!!
+
+        '''
+        mavlink_config = {}
+        mavlink_config['udp_offboard_port_remote'] = self.vehicle_base_port + (4 * ID) + 2
+        mavlink_config['udp_offboard_port_local'] = self.vehicle_base_port + (4 * ID) + 1
+        mavlink_config['mavlink_tcp_port'] = self.mavlink_tcp_base_port + ID
+        mavlink_config['mavlink_udp_port'] = self.mavlink_udp_base_port + ID
+        mavlink_config['qgc_udp_port'] = self.qgc_udp_port
+        mavlink_config['sdk_udp_port'] = self.sdk_udp_port
+        mavlink_config['send_vision_estimation'] = 0
+        mavlink_config['send_odometry'] = 1
+        mavlink_config['enable_lockstep'] = 1
+        mavlink_config['use_tcp'] = 1
+
+        return mavlink_config
+    # #}
+
+    # #{ dummy_function
+    def dummy_function(self):
+        pass
     # #}
 
     # --------------------------------------------------------------
@@ -613,16 +873,26 @@ if __name__ == '__main__':
 
     atexit.register(exit_handler)
 
+
     try:
         spawner = MrsDroneSpawner(show_help, verbose)
-        spawner_args = spawner.parse_user_input('2 10 --enable_component_with_args 0.01 0.38 1E10 --enable_component_with_args_as_dict {"roll": 0, "pitch": 22, "aaa": "bbbb"} --enable-noargs --dummy --pos_file /home/mrs/devel_workspace/src/mrs_uav_gazebo_simulation/ros_packages/mrs_uav_gazebo_simulation/pos.csv')
+        # # spawner_args = spawner.parse_user_input('2 10 --enable_component_with_args 0.01 0.38 1E10 --enable_component_with_args_as_dict {"roll": 0, "pitch": 22, "aaa": "bbbb"} --enable-noargs --dummy --pos_file /home/mrs/devel_workspace/src/mrs_uav_gazebo_simulation/ros_packages/mrs_uav_gazebo_simulation/pos.csv')
+        # spawner_args = spawner.parse_user_input('1 2 3 --enable_component_with_args 0.01 1E-10 --enable_component_with_args_as_dict {"roll": 0, "pitch": 22, "aaa": "bbbb"} --enable-noargs --dummy --pos 10 20 1 8.4')
 
-        if spawner.get_help_text(spawner_args) is not None:
-            rospy.loginfo(help_text)
-        elif spawner_args['model'] is not None:
-            spawner.render(spawner_args['model'], '/home/mrs/devel_workspace/src/external_gazebo_models/dummy.sdf', spawner_args)
-        else:
-            rospy.logerr('[MrsDroneSpawner]: Model not specified')
-            raise rospy.ROSInterruptException
+#         req = StringSrvRequest()
+#         # req.value = '1 2 3 --enable_component_with_args 0.01 0.38 1E10 --enable_component_with_args_as_dict {"roll": 0, "pitch": 22, "aaa": "bbbb"} --enable-noargs --f400 --pos 10 20 1 8.4 --name eagle'
+#         req.value = '1 --x500 --enable_rangefinder --pos 0 0 0 0'
+
+        # print('Calling spawn')
+        # res = spawner.callback_spawn(req)
+        # print(res.message)
+
+#         if spawner.get_help_text(spawner_args) is not None:
+#             rospy.loginfo(help_text)
+#         elif spawner_args['model'] is not None:
+#             spawner.render(spawner_args['model'], '/home/mrs/devel_workspace/src/external_gazebo_models/dummy.sdf', spawner_args)
+#         else:
+#             rospy.logerr('[MrsDroneSpawner]: Model not specified')
+#             raise rospy.ROSInterruptException
     except rospy.ROSInterruptException:
         pass

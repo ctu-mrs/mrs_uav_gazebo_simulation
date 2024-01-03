@@ -8,6 +8,7 @@
     <rosparam if="$(eval not arg('custom_config') == '')" file="$(arg custom_config)" />
       
     <remap from="~gazebo_model_states" to="/gazebo/model_states" />
+    <remap from="~gazebo_spawn_model" to="/gazebo/spawn_sdf_model" />
 
   </node>
 
