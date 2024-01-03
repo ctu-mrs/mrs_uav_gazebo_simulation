@@ -684,14 +684,17 @@
 
     <!--}-->
 
-    <!-- Picoflexx placements { -->
-  <!-- pixhawk_offset 0 0 0.0073 [m] = 7.33mm -->
-  <!-- pico1  0.023 0.075 0.073 yaw=+70deg [m] -->
-  <!-- pico2  0.023 -0.075 0.073 yaw=-70deg [m] -->
-  <!-- oakdw  -0.067 -0.075 0.073 yaw=-70deg [m] -->
+    <!-- UAS mapping challange sensors placements {-->
   
-    <!-- uas mapping challenge picoflexx setup (uses modified PicoFlexx plugin) {-->
     {% if enable_uas_mapping %}
+
+    <!-- picoflexx setup (uses modified PicoFlexx plugin) {-->
+    
+    <!-- pixhawk_offset 0 0 0.0073 [m] = 7.33mm -->
+    <!-- pico1  0.023 0.075 0.073 yaw=+70deg [m] -->
+    <!-- pico2  0.023 -0.075 0.073 yaw=-70deg [m] -->
+
+    <!-- picoflexx left {-->
     {{ components.picoflexx_macro(
       namespace = namespace,
       camera_name = "picoflexx_left",
@@ -702,10 +705,12 @@
       y = 0.075,
       z = -0.025,
       roll = -components.rad90,
-      pitch = 0,
-      yaw = components.rad70)
+      pitch = components.rad20,
+      yaw = components.rad90)
     }}
+    <!--}-->
 
+    <!-- picoflexx right {-->
     {{ components.picoflexx_macro(
       namespace = namespace,
       camera_name = "picoflexx_right",
@@ -716,25 +721,31 @@
       y = -0.075,
       z = -0.025,
       roll = -components.rad90,
-      pitch = 0,
-      yaw = -components.rad70)
-      }}
+      pitch = components.rad20,
+      yaw = -components.rad90)
+    }}
+    <!--}-->
 
+    <!-- picoflexx down {-->
     {{ components.picoflexx_macro(
       namespace = namespace,
       camera_name = "picoflexx_down",
       camera_suffix="",
       parent_link = root,
       enable_realistic_picoflexx = enable_realistic_picoflexx,
-      x = 0.0,
-      y = -0.0,
-      z = -0.05,
+      x = -0.08,
+      y = 0.03,
+      z = -0.02,
       roll =  0,
-      pitch = components.rad90,
-      yaw = 0)
+      pitch = components.rad45,
+      yaw = components.rad180)
     }}
+    <!--}-->
 
-    <!-- uas mapping challenge oakd camera setup (uses MRS RealSense plugin) {-->
+    <!--}-->
+
+    <!-- oakd camera setup (uses MRS RealSense plugin) {-->
+    <!-- oakdw  -0.067 -0.075 0.073 yaw=-70deg [m] -->
     {{ components.oakd_macro(
       namespace = namespace,
       camera_name = "oakd",
@@ -749,10 +760,60 @@
       yaw = 0)
     }}
     <!--}-->
+      
+    <!-- realsense down {-->
+    {{ components.realsense_macro(
+      namespace = namespace,
+      camera_name = "rgbd",
+      camera_suffix="",
+      parent_link = root,
+      enable_realistic_realsense = enable_realistic_realsense,
+      x = -0.08,
+      y = 0,
+      z = -0.015,
+      roll = 0,
+      pitch = components.rad90,
+      yaw = 0)
+    }}
+    <!--}-->
+
+    <!-- bluefox down {-->
+    {{ components.bluefox_camera_macro(
+      namespace = namespace,
+      camera_name = "bluefox_down_optflow",
+      parent_link = root,
+      frame_rate = 100.0,
+      hfov = 2.1,
+      noise = 0.0,
+      x = 0.0,
+      y = -0.0515,
+      z = -0.05,
+      roll = 0,
+      pitch = components.rad90,
+      yaw = 0)
+    }}
+    <!--}-->
+
+    <!-- bluefox up {-->
+    {{ components.bluefox_camera_macro(
+      namespace = namespace,
+      camera_name = "bluefox_up_optflow",
+      parent_link = root,
+      frame_rate = 100.0,
+      hfov = 2.1,
+      noise = 0.0,
+      x = 0.0,
+      y = -0.0,
+      z = 0.10,
+      roll = 0,
+      pitch = -components.rad90,
+      yaw = 0)
+    }}
+    <!--}-->
+
     {% endif %}
 
-      
-    <!-- } -->
+    <!--}-->
 
     <!-- VIO placements {-->
 
