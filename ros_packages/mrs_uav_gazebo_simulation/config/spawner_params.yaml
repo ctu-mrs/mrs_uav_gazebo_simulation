@@ -1,11 +1,21 @@
-vehicle_base_port: 14000
-mavlink_tcp_base_port: 4560
-mavlink_udp_base_port: 14560
-qgc_udp_port: 14550
-sdk_udp_port: 14540
-template_suffix: '.sdf.jinja'
-default_robot_name: 'uav'
-save_sdf_files: true
+mavlink_config:
+  vehicle_base_port: 14000
+  mavlink_tcp_base_port: 4560
+  mavlink_udp_base_port: 14560
+  qgc_udp_port: 14550
+  sdk_udp_port: 14540
+  send_vision_estimation: false
+  send_odometry: true
+  enable_lockstep: true
+  use_tcp: true
+
+gazebo_models:
+  spacing: 5.0 # for randomized spawn poses
+  default_robot_name: 'uav'
+
+jinja_templates:
+  save_rendered_sdf: true
+  suffix: '.sdf.jinja'
 
 # enable_rangefinder: [False, 'Add a laser rangefinder (Garmin) pointing down', [f450, f550, t650, x500, f330, eaglemk2, brus, naki, big_dofec, m690]]
 # enable_rangefinder_up: [False, 'Add a laser rangefinder (Garmin) pointing up', [f450, f550, t650, naki]]

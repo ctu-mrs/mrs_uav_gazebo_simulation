@@ -709,7 +709,7 @@ limitations under the License.
 
   <!--  {-->
 
-<!-- Macro to add the mavlink_interface_plugin{-->
+<!-- Macro to add the mavlink_interface_plugin {-->
 {%- macro mavlink_interface_macro(mavlink_config) -%}
 
 <plugin name="mavlink_interface_plugin" filename="libgazebo_mavlink_interface.so">
@@ -1261,8 +1261,16 @@ limitations under the License.
 
 <!-- Macro to add an external garmin (not connected to the pixhawk) {-->
 <!-- Orientation empty for down looking garmin, _up for upward looking sensor -->
-{%- macro external_garmin_macro(namespace, parent_link, orientation, x, y, z, roll, pitch, yaw, enable_rangefinder) -%}
-  {%- if enable_rangefinder -%}
+{%- macro external_garmin_macro(namespace, parent_link, orientation, x, y, z, roll, pitch, yaw, spawner_args) -%}
+
+{% set spawner_keyword = "enable-rangefinder" %}
+{% set spawner_description = "Add a laser rangefinder (Garmin) pointing down" %}
+{% set spawner_default_args = none %}
+
+{%- if spawner_keyword in spawner_args.keys() -%}
+
+  {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
   <!-- Garmin {-->
   <link name="garmin{{ orientation }}_link">
     <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
@@ -1301,7 +1309,7 @@ limitations under the License.
       yaw = yaw)
     }}
   </link>
-  
+
   <joint name="garmin{{ orientation }}_joint" type="fixed">
     <parent>{{ parent_link }}</parent>
     <child>garmin{{ orientation }}_link</child>

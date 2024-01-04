@@ -808,11 +808,9 @@
     <!-- ======================= rangefinder sensors ======================-->
 
     {# Garmin {--> #}
-    {% if enable_rangefinder %}
-    <!-- Garmin {-->
     {# {{ components.garmin_macro("lidar0", root, -0.077, 0, -0.069, 0, math.radians(90), 0) }} - uncomment when simulation will work with pixgarm #}
     {{ components.external_garmin_macro(
-      namespace = namespace,
+      namespace = spawner_args['name'],
       parent_link = root,
       orientation = "",
       x = 0.0,
@@ -820,10 +818,9 @@
       z = -0.022,
       roll = 0,
       pitch = math.radians(90),
-      yaw = math.radians(-90))
+      yaw = math.radians(-90),
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     <!-- ========================== LIDAR sensors ========================= -->

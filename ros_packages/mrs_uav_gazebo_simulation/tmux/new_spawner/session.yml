@@ -1,0 +1,70 @@
+# do not modify these
+root: ./
+name: simulation
+socket_name: mrs
+attach: false
+tmux_options: -f /etc/ctu-mrs/tmux.conf
+# you can modify these
+pre_window: export RUN_TYPE=simulation; export UAV_TYPE=x500; export PLATFORM_CONFIG=`rospack find mrs_uav_gazebo_simulation`/config/mrs_uav_system/$UAV_TYPE.yaml; export CUSTOM_CONFIG=./config/custom_config.yaml; export WORLD_CONFIG=./config/world_config.yaml; export NETWORK_CONFIG=./config/network_config.yaml
+startup_window: status
+windows:
+  - roscore:
+      layout: tiled
+      panes:
+        - roscore
+  - gazebo:
+      layout: tiled
+      panes:
+        - waitForRos; roslaunch mrs_uav_gazebo_simulation simulation.launch
+        - waitForRos; roslaunch mrs_uav_gazebo_simulation mrs_drone_spawner.launch
+        - rosservice call /mrs_drone_spawner/spawn "1 2 3 --$UAV_TYPE --enable-rangefinder"
+        - export UAV_NAME=uav1; waitForControl; gz camera -c gzclient_camera -f $UAV_NAME; history -s gz camera -c gzclient_camera -f $UAV_NAME
+  - status:
+      layout: tiled
+      panes:
+        - export UAV_NAME=uav1; waitForHw; roslaunch mrs_uav_status status.launch
+        - export UAV_NAME=uav2; waitForHw; roslaunch mrs_uav_status status.launch
+        - export UAV_NAME=uav3; waitForHw; roslaunch mrs_uav_status status.launch
+  - hw_api:
+      layout: tiled
+      panes:
+        -  export UAV_NAME=uav1; waitForTime; roslaunch mrs_uav_px4_api api.launch
+        -  export UAV_NAME=uav2; waitForTime; roslaunch mrs_uav_px4_api api.launch
+        -  export UAV_NAME=uav3; waitForTime; roslaunch mrs_uav_px4_api api.launch
+  - core:
+      layout: tiled
+      panes:
+        - export UAV_NAME=uav1; waitForHw; roslaunch mrs_uav_core core.launch
+        - export UAV_NAME=uav2; waitForHw; roslaunch mrs_uav_core core.launch
+        - export UAV_NAME=uav3; waitForHw; roslaunch mrs_uav_core core.launch
+  - tf_connector:
+      layout: tiled
+      panes:
+        - waitForTime; roslaunch mrs_tf_connector tf_connector.launch custom_config:=./config/tf_connector.yaml
+  - automatic_start:
+      layout: tiled
+      panes:
+        - export UAV_NAME=uav1; waitForHw; roslaunch mrs_uav_autostart automatic_start.launch
+        - export UAV_NAME=uav2; waitForHw; roslaunch mrs_uav_autostart automatic_start.launch
+        - export UAV_NAME=uav3; waitForHw; roslaunch mrs_uav_autostart automatic_start.launch
+  - takeoff:
+      layout: tiled
+      panes:
+        - export UAV_NAME=uav1; waitForControl; rosservice call /$UAV_NAME/hw_api/arming 1; sleep 2; rosservice call /$UAV_NAME/hw_api/offboard
+        - export UAV_NAME=uav2; waitForControl; rosservice call /$UAV_NAME/hw_api/arming 1; sleep 2; rosservice call /$UAV_NAME/hw_api/offboard
+        - export UAV_NAME=uav3; waitForControl; rosservice call /$UAV_NAME/hw_api/arming 1; sleep 2; rosservice call /$UAV_NAME/hw_api/offboard
+  - rviz:
+      layout: tiled
+      panes:
+        - export UAV_NAME=uav1; waitForControl; rosrun rviz rviz -d ./config/rviz.rviz
+        - export UAV_NAME=uav1; waitForControl; roslaunch mrs_rviz_plugins rviz_interface.launch
+  - rviz_uav_models:
+      layout: tiled
+      panes:
+        - export UAV_NAME=uav1; waitForControl; roslaunch mrs_rviz_plugins load_robot.launch
+        - export UAV_NAME=uav2; waitForControl; roslaunch mrs_rviz_plugins load_robot.launch
+        - export UAV_NAME=uav3; waitForControl; roslaunch mrs_rviz_plugins load_robot.launch
+  - layout:
+      layout: tiled
+      panes:
+        - export UAV_NAME=uav1; waitForControl; sleep 3; ~/.i3/layout_manager.sh ./layout.json

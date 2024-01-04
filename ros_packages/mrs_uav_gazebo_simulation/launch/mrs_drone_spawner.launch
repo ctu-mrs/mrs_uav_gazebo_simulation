@@ -2,7 +2,7 @@
   
   <arg name="custom_config" default="" />
 
-  <node name="mrs_drone_spawner" pkg="mrs_uav_gazebo_simulation" type="updated_drone_spawner.py" output="screen" args="no_help verbose">
+  <node name="mrs_drone_spawner" pkg="mrs_uav_gazebo_simulation" type="updated_drone_spawner.py" output="screen" args="verbose">
 
     <rosparam file="$(find mrs_uav_gazebo_simulation)/config/spawner_params.yaml" />
     <rosparam if="$(eval not arg('custom_config') == '')" file="$(arg custom_config)" />
