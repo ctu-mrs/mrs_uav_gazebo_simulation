@@ -706,7 +706,7 @@
       z = -0.025,
       roll = -components.rad90,
       pitch = components.rad20,
-      yaw = components.rad90)
+      yaw = components.rad120)
     }}
     <!--}-->
 
@@ -722,7 +722,7 @@
       z = -0.025,
       roll = -components.rad90,
       pitch = components.rad20,
-      yaw = -components.rad90)
+      yaw = -components.rad120)
     }}
     <!--}-->
 
@@ -733,9 +733,9 @@
       camera_suffix="",
       parent_link = root,
       enable_realistic_picoflexx = enable_realistic_picoflexx,
-      x = -0.08,
-      y = 0.03,
-      z = -0.02,
+      x = -0.07,
+      y = 0.025,
+      z = 0.02,
       roll =  0,
       pitch = components.rad45,
       yaw = components.rad180)
@@ -761,54 +761,37 @@
     }}
     <!--}-->
       
-    <!-- realsense down {-->
+    <!-- realsense up {-->
     {{ components.realsense_macro(
       namespace = namespace,
       camera_name = "rgbd",
       camera_suffix="",
       parent_link = root,
       enable_realistic_realsense = enable_realistic_realsense,
-      x = -0.08,
+      x = -0.00,
       y = 0,
-      z = -0.015,
-      roll = 0,
-      pitch = components.rad90,
-      yaw = 0)
-    }}
-    <!--}-->
-
-    <!-- bluefox down {-->
-    {{ components.bluefox_camera_macro(
-      namespace = namespace,
-      camera_name = "bluefox_down_optflow",
-      parent_link = root,
-      frame_rate = 100.0,
-      hfov = 2.1,
-      noise = 0.0,
-      x = 0.0,
-      y = -0.0515,
-      z = -0.05,
-      roll = 0,
-      pitch = components.rad90,
-      yaw = 0)
-    }}
-    <!--}-->
-
-    <!-- bluefox up {-->
-    {{ components.bluefox_camera_macro(
-      namespace = namespace,
-      camera_name = "bluefox_up_optflow",
-      parent_link = root,
-      frame_rate = 100.0,
-      hfov = 2.1,
-      noise = 0.0,
-      x = 0.0,
-      y = -0.0,
-      z = 0.10,
+      z = 0.11,
       roll = 0,
       pitch = -components.rad90,
       yaw = 0)
     }}
+    <!--}-->
+
+    <!-- basler down {-->
+    {{ components.basler_camera_macro(
+      namespace = namespace,
+      camera_name = "basler_down",
+      parent_link = root,
+      frame_rate = 30.0,
+      hfov = 1.990252,
+      noise = 0.007,
+      x = 0,
+      y = 0.0,
+      z = -0.05,
+      roll = 0,
+      pitch = components.rad90,
+      yaw = 0)
+      }}
     <!--}-->
 
     {% endif %}
