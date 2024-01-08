@@ -15,6 +15,7 @@ import rospkg
 import rospy
 import sys
 import tempfile
+import threading
 import xml.dom.minidom
 import yaml
 
@@ -38,6 +39,12 @@ glob_running_processes = []
 # #{ NoFreeIDAvailable(RuntimeError)
 class NoFreeIDAvailable(RuntimeError):
     '''Indicate that the vehicle limit imposed by px4 sitl has been reached'''
+    pass
+# #}
+
+# #{ NoValidIDGiven(RuntimeError)
+class NoValidIDGiven(RuntimeError):
+    '''Indicate that the user has provided only invalid IDs (non-integers, or all are already assigned)'''
     pass
 # #}
 
@@ -84,10 +91,10 @@ def exit_handler():
         print(f'[INFO] [MrsDroneSpawner]: Shutting down {len(glob_running_processes)} subprocesses')
 
         num_zombies = 0
-        for p, pid in glob_running_processes:
+        for p in glob_running_processes:
             try:
                 p.shutdown()
-                print(f'[INFO] [MrsDroneSpawner]: Process {pid} shutdown')
+                print(f'[INFO] [MrsDroneSpawner]: Process {p} shutdown')
             except:
                 num_zombies += 1
 
@@ -103,6 +110,8 @@ class MrsDroneSpawner:
 
     # #{ __init__(self, verbose=False)
     def __init__(self, verbose=False):
+
+        self.is_initialized = False
 
         self.verbose = verbose
 
@@ -152,8 +161,6 @@ class MrsDroneSpawner:
         self.px4_fimrware_launch_path = gazebo_simulation_path + os.sep + 'launch' + os.sep + 'run_simulation_firmware.launch'
         # # #}
 
-        self.assigned_ids = set()
-
         try:
             self.jinja_templates = self.build_template_database()
         except RecursionError as err:
@@ -167,16 +174,26 @@ class MrsDroneSpawner:
         rospy.loginfo(f'[MrsDroneSpawner]: ------------------------')
 
         # # #{ setup communication
-
+        self.spawn_server = rospy.Service('~spawn', StringSrv, self.callback_spawn, buff_size=20)
         self.diagnostics_pub = rospy.Publisher('~diagnostics', GazeboSpawnerDiagnostics, queue_size=1)
         self.diagnostics_timer = rospy.Timer(rospy.Duration(0.1), self.callback_diagnostics_timer)
-        self.spawn_server = rospy.Service('~spawn', StringSrv, self.callback_spawn, buff_size=20)
+        self.action_timer = rospy.Timer(rospy.Duration(0.1), self.callback_action_timer)
 
         self.gazebo_spawn_proxy = rospy.ServiceProxy('~gazebo_spawn_model', SpawnModelSrv)
         # # #}
 
-        rospy.spin()
+        # #{ setup system variables
+        self.spawn_called = False
+        self.processing = False
+        self.vehicle_queue = []
+        self.queue_mutex = threading.Lock()
+        self.active_vehicles = []
+        self.assigned_ids = set()
+        # #}
 
+        self.is_initialized = True
+
+        rospy.spin()
 
         # load all available models
         # from current package
@@ -431,12 +448,28 @@ class MrsDroneSpawner:
             input_dict['help'] = True
             return input_dict
 
+        valid_ids = []
+
         for ID in input_dict['ids']:
             if not isinstance(ID, int):
-                raise ValueError(f'Incorrect robot ID. Expected an integer, got {ID}')
+                rospy.logwarn(f'[MrsDroneSpawner]: Ignored ID {ID}: Not an integer')
+                continue
+            if ID < 0 or ID > 255:
+                rospy.logwarn(f'[MrsDroneSpawner]: Ignored ID {ID}: Must be in range(0, 256)')
+                continue
             if ID in self.assigned_ids:
-                raise ValueError(f'Incorrect robot ID. Value {ID} is already assigned')
-            self.assigned_ids.add(ID)
+                rospy.logwarn(f'[MrsDroneSpawner]: Ignored ID {ID}: Already assigned')
+                continue
+            valid_ids.append(ID)
+
+        input_dict['ids'].clear()
+
+        if len(valid_ids) > 0:
+            rospy.loginfo(f'[MrsDroneSpawner]: Valid robot IDs: {valid_ids}')
+            input_dict['ids'] = valid_ids
+            self.assigned_ids.update(input_dict['ids'])
+        else:
+            raise NoValidIDGiven('No valid ID given. Check your input')
 
         if 'pos' in input_dict.keys():
             try:
@@ -570,6 +603,8 @@ class MrsDroneSpawner:
     # #{ callback_spawn(self, req)
     def callback_spawn(self, req):
 
+        self.spawn_called = True
+
         rospy.loginfo(f'[MrsDroneSpawner]: Spawn called with args "{req.value}"')
         res = StringSrvResponse()
         res.success = False
@@ -602,134 +637,20 @@ class MrsDroneSpawner:
             return res
         # #}
 
-        # #{ render and spawn sdf models
+        rospy.loginfo('[MrsDroneSpawner]: Adding vehicles to a spawn queue')
+        self.processing = True
+        self.queue_mutex.acquire()
         for i, ID in enumerate(params_dict['ids']):
-
-            # # #{ render template into sdf
             robot_params = self.get_jinja_params_for_one_robot(params_dict, i, ID)
-
-            sdf_content = self.render(robot_params)
-
             name = robot_params['name']
+            self.vehicle_queue.append(robot_params)
+        self.queue_mutex.release()
 
-            if self.save_sdf_files:
-                fd, filepath = tempfile.mkstemp(prefix='mrs_drone_spawner_', suffix='_' + str(params_dict['model']) + '_' + str(name) + '.sdf')
-                with os.fdopen(fd, 'w') as output_file:
-                    output_file.write(sdf_content)
-                    rospy.loginfo(f'[MrsDroneSpawner]: Model for {name} written to {filepath}')
-
-            # # #}
-
-            # # #{ send sdf to gazebo spawn service
-            spawn_pose = Pose()
-            spawn_pose.position.x = params_dict['spawn_poses'][ID]['x']
-            spawn_pose.position.y = params_dict['spawn_poses'][ID]['y']
-            spawn_pose.position.z = params_dict['spawn_poses'][ID]['z']
-            spawn_pose.orientation.w = math.cos(params_dict['spawn_poses'][ID]['heading'] / 2.0)
-            spawn_pose.orientation.x = 0
-            spawn_pose.orientation.y = 0
-            spawn_pose.orientation.z = math.sin(params_dict['spawn_poses'][ID]['heading'] / 2.0)
-
-            rospy.loginfo(f'[MrsDroneSpawner]: Spawning gazebo model for {name}')
-            try:
-                response = self.gazebo_spawn_proxy(name, sdf_content, name, spawn_pose, "")
-                if not response.success:
-                    rospy.logerr(f'MrsDroneSpawner]: While calling {self.gazebo_spawn_proxy.resolved_name}: {response.status_message}')
-            except rospy.service.ServiceException as e:
-                    rospy.logerr(f'[MrsDroneSpawner]: While calling {self.gazebo_spawn_proxy.resolved_name}: {e}')
-            # # #}
-
-        # #}
-
-        # #{ run px4 firmware
-
-        ## TODO improve this hardcoded hacky way of launching
-        for i, ID in enumerate(params_dict['ids']):
-            name = robot_params['name']
-            rospy.loginfo(f'[MrsDroneSpawner]: Running px4 firmware for {name}')
-            uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
-            roslaunch.configure_logging(uuid)
-            roslaunch_args = [
-                'ID:=' + str(ID),
-                'PX4_SIM_MODEL:=' + str(params_dict['model'])
-            ]
-            roslaunch_sequence = [(self.px4_fimrware_launch_path, roslaunch_args)]
-
-            orig_signal_handler = roslaunch.pmon._init_signal_handlers
-            roslaunch.pmon._init_signal_handlers = dummy_function
-
-            launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_sequence)
-            launch.start()
-
-            roslaunch.pmon._init_signal_handlers = orig_signal_handler
-
-            if launch is not None:
-                glob_running_processes.append((launch, str(name) + '_firmware'))
-
-        # #}
-
-        # #{ run mavros
-
-        ## TODO improve this hardcoded hacky way of launching
-        for i, ID in enumerate(params_dict['ids']):
-            name = robot_params['name']
-            rospy.loginfo(f'[MrsDroneSpawner]: Running px4 firmware for {name}')
-            uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
-            roslaunch.configure_logging(uuid)
-            roslaunch_args = [
-                'ID:=' + str(ID),
-                'fcu_url:=' + str(self.get_mavlink_config_for_robot(ID)['fcu_url']),
-                'vehicle:=' + str(params_dict['model']) # TODO: rename this to PX4_SIM_MODEL in the mavros launch file?
-            ]
-            roslaunch_sequence = [(self.mavros_launch_path, roslaunch_args)]
-
-            orig_signal_handler = roslaunch.pmon._init_signal_handlers
-            roslaunch.pmon._init_signal_handlers = dummy_function
-
-            launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_sequence)
-            launch.start()
-
-            roslaunch.pmon._init_signal_handlers = orig_signal_handler
-
-            if launch is not None:
-                glob_running_processes.append((launch, str(name) + '_mavros'))
-
-        # #}
-        # # #{ roslaunch args generation
-        # roslaunch_args = None
-        # try:
-        #     roslaunch_args = self.generate_launch_args(params_dict)
-        # except Exception as e:
-        #     res = StringSrvResponse()
-        #     res.message = str(e.args[0])
-        #     return res
-
-        # if roslaunch_args is None:
-        #     res = StringSrvResponse()
-        #     res.message = str('Cannot generate roslaunch arguments')
-        #     return res
-        # # #}
-
-        # # #{ prepare id <-> process map
-        # for ID in params_dict['ids']:
-        #     self.assigned_ids[ID] = None
-        # # #}
-
-        # # #{ queue new launch processes
-        # self.process_queue_mutex.acquire()
-        # self.processing = True
-        # for i, uav_roslaunch_args in enumerate(roslaunch_args):
-        #     ID = params_dict['ids'][i]
-        #     self.queued_vehicles.append('uav' + str(ID))
-        #     self.process_queue.append((self.launch_mavros, (ID, uav_roslaunch_args)))
-        #     self.process_queue.append((self.spawn_simulation_model, (ID, uav_roslaunch_args)))
-        #     self.process_queue.append((self.launch_firmware, (ID, uav_roslaunch_args)))
-        # self.process_queue_mutex.release()
-        # # #}
+        num_added = len(params_dict['ids'])
 
         res = StringSrvResponse()
         res.success = True
-        res.message = str('Launch sequence queued')
+        res.message = f'Launch sequence queued for {num_added} robots'
         return res
 
     # #}
@@ -737,9 +658,61 @@ class MrsDroneSpawner:
     # #{ callback_diagnostics_timer
     def callback_diagnostics_timer(self, timer):
         diagnostics = GazeboSpawnerDiagnostics()
-        # TODO: publish actual diagnostics
-        diagnostics.spawn_called = True
+        diagnostics.spawn_called = self.spawn_called
+        diagnostics.processing = self.processing
+        diagnostics.active_vehicles = self.active_vehicles
+        self.queue_mutex.acquire()
+        diagnostics.queued_vehicles = [params['name'] for params in self.vehicle_queue]
+        diagnostics.queued_processes = len(self.vehicle_queue)
+        self.queue_mutex.release()
         self.diagnostics_pub.publish(diagnostics)
+    # #}
+
+    # #{ callback_action_timer
+    def callback_action_timer(self, timer):
+
+        self.queue_mutex.acquire()
+
+        if len(self.vehicle_queue) > 0:
+
+            robot_params = self.vehicle_queue[0]
+            del self.vehicle_queue[0]
+            self.queue_mutex.release()
+
+            orig_signal_handler = roslaunch.pmon._init_signal_handlers
+            roslaunch.pmon._init_signal_handlers = dummy_function
+
+            model_spawned = self.spawn_gazebo_model(robot_params)
+            if not model_spawned:
+                rospy.logerr(f'[MrsDroneSpawner]: Could not spawn Gazebo model for {robot_params["name"]}')
+                self.queue_mutex.acquire()
+                self.vehicle_queue.append(robot_params)
+                self.queue_mutex.release()
+                return
+
+            firmware_process = self.launch_px4_firmware(robot_params)
+            mavros_process  = self.launch_mavros(robot_params)
+            roslaunch.pmon._init_signal_handlers = orig_signal_handler
+
+            # One of the processes did not start -> shutdown the rest and try again later
+            if None in (firmware_process, mavros_process):
+                for p in (firmware_process, mavros_process):
+                    try:
+                        p.shutdown()
+                    except:
+                        pass
+                self.queue_mutex.acquire()
+                self.vehicle_queue.append(robot_params)
+                self.queue_mutex.release()
+                return
+
+            rospy.loginfo(f'[MrsDroneSpawner]: Vehicle {robot_params["name"]} successfully spawned')
+            self.active_vehicles.append(robot_params['name'])
+
+        else:
+            self.processing = False
+            self.queue_mutex.release()
+            # rinfo('Nothing to do')
     # #}
 
     # --------------------------------------------------------------
@@ -911,7 +884,9 @@ class MrsDroneSpawner:
         '''
 
         robot_params = copy.deepcopy(params_dict)
+        robot_params['ID'] = ID
         robot_params['name'] = params_dict['names'][index]
+        robot_params['spawn_pose'] = params_dict['spawn_poses'][ID]
 
         del robot_params['names']
         del robot_params['help']
@@ -949,9 +924,95 @@ class MrsDroneSpawner:
     # #}
 
     # --------------------------------------------------------------
-    # |                           Testing                          |
+    # |                   Launching subprocesses                   |
     # --------------------------------------------------------------
 
+    # #{ launch_px4_firmware(self, robot_params)
+    def launch_px4_firmware(self, robot_params):
+        name = robot_params['name']
+        rospy.loginfo(f'[MrsDroneSpawner]: Launching PX4 firmware for {name}')
+        uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+        roslaunch.configure_logging(uuid)
+
+        roslaunch_args = [
+            'ID:=' + str(robot_params['ID']),
+            'PX4_SIM_MODEL:=' + str(robot_params['model'])
+        ]
+        roslaunch_sequence = [(self.px4_fimrware_launch_path, roslaunch_args)]
+
+        firmware_process = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_sequence)
+
+        try:
+            firmware_process.start()
+        except:
+            rospy.logerr(f'[MrsDroneSpawner]: Could not launch PX4 firmware for {name}')
+            return None
+
+        rospy.loginfo(f'[MrsDroneSpawner]: PX4 firmware for {name} launched')
+
+        return firmware_process
+    # #}
+
+    # #{ launch_mavros(self, robot_params)
+    def launch_mavros(self, robot_params):
+        name = robot_params['name']
+        rospy.loginfo(f'[MrsDroneSpawner]: Launching mavros for {name}')
+
+        uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+        roslaunch.configure_logging(uuid)
+
+        roslaunch_args = [
+                'ID:=' + str(robot_params['ID']),
+                'fcu_url:=' + str(robot_params['mavlink_config']['fcu_url']),
+                'vehicle:=' + str(robot_params['model']) # TODO: rename this to PX4_SIM_MODEL in the mavros launch file?
+        ]
+
+        roslaunch_sequence = [(self.mavros_launch_path, roslaunch_args)]
+        mavros_process = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_sequence)
+
+        try:
+            mavros_process.start()
+        except:
+            rospy.logerr(f'[MrsDroneSpawner]: Could not launch mavros for {name}')
+            return None
+
+        rospy.loginfo(f'[MrsDroneSpawner]: Mavros for {name} launched')
+
+        return mavros_process
+    # #}
+
+    # #{ spawn_gazebo_model(self, robot_params)
+    def spawn_gazebo_model(self, robot_params):
+        name = robot_params['name']
+        sdf_content = self.render(robot_params)
+
+        if self.save_sdf_files:
+            fd, filepath = tempfile.mkstemp(prefix='mrs_drone_spawner_', suffix='_' + str(robot_params['model']) + '_' + str(name) + '.sdf')
+            with os.fdopen(fd, 'w') as output_file:
+                output_file.write(sdf_content)
+                rospy.loginfo(f'[MrsDroneSpawner]: Model for {name} written to {filepath}')
+
+        spawn_pose = Pose()
+        spawn_pose.position.x = robot_params['spawn_pose']['x']
+        spawn_pose.position.y = robot_params['spawn_pose']['y']
+        spawn_pose.position.z = robot_params['spawn_pose']['z']
+        spawn_pose.orientation.w = math.cos(robot_params['spawn_pose']['heading'] / 2.0)
+        spawn_pose.orientation.x = 0
+        spawn_pose.orientation.y = 0
+        spawn_pose.orientation.z = math.sin(robot_params['spawn_pose']['heading'] / 2.0)
+
+        rospy.loginfo(f'[MrsDroneSpawner]: Spawning gazebo model for {name}')
+        try:
+            response = self.gazebo_spawn_proxy(name, sdf_content, name, spawn_pose, "")
+            if not response.success:
+                rospy.logerr(f'MrsDroneSpawner]: While calling {self.gazebo_spawn_proxy.resolved_name}: {response.status_message}')
+                return False
+        except rospy.service.ServiceException as e:
+                rospy.logerr(f'[MrsDroneSpawner]: While calling {self.gazebo_spawn_proxy.resolved_name}: {e}')
+                return False
+
+        return True
+    # #}
 
 if __name__ == '__main__':
 
