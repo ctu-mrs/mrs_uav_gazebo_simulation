@@ -6,7 +6,7 @@ attach: false
 tmux_options: -f /etc/ctu-mrs/tmux.conf
 # you can modify these
 pre_window: export RUN_TYPE=simulation; export UAV_TYPE=x500; export PLATFORM_CONFIG=`rospack find mrs_uav_gazebo_simulation`/config/mrs_uav_system/$UAV_TYPE.yaml; export CUSTOM_CONFIG=./config/custom_config.yaml; export WORLD_CONFIG=./config/world_config.yaml; export NETWORK_CONFIG=./config/network_config.yaml
-startup_window: status
+startup_window: gazebo
 windows:
   - roscore:
       layout: tiled
@@ -17,7 +17,9 @@ windows:
       panes:
         - waitForRos; roslaunch mrs_uav_gazebo_simulation simulation.launch
         - waitForRos; roslaunch mrs_uav_gazebo_simulation mrs_drone_spawner.launch
-        - rosservice call /mrs_drone_spawner/spawn "1 2 3 --$UAV_TYPE --enable-rangefinder"
+        - 'history -s rosservice call /mrs_drone_spawner/spawn \"1 2 3 --$UAV_TYPE --enable-rangefinder\"'
+        # - 'history -s rosservice call /mrs_drone_spawner/spawn \"1 2 --$UAV_TYPE --enable-rangefinder\"'
+        # - 'history -s rosservice call /mrs_drone_spawner/spawn \"3 --$UAV_TYPE --enable-rangefinder pixgarm:=True\"'
         - export UAV_NAME=uav1; waitForControl; gz camera -c gzclient_camera -f $UAV_NAME; history -s gz camera -c gzclient_camera -f $UAV_NAME
   - status:
       layout: tiled
@@ -64,7 +66,3 @@ windows:
         - export UAV_NAME=uav1; waitForControl; roslaunch mrs_rviz_plugins load_robot.launch
         - export UAV_NAME=uav2; waitForControl; roslaunch mrs_rviz_plugins load_robot.launch
         - export UAV_NAME=uav3; waitForControl; roslaunch mrs_rviz_plugins load_robot.launch
-  - layout:
-      layout: tiled
-      panes:
-        - export UAV_NAME=uav1; waitForControl; sleep 3; ~/.i3/layout_manager.sh ./layout.json

@@ -1,0 +1,194 @@
+<?xml version="1.0"? encoding="utf-8">
+<sdf version="1.6">
+
+<!-- zero_inertial_macro {-->
+{# macro to add the lowest mass and intertia that gazebo allows #}
+{%- macro zero_inertial_macro() -%}
+<inertial>
+  <mass>0.0001</mass>
+  <inertia>
+    <ixx>1e-7</ixx>
+    <ixy>0</ixy>
+    <ixz>0</ixz>
+    <iyy>1e-7</iyy>
+    <iyz>0</iyz>
+    <izz>1e-7</izz>
+  </inertia>
+</inertial>
+{%- endmacro -%}
+<!--}-->
+
+<!-- visual_mesh_macro {-->
+  {%- macro visual_mesh_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw) -%}
+<visual name="{{ name }}_visual">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <mesh>
+      <uri>{{ mesh_file }}</uri>
+      <scale>{{ mesh_scale }}</scale>
+    </mesh>
+  </geometry>
+  <material>
+    <script>
+      <name>Gazebo/{{ color }}</name>
+      <uri>file://media/materials/scripts/gazebo.material</uri>
+    </script>
+  </material>
+</visual>
+{%- endmacro -%}
+<!--}-->
+
+<!-- visual_link_macro {-->
+{%- macro visual_link_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw, parent_link) -%}
+  <link name="{{ name }}_link">
+    {{ zero_inertial_macro() }}
+    <gravity>0</gravity>
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    {{ visual_mesh_macro(name, mesh_file, mesh_scale, color, 0, 0, 0, 0, 0, 0) }}
+  </link>
+  <joint name="{{ name }}_joint" type="fixed">
+    <child>{{ name }}_link</child>
+    <parent>{{ parent_link }}</parent>
+  </joint>
+{%- endmacro -%}
+<!--}-->
+
+
+<!-- odometry_sensor_macro {-->
+{%- macro odometry_sensor_macro(odometry_sensor_name, parent_link, topic_name, noise, frame_name, update_rate, x, y, z, roll, pitch, yaw) -%}
+  <link name="{{ odometry_sensor_name }}_link">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    {{ zero_inertial_macro() }}
+  </link>
+  <joint name="{{ odometry_sensor_name }}_joint" type="revolute">
+    <parent>{{ parent_link }}</parent>
+    <child>{{ odometry_sensor_name }}_link</child>
+    <axis>
+      <xyz>0 0 1</xyz>
+      <limit>
+        <lower>0</lower>
+        <upper>0</upper>
+        <velocity>0</velocity>
+        <effort>0</effort>
+      </limit>
+      <use_parent_model_frame>1</use_parent_model_frame>
+    </axis>
+  </joint>
+  <plugin name="{{ odometry_sensor_name }}_plugin" filename="libgazebo_ros_p3d.so">
+    <alwaysOn>true</alwaysOn>
+    <bodyName>{{ odometry_sensor_name }}_link</bodyName>
+    <updateRate>{{ update_rate }}</updateRate>
+    <topicName>{{ topic_name }}</topicName>
+    <gaussianNoise>{{ noise }}</gaussianNoise>
+    <frameName>{{ frame_name }}</frameName>
+    <xyzOffset>{{ x }} {{ y }} {{ z }}</xyzOffset>
+    <rpyOffset>{{ roll }} {{ pitch }} {{ yaw }}</rpyOffset>
+  </plugin>
+{%- endmacro -%}
+<!--}-->
+
+<!-- rangefinder_sensor_macro {-->
+{%- macro rangefinder_sensor_macro(name, parent_frame_name, sensor_frame_name, topic, update_rate, fov, min_distance, max_distance, resolution, noise, x, y, z, roll, pitch, yaw) -%}
+  <sensor name="lidar_sensor" type='ray'>
+    <always_on>true</always_on>
+    <visualize>false</visualize>
+    <update_rate>{{ update_rate }}</update_rate>
+    <ray>
+      <scan>
+        <horizontal>
+          <samples>5</samples>
+          <resolution>1</resolution>
+          <min_angle>-{{ fov/2 }}</min_angle>
+          <max_angle>{{ fov/2 }}</max_angle>
+        </horizontal>
+        <vertical>
+          <samples>5</samples>
+          <resolution>1</resolution>
+          <min_angle>-{{ fov/2 }}</min_angle>
+          <max_angle>{{ fov/2 }}</max_angle>
+        </vertical>
+      </scan>
+      <range>
+        <min>{{ min_distance }}</min>
+        <max>{{ max_distance }}</max>
+        <resolution>{{ resolution }}</resolution>
+      </range>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>{{ noise }}</stddev>
+      </noise>
+    </ray>
+    <plugin name='lidar_plugin' filename='libgazebo_lidar_plugin.so'>
+      <robotNamespace></robotNamespace>
+      <maxDistance>{{ max_distance }}</maxDistance>
+      <minDistance>{{ min_distance }}</minDistance>
+      <topic>{{ name }}</topic>
+      <fov>{{ fov }}</fov>
+      <x>{{ x }}</x>
+      <y>{{ y }}</y>
+      <z>{{ z }}</z>
+      <roll>{{ roll }}</roll>
+      <pitch>{{ pitch }}</pitch>
+      <yaw>{{ yaw }}</yaw>
+      <frameName>{{ sensor_frame_name }}</frameName>
+      <parentFrameName>{{ parent_frame_name }}</parentFrameName>
+    </plugin>
+  </sensor>
+{%- endmacro -%}
+<!--}-->
+
+<!-- garmin_pixhawk_macro (connected through pixhawk -> range topic through mavros/distance_sensor) {-->
+{%- macro garmin_pixhawk_macro(sensor_name, parent_link, sensor_frame, parent_frame, topic, update_rate, min_range, max_range, noise, x, y, z, roll, pitch, yaw) -%}
+  
+  <link name="{{ sensor_name }}_link">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    
+    {{ zero_inertial_macro() }}
+    
+    {{ visual_mesh_macro(
+      name = sensor_name,
+      mesh_file = "model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl",
+      mesh_scale = "0.001 0.001 0.001",
+      color = "DarkGrey",
+      x = 0.015,
+      y = 0,
+      z = 0,
+      roll = 0,
+      pitch = 0,
+      yaw = 0)
+    }}
+      
+    {{ rangefinder_sensor_macro(
+      name = sensor_name,
+      parent_frame_name = parent_frame,
+      sensor_frame_name = sensor_frame,
+      topic = topic,
+      update_rate = update_rate,
+      fov = 0.03,
+      min_distance = min_range,
+      max_distance = max_range,
+      resolution = 0.005,
+      noise = noise,
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+  
+  </link>
+
+  <!-- NOTE: this joint is required by mavlink_gazebo_interface
+    It looks for a joint named ("lidar" + number) or a nested model named ("lidar" + number)
+  -->
+  <joint name='{{ sensor_name }}_joint' type='fixed'>
+    <child>{{ sensor_name }}_link</child>
+    <parent>{{ parent_link }}</parent>
+  </joint>
+
+{%- endmacro -%}
+<!--}-->
+
+</sdf>

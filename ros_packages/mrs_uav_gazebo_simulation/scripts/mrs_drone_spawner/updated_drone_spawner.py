@@ -94,7 +94,7 @@ def exit_handler():
         for p in glob_running_processes:
             try:
                 p.shutdown()
-                print(f'[INFO] [MrsDroneSpawner]: Process {p} shutdown')
+                print(f'[INFO] [MrsDroneSpawner]: Process {p.run_id} shutdown')
             except:
                 num_zombies += 1
 
@@ -396,7 +396,7 @@ class MrsDroneSpawner:
         expected input:
             device ids (integers separated by spaces)
             keywords (specified in jinja components starting with '--')
-            component args following a keyword (values separated by spaces or a python dictionary)
+            component args following a keyword (values separated by spaces)
         :param input_str: string containing all args in the format specified above
         :return: a dict in format {keyword: component_args}, always contains keys "help", "model", "ids", "names", "spawn_poses"
         NOTE: arguments of a component/keyword will always be parsed as a list/dict, even for a single value
@@ -509,14 +509,6 @@ class MrsDroneSpawner:
         Returns None if the input cannot be interpreted as dict or list
         '''
         input_str = input_str.strip()
-        try:
-            params = ast.literal_eval(input_str)
-            if isinstance(params, dict):
-                return params
-
-        except (SyntaxError, ValueError) as e:
-            # cannot convert input_str to a dict
-            pass
 
         params = []
         for s in input_str.split():
@@ -528,7 +520,27 @@ class MrsDroneSpawner:
                     # leave non-numbers as string
                     params.append(s)
 
+
+        params_dict = {}
         if isinstance(params, list):
+            # try to convert named args into a dict
+            for p in params:
+                try:
+                    if ':=' in p:
+                        kw, arg = p.split(':=')
+                        try:
+                            # try to convert arg to number
+                            params_dict[kw] = ast.literal_eval(arg)
+                        except ValueError:
+                            # leave non-numbers as string
+                            params_dict[kw] = arg
+                except TypeError:
+                    pass
+
+        if len(params_dict.keys()) > 0 and len(params_dict.keys()) == len(params):
+            # whole input converted to a dict
+            return params_dict
+        else:
             return params
 
         return None
@@ -584,7 +596,7 @@ class MrsDroneSpawner:
         rospy.loginfo(f'[MrsDroneSpawner]: Getting generic spawner help')
         response = 'The spawn service expects the following input (as a string):\n'
         response += '\tdevice ids (integers separated by spaces, auto-assigned if no ID is specified),\n'
-        response += '\tmodel (use \'--\' with a model name to select a specific model)\n'
+        response += '\tmodel (use \'--\' with a model name to select a specific model),\n'
         response += '\tkeywords (specified inside jinja macros as "spawner_keyword". Add \'--\' before each keyword when calling spawn),\n'
         response += '\tcomponent args following a keyword (values separated by spaces or a python dict, overrides "spawner_default_args" in jinja macros),\n'
         response += '\n'
@@ -623,10 +635,17 @@ class MrsDroneSpawner:
         help_text = self.get_help_text(params_dict)
         if help_text is not None:
             rospy.loginfo(help_text)
-            res.message = "Help displayed"
+            inline_help_text = help_text
+            inline_help_text = inline_help_text.replace('\n', ' ')
+            inline_help_text = inline_help_text.replace('\t', ' ')
+            res.message = inline_help_text
             res.success = True
             return res
         # #}
+
+        print('#######################')
+        print(params_dict)
+        print('#######################')
 
         # #{ check gazebo running
         try:
@@ -685,9 +704,9 @@ class MrsDroneSpawner:
             model_spawned = self.spawn_gazebo_model(robot_params)
             if not model_spawned:
                 rospy.logerr(f'[MrsDroneSpawner]: Could not spawn Gazebo model for {robot_params["name"]}')
-                self.queue_mutex.acquire()
-                self.vehicle_queue.append(robot_params)
-                self.queue_mutex.release()
+                # self.queue_mutex.acquire()
+                # self.vehicle_queue.append(robot_params)
+                # self.queue_mutex.release()
                 return
 
             firmware_process = self.launch_px4_firmware(robot_params)
@@ -705,6 +724,9 @@ class MrsDroneSpawner:
                 self.vehicle_queue.append(robot_params)
                 self.queue_mutex.release()
                 return
+
+            glob_running_processes.append(firmware_process)
+            glob_running_processes.append(mavros_process)
 
             rospy.loginfo(f'[MrsDroneSpawner]: Vehicle {robot_params["name"]} successfully spawned')
             self.active_vehicles.append(robot_params['name'])
@@ -1024,23 +1046,5 @@ if __name__ == '__main__':
 
     try:
         spawner = MrsDroneSpawner(verbose)
-        # # spawner_args = spawner.parse_user_input('2 10 --enable_component_with_args 0.01 0.38 1E10 --enable_component_with_args_as_dict {"roll": 0, "pitch": 22, "aaa": "bbbb"} --enable-noargs --dummy --pos_file /home/mrs/devel_workspace/src/mrs_uav_gazebo_simulation/ros_packages/mrs_uav_gazebo_simulation/pos.csv')
-        # spawner_args = spawner.parse_user_input('1 2 3 --enable_component_with_args 0.01 1E-10 --enable_component_with_args_as_dict {"roll": 0, "pitch": 22, "aaa": "bbbb"} --enable-noargs --dummy --pos 10 20 1 8.4')
-
-#         req = StringSrvRequest()
-#         # req.value = '1 2 3 --enable_component_with_args 0.01 0.38 1E10 --enable_component_with_args_as_dict {"roll": 0, "pitch": 22, "aaa": "bbbb"} --enable-noargs --f400 --pos 10 20 1 8.4 --name eagle'
-#         req.value = '1 --x500 --enable_rangefinder --pos 0 0 0 0'
-
-        # print('Calling spawn')
-        # res = spawner.callback_spawn(req)
-        # print(res.message)
-
-#         if spawner.get_help_text(spawner_args) is not None:
-#             rospy.loginfo(help_text)
-#         elif spawner_args['model'] is not None:
-#             spawner.render(spawner_args['model'], '/home/mrs/devel_workspace/src/external_gazebo_models/dummy.sdf', spawner_args)
-#         else:
-#             rospy.logerr('[MrsDroneSpawner]: Model not specified')
-#             raise rospy.ROSInterruptException
     except rospy.ROSInterruptException:
         pass

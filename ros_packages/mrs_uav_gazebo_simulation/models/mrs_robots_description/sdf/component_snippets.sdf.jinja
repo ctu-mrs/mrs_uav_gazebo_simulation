@@ -2,6 +2,7 @@
 <sdf version="1.6">
 
 {% import "components_base.sdf.jinja" as components_base %}
+{% import "generic_components.sdf.jinja" as generic %}
 
 <!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
 <!-- !!    THIS DOCUMENT CONTAINS ONLY COMMON COMPONENTS MACRO AND    !! -->
@@ -36,22 +37,6 @@ limitations under the License.
 <!-- ||                          code blocks                         || -->
 <!-- ================================================================== -->
 
-<!-- Zero inertial macro {-->
-{# macro to place the lowest mass and intertia that gazebo allows #}
-{%- macro zero_inertial_macro() -%}
-<inertial>
-  <mass>0.0001</mass>
-  <inertia>
-    <ixx>1e-7</ixx>
-    <ixy>0</ixy>
-    <ixz>0</ixz>
-    <iyy>1e-7</iyy>
-    <iyz>0</iyz>
-    <izz>1e-7</izz>
-  </inertia>
-</inertial>
-{%- endmacro -%}
-<!--}-->
 
 <!-- Cylinder inertia {-->
 {%- macro cylinder_inertia(m, r, h) -%}
@@ -717,6 +702,7 @@ limitations under the License.
   <imuSubTopic>/imu</imuSubTopic>
   <magSubTopic>/mag</magSubTopic>
   <baroSubTopic>/baro</baroSubTopic>
+  <lidarSubTopic>/lidar</lidarSubTopic>
   <mavlink_addr>INADDR_ANY</mavlink_addr>
   <mavlink_udp_port>{{ mavlink_config['mavlink_udp_port'] }}</mavlink_udp_port>
   <mavlink_tcp_port>{{ mavlink_config['mavlink_tcp_port'] }}</mavlink_tcp_port>
@@ -808,7 +794,7 @@ limitations under the License.
 {%- macro gps_macro(gps_name, parent_link, update_rate, gps_noise, gps_xy_random_walk, gps_z_random_walk, gps_xy_noise_density, gps_z_noise_density, gps_vxy_noise_density, gps_vz_noise_density, x, y, z, roll, pitch, yaw) -%}
 <link name="{{ gps_name }}_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <sensor name="gps_sensor" type="gps">
     <plugin name="gps_plugin" filename="libgazebo_gps_plugin.so">
       <robotNamespace/>
@@ -872,7 +858,7 @@ limitations under the License.
 {%- macro imu_plugin_macro(imu_name, parent_link, imu_topic, gyroscope_noise_density, gyroscope_random_walk, gyroscope_bias_correlation_time, gyroscope_turn_on_bias_sigma, accelerometer_noise_density, accelerometer_random_walk, accelerometer_bias_correlation_time, accelerometer_turn_on_bias_sigma, x, y, z, roll, pitch, yaw) -%}
 <link name="{{ imu_name }}_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
 </link>
 <joint name="{{ imu_name }}_joint" type="revolute">
   <parent>{{ parent_link }}</parent>
@@ -910,7 +896,7 @@ limitations under the License.
 {%- macro custom_imu_macro(sensor_name, parent_link, update_rate, topic_name, frame_name, noise_mean, x, y, z, roll, pitch, yaw) -%}
 <link name="{{ sensor_name }}_link">
   <pose relative_to = "{{ parent_link }}">{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <sensor name="{{ sensor_name }}_sensor" type="imu">
     <gravity>true</gravity>
     <always_on>true</always_on>
@@ -953,93 +939,12 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-<!-- Macro to add the odometry_plugin{-->
-{%- macro odometry_plugin_macro(odometry_sensor_name, parent_link, topic_name, noise, frame_name, frame_rate, x, y, z, roll, pitch, yaw, enable_ground_truth) -%}
-  {%- if enable_ground_truth -%}
-  <!-- Ground truth {-->
-  <link name="{{ odometry_sensor_name }}_link">
-    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-    {{ zero_inertial_macro() }}
-  </link>
-  <joint name="{{ odometry_sensor_name }}_joint" type="revolute">
-    <parent>{{ parent_link }}</parent>
-    <child>{{ odometry_sensor_name }}_link</child>
-    <axis>
-      <xyz>0 0 1</xyz>
-      <limit>
-        <lower>0</lower>
-        <upper>0</upper>
-        <velocity>0</velocity>
-        <effort>0</effort>
-      </limit>
-      <use_parent_model_frame>1</use_parent_model_frame>
-    </axis>
-  </joint>
-  <plugin name="{{ odometry_sensor_name }}_plugin" filename="libgazebo_ros_p3d.so">
-    <alwaysOn>true</alwaysOn>
-    <updateRate>{{ frame_rate }}</updateRate>
-    <bodyName>{{ odometry_sensor_name }}_link</bodyName>
-    <topicName>{{ topic_name }}</topicName>
-    <gaussianNoise>{{ noise }}</gaussianNoise>
-    <frameName>{{ frame_name }}</frameName>
-    <xyzOffset>{{ x }} {{ y }} {{ z }}</xyzOffset>
-    <rpyOffset>{{ roll }} {{ pitch }} {{ yaw }}</rpyOffset>
-  </plugin>
-  <!--}-->
-  {%- endif -%}
-{%- endmacro -%}
-<!--}-->
-
-<!-- Macro to add the rangefinder_plugin {-->
-{%- macro rangefinder_sensor_macro(name, parent_frame_name, rangefinder_frame_name, topic, frame_rate, fov, min_distance, max_distance, resolution, noise, x, y, z, roll, pitch, yaw) -%}
-<sensor name="{{ name }}_sensor" type='ray'>
-  <update_rate>{{ frame_rate }}</update_rate>
-  <ray>
-    <scan>
-      <horizontal>
-        <samples>5</samples>
-        <resolution>1</resolution>
-        <min_angle>-{{ fov/2 }}</min_angle>
-        <max_angle>{{ fov/2 }}</max_angle>
-      </horizontal>
-      <vertical>
-        <samples>5</samples>
-        <resolution>1</resolution>
-        <min_angle>-{{ fov/2 }}</min_angle>
-        <max_angle>{{ fov/2 }}</max_angle>
-      </vertical>
-    </scan>
-    <range>
-      <min>{{ min_distance }}</min>
-      <max>{{ max_distance }}</max>
-      <resolution>{{ resolution }}</resolution>
-    </range>
-  </ray>
-  <plugin name='{{ name }}_plugin' filename='libMrsGazeboCommonResources_RangefinderPlugin.so'>
-    <gaussianNoise>{{ noise }}</gaussianNoise>
-    <alwaysOn>true</alwaysOn>
-    <updateRate>{{ frame_rate }}</updateRate>
-    <topicName>{{ topic }}</topicName>
-    <frameName>{{ rangefinder_frame_name }}</frameName>
-    <fov>{{ fov }}</fov>
-    <radiation>radiation</radiation>
-    <parentFrameName>{{ parent_frame_name }}</parentFrameName>
-    <x>{{ x }}</x>
-    <y>{{ y }}</y>
-    <z>{{ z }}</z>
-    <roll>{{ roll }}</roll>
-    <pitch>{{ pitch }}</pitch>
-    <yaw>{{ yaw }}</yaw>
-  </plugin>
-</sensor>
-{%- endmacro -%}
-<!--}-->
 
 <!-- Macro to add the camera_plugin {-->
 {%- macro camera_macro(parent_link, camera_name, camera_frame_name, sensor_base_frame_name, frame_rate, parent_frame_name, horizontal_fov, image_width, image_height, min_distance, max_distance, noise_mean, noise_stddev, mesh_file, mesh_scale, color, visual_x, visual_y, visual_z, visual_roll, visual_pitch, visual_yaw, x, y, z, roll, pitch, yaw) -%}
 <link name="{{ camera_name }}_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   {{ visual_mesh_macro(
     name = "",
     mesh_file = mesh_file,
@@ -1114,7 +1019,7 @@ limitations under the License.
 
 <link name="{{ camera_name }}_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   {{ visual_mesh_macro(
     name = "",
     mesh_file = mesh_file,
@@ -1200,130 +1105,12 @@ limitations under the License.
 
 <!-- ======================= rangefinder sensors ======================-->
 
-<!-- Macro to add a garmin (connected to the pixhawk) {-->
-{%- macro garmin_macro(sensor_name, parent_link, x, y, z, roll, pitch, yaw) -%}
-<link name="{{ sensor_name }}_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
-  <visual name="visual">
-    <origin xyz="0.015 0 0" rpy="0 0 0" />
-    <geometry>
-      <mesh>
-        <uri>model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl</uri>
-        <scale>0.001 0.001 0.001</scale>
-      </mesh>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/DarkGrey</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <sensor name="garmin_sensor" type="ray">
-    <always_on>true</always_on>
-    <update_rate>100</update_rate>
-    <visualize>false</visualize>
-    <ray>
-      <scan>
-        <horizontal>
-          <samples>1</samples>
-          <resolution>1</resolution>
-          <min_angle>-0</min_angle>
-          <max_angle>0</max_angle>
-        </horizontal>
-      </scan>
-      <range>
-        <min>0.06</min> <!-- do not change: use min_distance (below) for realistic behavior (smaller values cause issues) -->
-        <max>35</max>   <!-- do not change: use max_distance (below) for realistic behavior (bigger values cause issues) -->
-        <resolution>0.01</resolution>
-      </range>
-      <noise>
-        <type>gaussian</type>
-        <mean>0.0</mean>
-        <stddev>0.01</stddev>
-      </noise>
-    </ray>
-    <plugin name="{{ sensor_name }}_plugin" filename="libMrsGazeboCommonResources_2DLidarPlugin.so">
-      <robotNamespace/>
-      <min_distance>0.1</min_distance>
-      <max_distance>35.0</max_distance>
-    </plugin>
-  </sensor>
-</link>
-
-<joint name="{{ sensor_name }}_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>{{ sensor_name }}_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
-
-<!-- Macro to add an external garmin (not connected to the pixhawk) {-->
-<!-- Orientation empty for down looking garmin, _up for upward looking sensor -->
-{%- macro external_garmin_macro(namespace, parent_link, orientation, x, y, z, roll, pitch, yaw, spawner_args) -%}
-
-{% set spawner_keyword = "enable-rangefinder" %}
-{% set spawner_description = "Add a laser rangefinder (Garmin) pointing down" %}
-{% set spawner_default_args = none %}
-
-{%- if spawner_keyword in spawner_args.keys() -%}
-
-  {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
-
-  <!-- Garmin {-->
-  <link name="garmin{{ orientation }}_link">
-    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-    {{ zero_inertial_macro() }}
-    <visual name="visual">
-      <origin xyz="0.015 0 0" rpy="0 0 0" />
-      <geometry>
-        <mesh>
-          <uri>model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl</uri>
-          <scale>0.001 0.001 0.001</scale>
-        </mesh>
-      </geometry>
-      <material>
-        <script>
-          <name>Gazebo/DarkGrey</name>
-          <uri>file://media/materials/scripts/gazebo.material</uri>
-        </script>
-      </material>
-    </visual>
-    {{ rangefinder_sensor_macro(
-      name = "garmin" + orientation,
-      parent_frame_name = namespace + "/fcu",
-      rangefinder_frame_name = namespace + "/garmin" + orientation,
-      topic = "garmin" + orientation + "/range",
-      frame_rate = 100,
-      fov = 0.03,
-      min_distance = 0.1,
-      max_distance = 40.0,
-      resolution = 0.005,
-      noise = 0.01,
-      x = x,
-      y = y,
-      z = z,
-      roll = roll,
-      pitch = pitch,
-      yaw = yaw)
-    }}
-  </link>
-
-  <joint name="garmin{{ orientation }}_joint" type="fixed">
-    <parent>{{ parent_link }}</parent>
-    <child>garmin{{ orientation }}_link</child>
-  </joint>
-  <!--}-->
-  {%- endif -%}
-{%- endmacro -%}
-<!--}-->
 
 <!-- Macro to add a Teraranger One {-->
 {%- macro teraranger_macro(namespace, parent_link, x, y, z, roll, pitch, yaw) -%}
 <link name="teraranger_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="visual">
     <geometry>
       <box>
@@ -1368,7 +1155,7 @@ limitations under the License.
 {%- macro ultrasonic_sensor_macro(namespace, parent_link, suffix, x, y, z, roll, pitch, yaw) -%}
 <link name="ultrasound{{ suffix }}_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="visual">
     <geometry>
       <mesh>
@@ -1414,7 +1201,7 @@ limitations under the License.
 {%- macro uwb_range_macro(namespace, parent_link, uwb_id, uav_name, x, y, z, roll, pitch, yaw) -%}
 <link name="uwb_range_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <sensor name="uwb_range_sensor" type="wireless_transmitter">
     <update_rate>10</update_rate>
     <always_on>1</always_on>
@@ -1451,7 +1238,7 @@ limitations under the License.
 {%- macro scanse_sweep_macro(namespace, parent_link, x, y, z, roll, pitch, yaw) -%}
 <link name="sweeper_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="base_visual">
     <pose>0 0 -0.031 0 0 0</pose>
     <geometry>
@@ -1542,7 +1329,7 @@ limitations under the License.
 
 <link name="rplidar_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="base_visual">
     <pose>0 0 -0.029 0 0 {{ math.radians(180) }}</pose>
     <geometry>
@@ -1664,7 +1451,7 @@ limitations under the License.
 
 <link name="velodyne_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="base_visual">
     <pose>0 0 0.0094 0 0 0</pose>
     <geometry>
@@ -1829,7 +1616,7 @@ limitations under the License.
 
 <link name="{{ sensor_link }}">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="base_visual">
     <pose>0 0 0 0 0 {{ math.radians(90) }}</pose>
     <geometry>
@@ -2082,7 +1869,7 @@ limitations under the License.
 
 <link name="{{ camera_name }}_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="body_visual">
     <pose>0 0 0 {{ -math.radians(90) }} 0 {{ -math.radians(90) }}</pose>
     <geometry>
@@ -2430,7 +2217,7 @@ limitations under the License.
 {%- macro thermal_camera_macro(camera_name, camera_topic_name, parent_frame_name, camera_frame_name, sensor_base_frame_name, parent_link, frame_rate, hfov, image_width, image_height, x, y, z, roll, pitch, yaw) -%}
 <link name="{{ camera_name }}_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="visual">
     <pose>0 0 0 0 0 0</pose>
     <geometry>
@@ -2501,7 +2288,7 @@ limitations under the License.
 {%- macro uvcam_macro(parent_link, calibration_file, occlusions, frame_rate, device_id, camera_publish_topic, x, y, z, roll, pitch, yaw) -%}
 <link name="uvcam_{{ device_id }}_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="visual">
     <pose>0 0 0 {{ math.radians(90) }} 0 0</pose>
     <geometry>
@@ -2543,7 +2330,7 @@ limitations under the License.
 
 <link name="servo_camera_gimbal_link">
   <pose relative_to = "servo_camera_roll_joint"> 0 0 0 0 0 0</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="visual">
     <pose>0 0 0 0 0 0</pose>
     <geometry>
@@ -2569,7 +2356,7 @@ limitations under the License.
 
 <link name="servo_camera_link">
   <pose relative_to = "servo_camera_pitch_joint"> 0 0 0 0 0 0</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="visual">
     <pose>0 0 0 0 0 0</pose>
     <geometry>
@@ -2807,7 +2594,7 @@ limitations under the License.
 
 <link name="teraranger_evo_tower_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="visual">
     <pose>0 0 -0.014 0 0 0</pose>
     <geometry>
@@ -2855,7 +2642,7 @@ limitations under the License.
 {# not supported in the current version #}
 <link name="gps_blocking_link">
   <pose>0 0 0 0 {{ -math.radians(90) }} 0</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <sensor name='gps_blocking_sensor' type='ray'>
     <visualize>false</visualize>
     <update_rate>2</update_rate>
@@ -2898,7 +2685,7 @@ limitations under the License.
 {%- macro magnet_gripper_visualization_macro(parent_link, x, y, z, roll, pitch, yaw) -%}
 <link name="magnet_gripper_visualization_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="front_visual">
     <pose>-0.09 0 0.03 0 0 0</pose>
     <geometry>
@@ -2976,7 +2763,7 @@ limitations under the License.
 {%- macro timepix_macro(parent_link, name,  x, y, z, roll, pitch, yaw) -%}
 <link name="{{ name }}_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="visual">
     <pose>0 0.05 0 0 0 0</pose>
     <geometry>
@@ -3010,7 +2797,7 @@ limitations under the License.
 {%- macro timepix3_macro(parent_link, name, material, thickness, max_message_window, sensor_suffix, x, y, z, roll, pitch, yaw) -%}
 <link name="{{ name }}_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="visual">
     <pose>0 0.05 0 0 0 0</pose>
     <geometry>
@@ -3045,7 +2832,7 @@ limitations under the License.
 {%- macro water_gun_macro(parent_link, muzzle_velocity, particle_capacity, spread, spawning_reservoir, nozzle_offset_x, nozzle_offset_y, nozzle_offset_z, x, y, z, roll, pitch, yaw) -%}
 <link name="water_gun_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="water_bag_visual">
     <pose>0 0 0 0 0 0</pose>
     <geometry>
@@ -3098,7 +2885,7 @@ limitations under the License.
 {%- macro light_macro(parent_link, update_rate, max_pitch_rate, initial_on, compensate_tilt, x, y, z, roll, pitch, yaw) -%}
 <link name="light_macro_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="visual">
     <pose>0 0 0 0 0 0</pose>
     <geometry>
@@ -3153,7 +2940,7 @@ limitations under the License.
 {%- macro safety_led_macro(parent_link, failure_duration_threshold, x, y, z, roll, pitch, yaw) -%}
 <link name="safety_led_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
 </link>
 
 <plugin name="safety_led_plugin" filename="libMrsGazeboCommonResources_SafetyLedPlugin.so">
@@ -3179,7 +2966,7 @@ limitations under the License.
 {%- macro uvled_macro(parent_link, device_id, signal_id , x, y, z, roll, pitch, yaw) -%}
 <link name="uvled_{{ device_id }}_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="main_body_visual">
     <pose>0 0 -0.0025 0 0 0</pose>
     <geometry>
@@ -3251,7 +3038,7 @@ limitations under the License.
 {%- macro parachute_macro(parent_link, x, y, z, roll, pitch, yaw) -%}
 <link name="parachute_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="visual">
     <pose>0 0 0 0 0 0</pose>
     <geometry>
@@ -3289,7 +3076,7 @@ limitations under the License.
 {%- macro whycon_box_macro(parent_link, mesh_scale, x, y, z, roll, pitch, yaw) -%}
 <link name="whycon_box_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
+  {{ generic.zero_inertial_macro() }}
   <visual name="visual">
     <pose>0 0 0 0 0 0</pose>
     <geometry>
@@ -3418,6 +3205,85 @@ limitations under the License.
 {% endfor %}
 {%- endmacro -%}
 <!--}-->
+<!--}-->
+
+<!-- ================================================================== -->
+<!-- ||                   Components using spawner API               || -->
+<!-- ================================================================== -->
+
+<!-- groundtruth_macro {-->
+{%- macro groundtruth_macro(parent_link, x, y, z, roll, pitch, yaw, spawner_args) -%}
+  
+  {% set spawner_keyword = 'enable_ground_truth' %}
+  {% set spawner_description = 'Enable topic with ground-truth odometry' %}
+  {% set spawner_default_args = {'topic_name': 'ground_truth', 'frame_name': 'world', 'update_rate': 150} %}
+
+  {% set odometry_sensor_name = "ground_truth" %}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    
+    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Ground truth {-->
+    {{ generic.odometry_sensor_macro(
+      odometry_sensor_name = 'ground_truth',
+      parent_link = parent_link,
+      topic_name = spawner_args[spawner_keyword]['topic_name'],
+      noise = 0,
+      frame_name = spawner_args[spawner_keyword]['frame_name'],
+      update_rate = spawner_args[spawner_keyword]['update_rate'],
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+    <!--}-->
+
+  {%- endif -%}
+
+{%- endmacro -%}
+<!--}-->
+
+<!-- garmin_down_macro {-->
+{%- macro garmin_down_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {% set spawner_keyword = 'enable-rangefinder' %}
+  {% set spawner_description = 'Add a laser rangefinder (Garmin LIDAR-Lite v3) pointing down. By default connected directly to computer. Use param {"pixgarm": true} to connect Garmin through Pixhawk. Do not set range outside of <0.06 - 40.0> (unrealistic)' %}
+  {% set spawner_default_args = {'pixgarm': false, 'update_rate': 100, 'min_range': 0.1, 'max_range': 36.0, 'noise': 0.01} %}
+  
+  {%- if spawner_keyword in spawner_args.keys() -%}
+  
+    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+  
+    <!-- garmin down {-->
+    {{ generic.garmin_pixhawk_macro(
+      sensor_name = "lidar0",
+      parent_link = parent_link,
+      sensor_frame = spawner_args['name'] + '/garmin',
+      parent_frame = spawner_args['name'] + '/fcu',
+      topic = spawner_args['name'],
+      update_rate = spawner_args[spawner_keyword]['update_rate'],
+      min_range = spawner_args[spawner_keyword]['min_range'],
+      max_range = spawner_args[spawner_keyword]['max_range'],
+      noise= spawner_args[spawner_keyword]['noise'],
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+    
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
 <!--}-->
 
 </sdf>

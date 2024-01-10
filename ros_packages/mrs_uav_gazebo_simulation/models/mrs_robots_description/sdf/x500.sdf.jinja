@@ -2,6 +2,7 @@
 <sdf version='1.6'>
 
   {%- import "component_snippets.sdf.jinja" as components -%}
+  {% import "generic_components.sdf.jinja" as generic %}
 
   {# ================================================================== #}
   {# ||                    parameters definition                     || #}
@@ -44,6 +45,13 @@
   {%- set inertia_body_height = 0.05 -%} {# [m] #}
   {# <!--}--> #}
 
+  {# Scales {--> #}
+  {%- set mesh_scale = "1 1 1" -%}
+  {%- set mesh_scale_prop_ccw = "1 1 1" -%}
+  {%- set mesh_scale_prop_cw = "-1 1 1" -%}
+  {%- set mesh_scale_milimeters = "0.001 0.001 0.001" -%}
+  {# <!--}--> #}
+
   {# Meshes {--> #}
 
   {# Frame parts {--> #}
@@ -81,14 +89,9 @@
   {%- set bluefox_mount_mesh_file = "model://mrs_robots_description/meshes/x500v2/bluefox_mount_mesh_file.stl" -%}
   {%- set uvdar_mount_mesh = "model://mrs_robots_description/meshes/dji/f450/dji_f450_uvdar_mount.dae" -%}
   {%- set qorvo_dw1000_mount_file = "model://mrs_robots_description/meshes/x500v2/qorvo_dw1000_mount.stl" -%}
+
   {# <!--}--> #}
 
-  {# Scales {--> #}
-  {%- set mesh_scale = "1 1 1" -%}
-  {%- set mesh_scale_prop_ccw = "1 1 1" -%}
-  {%- set mesh_scale_prop_cw = "-1 1 1" -%}
-  {%- set mesh_scale_milimeters = "0.001 0.001 0.001" -%}
-  {# <!--}--> #}
 
   {# <!--}--> #}
 
@@ -475,23 +478,6 @@
       <!--}-->
       {% endif %}
       
-      {% if enable_rangefinder %}
-      <!-- rplidar mount {-->
-      {{ components.visual_mesh_macro(
-        name = "garmin_mount",
-        mesh_file = garmin_mount_mesh_file,
-        mesh_scale = mesh_scale,
-        color = "Black",
-        x = 0,
-        y = 0,
-        z = 0.001,
-        roll = 0,
-        pitch = 0,
-        yaw = math.radians(90))
-      }}
-      <!--}-->
-      {% endif %}
-
       {% if enable_realsense_front or enable_realsense_down or enable_realsense_up%}
       <!-- realsense mount {-->
       {{ components.visual_mesh_macro(
@@ -780,45 +766,59 @@
     }}
     <!--}-->
 
+    <!--
+    <include>
+      <uri>model://lidar</uri>
+      <pose>0 0 -0.05 0 0 0</pose>
+      <name>lidar0</name>
+      </include>
+    -->
+
     <!-- ================================================================== -->
     <!-- ||                  optional sensor definitions                 || -->
     <!-- ================================================================== -->
 
     {# Ground truth {--> #}
-    {% if enable_ground_truth %}
-    <!-- Ground truth {-->
-    {{ components.odometry_plugin_macro(
-      odometry_sensor_name = "ground_truth",
+    {{ components.groundtruth_macro(
       parent_link = root,
-      topic_name = "ground_truth",
-      noise = "0",
-      frame_name = "world",
-      frame_rate = "150",
       x = 0,
       y = 0,
       z = 0,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     <!-- ======================= rangefinder sensors ======================-->
 
-    {# Garmin {--> #}
-    {# {{ components.garmin_macro("lidar0", root, -0.077, 0, -0.069, 0, math.radians(90), 0) }} - uncomment when simulation will work with pixgarm #}
-    {{ components.external_garmin_macro(
-      namespace = spawner_args['name'],
+    {# Garmin down {--> #}
+    {%- set garmin_down_mount -%}
+    {{ generic.visual_link_macro(
+      name = "garmin_mount",
+      mesh_file = garmin_mount_mesh_file,
+      mesh_scale = mesh_scale,
+      color = "Black",
+      x = 0,
+      y = 0,
+      z = -0.001,
+      roll = 0,
+      pitch = 0,
+      yaw = math.radians(90),
+      parent_link = root)
+      }}
+    {%- endset -%}
+    
+    {{ components.garmin_down_macro(
       parent_link = root,
-      orientation = "",
       x = 0.0,
       y = 0.0625,
-      z = -0.022,
+      z = -0.009,
       roll = 0,
       pitch = math.radians(90),
       yaw = math.radians(-90),
+      mount = garmin_down_mount,
       spawner_args = spawner_args)
     }}
     {# <!--}--> #}
