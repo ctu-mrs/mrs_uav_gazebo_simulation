@@ -26,7 +26,7 @@
   {% if disable_motor_crash %}
     {%- set enable_motor_crash = false -%}
   {% endif %}
-  
+
   {# <!--}--> #}
 
   {# Motor constants {--> #}
@@ -203,7 +203,7 @@
           pitch = 0,
           yaw = id * 1.57079633)
         }}
-  
+
         {{ components.visual_mesh_mrs_material_macro(
           name = "arm_plastic2_" + affix,
           mesh_file = arm_plastic2_mesh_file,
@@ -216,7 +216,7 @@
           pitch = 0,
           yaw = id * 1.57079633)
         }}
-  
+
         {{ components.visual_mesh_macro(
           name = "arm_3d_print_" + affix,
           mesh_file = arm_3d_print_mesh_file,
@@ -345,7 +345,6 @@
       }}
       <!--}-->
 
-
       <!-- pixhawk {-->
       {{ components.visual_mesh_macro(
         name = "pixhawk6c",
@@ -388,7 +387,7 @@
           pitch = 0,
           yaw = id * 1.57079633)
         }}
-  
+
         {{ components.visual_mesh_macro(
           name = "motor_middle_" + affix,
           mesh_file = motor_middle_mesh_file,
@@ -404,6 +403,47 @@
 
       {% endfor %}
       <!--}-->
+
+      <!-- component mounts and holders {-->
+
+      {# garmin down mount {--> #}
+      {%- set garmin_down_mount -%}
+        {{ generic.visual_link_macro(
+          name = "garmin_mount",
+          mesh_file = garmin_mount_mesh_file,
+          mesh_scale = mesh_scale,
+          color = "Black",
+          x = 0,
+          y = 0,
+          z = -0.001,
+          roll = 0,
+          pitch = 0,
+          yaw = math.radians(90),
+          parent_link = root)
+        }}
+      {%- endset -%}
+      {# <!--}--> #}
+
+      {# lidar mount {--> #}
+      {%- set lidar_mount -%}
+      {{ generic.visual_link_macro(
+        name = "rplidar_mount",
+        mesh_file = lidar_mount_mesh_file,
+        mesh_scale = mesh_scale,
+        color = "FlatBlack",
+        x = 0,
+        y = 0,
+        z = 0,
+        roll = 0,
+        pitch = 0,
+        yaw = math.radians(90),
+        parent_link = root)
+      }}
+      {%- endset -%}
+      {# <!--}--> #}
+
+      <!--}-->
+
 
       {% if use_battery_mount %}
       <!-- battery mount and battery {-->
@@ -434,22 +474,7 @@
       <!--}-->
       {% endif %}
 
-      {% if enable_rplidar or enable_ouster %}
-      <!-- lidar mount {-->
-      {{ components.visual_mesh_macro(
-        name = "rplidar_mount",
-        mesh_file = lidar_mount_mesh_file,
-        mesh_scale = mesh_scale,
-        color = "FlatBlack",
-        x = 0,
-        y = 0,
-        z = 0,
-        roll = 0,
-        pitch = 0,
-        yaw = math.radians(90))
-      }}
-      <!--}-->
-      {% else %}
+      {% if not enable_rplidar %}
       <!-- gps mount and gps {-->
       {{ components.visual_mesh_macro(
         name = "gps_mount",
@@ -477,7 +502,7 @@
       }}
       <!--}-->
       {% endif %}
-      
+
       {% if enable_realsense_front or enable_realsense_down or enable_realsense_up%}
       <!-- realsense mount {-->
       {{ components.visual_mesh_macro(
@@ -494,7 +519,7 @@
       }}
       <!--}-->
       {% endif %}
-  
+
       {% if enable_bluefox_camera_reverse or enable_bluefox_camera%}
       <!-- bluefox mount {-->
       {{ components.visual_mesh_macro(
@@ -511,7 +536,7 @@
       }}
       <!--}-->
       {% endif %}
-  
+
       {% if enable_dual_uv_cameras %}
       <!-- UVDAR mount {-->
       {{ components.visual_mesh_macro(
@@ -528,7 +553,6 @@
       }}
       <!--}-->
       {% endif %}
-      
 
       {% if enable_qorvo_dw1000 %}
       <!-- Qorvo DW1000 mount {-->
@@ -548,7 +572,7 @@
       {% endif %}
 
       <!--}-->
-    
+
     </link>
 
     <!-- Propellers {-->
@@ -801,22 +825,6 @@
     <!-- ======================= rangefinder sensors ======================-->
 
     {# Garmin down {--> #}
-    {%- set garmin_down_mount -%}
-    {{ generic.visual_link_macro(
-      name = "garmin_mount",
-      mesh_file = garmin_mount_mesh_file,
-      mesh_scale = mesh_scale,
-      color = "Black",
-      x = 0,
-      y = 0,
-      z = -0.001,
-      roll = 0,
-      pitch = 0,
-      yaw = math.radians(90),
-      parent_link = root)
-      }}
-    {%- endset -%}
-    
     {{ components.garmin_down_macro(
       parent_link = root,
       x = 0.0,
@@ -833,47 +841,35 @@
     <!-- ========================== LIDAR sensors ========================= -->
 
     {# Rplidar {--> #}
-    {% if enable_rplidar %}
-    <!-- Rplidar {-->
     {{ components.rplidar_macro(
-      namespace = namespace,
       parent_link = root,
-      horizontal_samples = horizontal_samples,
-      rotation_freq = rotation_freq,
       x = 0.0,
       y = 0.0,
       z = 0.136,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      mount = lidar_mount,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     {# Ouster {--> #}
-    {% if enable_ouster %}
-    <!-- Ouster  {-->
     {{ components.ouster_macro(
-      namespace = namespace,
       parent_link = root,
       sensor_name = "os",
-      ouster_model = ouster_model,
-      rotation_freq = rotation_freq,
-      noise = 0.03,
-      enable_gpu_ray = use_gpu_ray,
-      horizontal_samples = horizontal_samples,
       x = 0.0,
       y = 0.0,
       z = 0.107,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      mount = lidar_mount,
+      spawner_args = spawner_args
+      )
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
-    
+
     <!-- ========================== camera sensors ========================= -->
 
     <!-- Realsense placements {-->

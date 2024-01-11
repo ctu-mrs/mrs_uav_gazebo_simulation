@@ -37,7 +37,6 @@ limitations under the License.
 <!-- ||                          code blocks                         || -->
 <!-- ================================================================== -->
 
-
 <!-- Cylinder inertia {-->
 {%- macro cylinder_inertia(m, r, h) -%}
 <inertia>
@@ -1114,98 +1113,6 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-  <!-- Macro to add a RPlidar A3{-->
-{%- macro rplidar_macro(namespace, parent_link, horizontal_samples, rotation_freq, x, y, z, roll, pitch, yaw) -%}
-
-{% if horizontal_samples == 'None' %}
-  {%- set samples = 1600 -%}
-{% else %}
-  {%- set samples = horizontal_samples | int -%}
-{% endif %}
-
-{% if rotation_freq == 'None' %}
-  {%- set update_rate = 20 -%}
-{% else %}
-  {%- set update_rate = rotation_freq | int -%}
-{% endif %}
-
-<link name="rplidar_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="base_visual">
-    <pose>0 0 -0.029 0 0 {{ math.radians(180) }}</pose>
-    <geometry>
-      <mesh>
-        <uri>model://mrs_robots_description/meshes/sensors/rplidar.stl</uri>
-        <scale>0.001 0.001 0.001</scale>
-      </mesh>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/FlatBlack</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <visual name="purple_visual">
-    <pose>0 0 -0.011 0 0 0</pose>
-    <geometry>
-      <cylinder>
-        <length>0.001</length>
-        <radius>0.038</radius>
-      </cylinder>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Purple</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <sensor name='rplidar_sensor' type='ray'>
-    <visualize>false</visualize>
-    <update_rate>{{ update_rate }}</update_rate>
-    <ray>
-      <scan>
-        <horizontal>
-          <samples>{{ samples }}</samples>
-          <resolution>1</resolution>
-          <min_angle>-3.1241390751</min_angle>
-          <max_angle>3.1241390751</max_angle>
-        </horizontal>
-      </scan>
-      <range>
-        <min>0.15</min>
-        <max>14</max>
-        <resolution>0.01</resolution>
-      </range>
-      <noise>
-        <type>gaussian</type>
-        <mean>0.0</mean>
-        <stddev>0.01</stddev>
-      </noise>
-    </ray>
-    <plugin name='rplidar_plugin' filename='libMrsGazeboCommonResources_2DLidarPlugin.so'>
-        <topicName>rplidar/scan</topicName>
-        <frameName>{{ namespace }}/rplidar</frameName>
-        <parentFrameName>{{ namespace }}/fcu</parentFrameName>
-        <x>{{ x }}</x>
-        <y>{{ y }}</y>
-        <z>{{ z }}</z>
-        <roll>{{ roll }}</roll>
-        <pitch>{{ pitch }}</pitch>
-        <yaw>{{ yaw }}</yaw>
-      </plugin>
-    </sensor>
-</link>
-
-<joint name="rplidar_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>rplidar_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
-
 <!-- Macro to add a Velodyne Lidar {-->
 {%- macro velodyne_macro(namespace, parent_link, sensor_name, rotation_freq, lasers, max_range, noise, vfov_angle, enable_gpu_ray, horizontal_samples, x, y, z, roll, pitch, yaw) -%}
 
@@ -1356,310 +1263,6 @@ limitations under the License.
   <child>velodyne_link</child>
 </joint>
 {%- endmacro -%}
-<!--}-->
-
-<!-- Macro to add an Ouster Lidar {-->
-
-<!-- Macro to add an Generic Ouster Lidar {-->
-{%- macro generic_ouster_macro(namespace, parent_link, sensor_name, rotation_freq, lasers, max_range, noise, vfov_angle, enable_gpu_ray, horizontal_samples, x, y, z, roll, pitch, yaw) -%}
-
-{# The real ouster is transforming lidar data from lidar_frame to sensor_frame directly for user. #}
-{# For simplicity, we are placing sensor_frame to the same place as the lidar_frame is. #}
-
-{# -- gazebo links -- #}
-{%- set sensor_link = sensor_name + "_sensor_link" -%}
-
-{# -- frame names -- #}
-{%- set frame_fcu = namespace + "/fcu" -%}
-{%- set frame_sensor = namespace + "/" + sensor_name + "_sensor" -%}
-{%- set frame_lidar = namespace + "/" + sensor_name + "_lidar"  -%}
-{%- set frame_imu = namespace + "/" + sensor_name + "_imu"  -%}
-
-{# -- topics -- #}
-{%- set topic_lidar = "/" + namespace + "/" + sensor_name + "_cloud_nodelet/points" -%}
-{%- set topic_imu = "/" + namespace + "/" + sensor_name + "_cloud_nodelet/imu" -%}
-{%- set topic_diag = "/" + namespace + "/" + sensor_name + "_cloud_nodelet/is_alive" -%}
-
-{# -- tf from sensor to lidar -- #}
-{%- set lidar_x = 0 -%}
-{%- set lidar_y = 0 -%}
-{%- set lidar_z = 0.0344 -%}
-{%- set lidar_roll = 0 -%}
-{%- set lidar_pitch = 0 -%}
-{%- set lidar_yaw = 0 -%}
-
-{# -- tf from sensor to imu -- #}
-{%- set imu_x = 0.006253 -%}
-{%- set imu_y = -0.011775 -%}
-{%- set imu_z = 0.007645 -%}
-{%- set imu_roll = 0 -%}
-{%- set imu_pitch = 0 -%}
-{%- set imu_yaw = 0 -%}
-
-{% if enable_gpu_ray %}
-  {%- set ouster_plugin_filename ="libMrsGazeboCommonResources_3DLidarGpuPlugin.so" -%}
-  {%- set sensor_type = "gpu_ray"  -%}
-{% else %}
-  {%- set ouster_plugin_filename ="libMrsGazeboCommonResources_3DLidarPlugin.so" -%}
-  {%- set sensor_type = "ray"  -%}
-{% endif %}
-
-{% if horizontal_samples == 'None' %}
-  {%- set samples = 2048 -%}
-{% else %}
-  {%- set samples = horizontal_samples | int -%}
-{% endif %}
-
-{% if rotation_freq == 'None' %}
-  {%- set update_rate = 10 -%}
-{% else %}
-  {%- set update_rate = rotation_freq | int -%}
-{% endif %}
-
-<link name="{{ sensor_link }}">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="base_visual">
-    <pose>0 0 0 0 0 {{ math.radians(90) }}</pose>
-    <geometry>
-      <mesh>
-        <uri>model://mrs_robots_description/meshes/sensors/os1_64.dae</uri>
-        <scale>1 1 1</scale>
-      </mesh>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/White</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <visual name="window_visual">
-    <pose>0 0 {{ lidar_z }} 0 0 </pose>
-    <geometry>
-      <cylinder>
-        <length>0.035</length>
-        <radius>0.038</radius>
-      </cylinder>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Black</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-
-  {# IMU #}
-  <sensor name="{{ sensor_name }}_imu_sensor" type="imu">
-    <pose>{{ imu_x }} {{ imu_y }} {{ imu_z }} {{ imu_roll }} {{ imu_pitch }} {{ imu_yaw }}</pose>
-    <gravity>true</gravity>
-    <always_on>true</always_on>
-    <update_rate>100</update_rate>
-    <visualize>false</visualize>
-    <topic>__default_topic__</topic>
-    <plugin name="{{ sensor_name }}_imu_plugin" filename="libgazebo_ros_imu_sensor.so">
-      <robotNamespace></robotNamespace>
-      <topicName>{{ topic_imu }}</topicName>
-      <bodyName>{{ sensor_link }}</bodyName>
-      <updateRateHZ>100</updateRateHZ>
-      <gaussianNoise>0.005</gaussianNoise>
-      <xyzOffset>0 0 0</xyzOffset>
-      <rpyOffset>0 0 0</rpyOffset>
-      <frameName>{{ frame_imu }}</frameName>
-    </plugin>
-  <!-- <plugin name="imu_controller" filename="libhector_gazebo_ros_imu.so"> -->
-  <!--   <updateRate>100.0</updateRate> -->
-  <!--   <bodyName>${frame_imu}</bodyName> -->
-  <!--   <topicName>${topic_imu}</topicName> -->
-  <!--   <accelDrift>0.005 0.005 0.005</accelDrift> -->
-  <!--   <accelGaussianNoise>0.005 0.005 0.005</accelGaussianNoise> -->
-  <!--   <rateDrift>0.005 0.005 0.005 </rateDrift> -->
-  <!--   <rateGaussianNoise>0.005 0.005 0.005 </rateGaussianNoise> -->
-  <!--   <headingDrift>0.005</headingDrift> -->
-  <!--   <headingGaussianNoise>0.005</headingGaussianNoise> -->
-  <!-- </plugin> -->
-  </sensor>
-
-  {# LIDAR #}
-  <sensor name="{{ sensor_name }}_lidar_sensor" type="{{ sensor_type }}">
-    <pose>{{ lidar_x }} {{ lidar_y }} {{ lidar_z }} {{ lidar_roll }} {{ lidar_pitch }} {{ lidar_yaw }}</pose>
-    {# <pose>0 0 0 0 0 0</pose> #}
-    <visualize>false</visualize>
-    <update_rate>{{ update_rate }}</update_rate>
-    <ray>
-      <scan>
-        <horizontal>
-          <samples>{{ samples }}</samples>
-          <resolution>1</resolution>
-          <min_angle>0</min_angle>
-          <max_angle>{{ 2*pi }}</max_angle>
-        </horizontal>
-        <vertical>
-          <samples>{{ lasers }}</samples>
-          <resolution>1</resolution>
-          <min_angle>{{ -vfov_angle/2*math.radians(180)/180.0 }}</min_angle>
-          <max_angle>{{ vfov_angle/2*math.radians(180)/180.0 }}</max_angle>
-        </vertical>
-      </scan>
-      <range>
-        <min>0.1</min>
-        <max>{{ max_range }}</max>
-        <resolution>0.03</resolution>
-      </range>
-    </ray>
-    <plugin name="{{ sensor_name }}_lidar_plugin" filename="{{ ouster_plugin_filename }}">
-      <parentFrameName>{{ frame_fcu }}</parentFrameName>
-      <sensorFrameName>{{ frame_sensor }}</sensorFrameName>
-      <sensor_x>{{ x + lidar_x }}</sensor_x>
-      <sensor_y>{{ y + lidar_y }}</sensor_y>
-      <sensor_z>{{ z + lidar_z }}</sensor_z>
-      <sensor_roll>{{ roll + lidar_roll }}</sensor_roll>
-      <sensor_pitch>{{ pitch + lidar_pitch }}</sensor_pitch>
-      <sensor_yaw>{{ yaw + lidar_yaw }}</sensor_yaw>
-
-      <!-- Lidar parameters -->
-      <lidarFrameName>{{ frame_lidar }}</lidarFrameName>
-      <lidar_x>0</lidar_x>
-      <lidar_y>0</lidar_y>
-      <lidar_z>0</lidar_z>
-      <lidar_roll>0</lidar_roll>
-      <lidar_pitch>0</lidar_pitch>
-      <lidar_yaw>{{ math.radians(180) }}</lidar_yaw>
-      <topicName>{{ topic_lidar }}</topicName>
-      <topicDiagName>{{ topic_diag }}</topicDiagName>
-      <min_range>0.1</min_range>
-      <max_range>{{ max_range }}</max_range>
-      <ordered>true</ordered>
-      <gaussianNoise>{{ noise }}</gaussianNoise>
-
-      <!-- IMU parameters -->
-      <imu>true</imu>
-      <imuFrameName>{{ frame_imu }}</imuFrameName>
-      <imu_x>{{ imu_x - lidar_x }}</imu_x>
-      <imu_y>{{ imu_y - lidar_y }}</imu_y>
-      <imu_z>{{ imu_z - lidar_z }}</imu_z>
-      <imu_roll>{{ imu_roll - lidar_roll }}</imu_roll>
-      <imu_pitch>{{ imu_pitch - lidar_pitch }}</imu_pitch>
-      <imu_yaw>{{ imu_yaw - lidar_yaw }}</imu_yaw>
-    </plugin>
-  </sensor>
-</link>
-
-<joint name="{{ sensor_name }}_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>{{ sensor_link }}</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
-
-{%- macro ouster_macro(namespace, parent_link, sensor_name, ouster_model, rotation_freq, noise, enable_gpu_ray, horizontal_samples, x, y, z, roll, pitch, yaw) -%}
-
-<!-- Outster type selection {-->
-{#  default: OS1-16 Generation 1 - is specified in the config file #}
-
-{# <!-- OS0 {--> #}
-{# <!-- OS0-32 --> #}
-{% if ouster_model == 'OS0-32' %}
-  {%- set lasers = 32 -%}
-  {%- set vfov_angle = 90 -%}
-  {%- set range = 55 -%}
-{% endif %}
-
-{# <!-- OS0-64 --> #}
-{% if ouster_model == 'OS0-64' %}
-  {%- set lasers = 64 -%}
-  {%- set vfov_angle = 90 -%}
-  {%- set range = 55 -%}
-{% endif %}
-
-{# <!-- OS0-128 --> #}
-{% if ouster_model == 'OS0-128' %}
-  {%- set lasers = 128 -%}
-  {%- set vfov_angle = 90 -%}
-  {%- set range = 55 -%}
-{% endif %}
-{# <!--}--> #}
-
-{# <!-- OS1 Generation 1 {--> #}
-{# <!-- OS1-16 Generation 1 --> #}
-{% if ouster_model == 'OS1-16' %}
-  {%- set lasers = 16 -%}
-  {%- set vfov_angle = 33.2 -%}
-  {%- set range = 120 -%}
-{% endif %}
-
-{# <!--}--> #}
-
-{# <!-- OS1 Generation 2 {--> #}
-{# <!-- OS1-32 Generation 2 --> #}
-{% if ouster_model == 'OS1-32' %}
-  {%- set lasers = 32 -%}
-  {%- set vfov_angle = 45 -%}
-  {%- set range = 120 -%}
-{% endif %}
-
-{# <!-- OS1-64 Generation 2 --> #}
-{% if ouster_model == 'OS1-64' %}
-  {%- set lasers = 64 -%}
-  {%- set vfov_angle = 45 -%}
-  {%- set range = 120 -%}
-{% endif %}
-
-{# <!-- OS1-128 Generation 2 --> #}
-{% if ouster_model == 'OS1-128' %}
-  {%- set lasers = 128 -%}
-  {%- set vfov_angle = 45 -%}
-  {%- set range = 120 -%}
-{% endif %}
-
-{# <!--}--> #}
-
-<!-- OS2 {-->
-<!-- OS2-32 -->
-{% if ouster_model == 'OS2-32' %}
-  {%- set lasers = 32 -%}
-  {%- set vfov_angle = 22.5 -%}
-  {%- set range = 240 -%}
-{% endif %}
-
-<!-- OS2-64 -->
-{% if ouster_model == 'OS2-64' %}
-  {%- set lasers = 64 -%}
-  {%- set vfov_angle = 22.5 -%}
-  {%- set range = 240 -%}
-{% endif %}
-
-<!-- OS2-128 -->
-{% if ouster_model == 'OS2-128' %}
-  {%- set lasers = 128 -%}
-  {%- set vfov_angle = 22.5 -%}
-  {%- set range = 240 -%}
-{% endif %}
-
-<!--}-->
-<!--}-->
-
-{{ generic_ouster_macro(
-  namespace = namespace,
-  parent_link = parent_link,
-  sensor_name = sensor_name,
-  rotation_freq = rotation_freq,
-  lasers = lasers,
-  vfov_angle = vfov_angle,
-  max_range = range,
-  noise = noise,
-  enable_gpu_ray = enable_gpu_ray,
-  horizontal_samples = horizontal_samples,
-  x = x,
-  y = y,
-  z = z,
-  roll = roll,
-  pitch = pitch,
-  yaw = yaw)
-}}
-{%- endmacro -%}
-
 <!--}-->
 
 <!-- ========================= camera sensors ========================= -->
@@ -3013,7 +2616,7 @@ limitations under the License.
 <!-- ||                   Components using spawner API               || -->
 <!-- ================================================================== -->
 
-<!-- ground_truth_macro {-->
+{# ground_truth_macro {--> #}
 {%- macro ground_truth_macro(parent_link, x, y, z, roll, pitch, yaw, spawner_args) -%}
 
   {% set spawner_keyword = 'enable-ground-truth' %}
@@ -3023,7 +2626,6 @@ limitations under the License.
   {% set odometry_sensor_name = "ground_truth" %}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
-
     {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     <!-- Ground truth {-->
@@ -3046,17 +2648,16 @@ limitations under the License.
   {%- endif -%}
 
 {%- endmacro -%}
-<!--}-->
+{# <!--}--> #}
 
-<!-- garmin_down_macro {-->
+{# garmin_down_macro {--> #}
 {%- macro garmin_down_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
 
   {% set spawner_keyword = 'enable-rangefinder' %}
-  {% set spawner_description = 'Add a laser rangefinder (Garmin LIDAR-Lite v3) pointing down. Creates a Gazebo publisher for gazebo_mavlink_interface. ROS topic must be created by mavros. Do not set range outside of <0.06 - 40.0> (unrealistic)' %}
+  {% set spawner_description = 'Add a laser rangefinder (Garmin LIDAR-Lite v3) pointing down. Creates a Gazebo publisher for gazebo_mavlink_interface. ROS topic must be created by mavros. Do not set range outside <0.06 - 40.0> (unrealistic)' %}
   {% set spawner_default_args = {'update_rate': 100, 'min_range': 0.1, 'max_range': 36.0, 'noise': 0.01} %}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
-
     {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     {%- set sensor_name = "lidar0" -%}
@@ -3121,6 +2722,384 @@ limitations under the License.
 
   {%- endif -%}
 {%- endmacro -%}
-<!--}-->
+{# <!--}--> #}
+
+{# rplidar_macro {--> #}
+{%- macro rplidar_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {% set spawner_keyword = 'enable-rplidar' %}
+  {% set spawner_description = 'Add the RPlidar A3 laser scanner. Do not set range outside <0.10 - 15.0> (unrealistic)' %}
+  {% set spawner_default_args = {'horizontal_samples': 1600, 'update_rate': 20.0, 'min_range': 0.15, 'max_range': 14.0, 'noise': 0.01} %}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    {%- set sensor_name = "rplidar" -%}
+
+    <!-- rplidar A3 {-->
+    <link name="{{ sensor_name }}_link">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+      {{ generic.zero_inertial_macro() }}
+
+      <!-- visuals {-->
+      {{ generic.visual_mesh_macro(
+        name = "base_visual",
+        mesh_file = "model://mrs_robots_description/meshes/sensors/rplidar.stl",
+        mesh_scale = "0.001 0.001 0.001",
+        color = "FlatBlack",
+        x = 0,
+        y = 0,
+        z = -0.029,
+        roll = 0,
+        pitch = 0,
+        yaw = math.radians(180))
+      }}
+      <visual name="purple_visual">
+        <pose>0 0 -0.011 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.001</length>
+            <radius>0.038</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Purple</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+      <!--}-->
+
+      <!-- sensor {-->
+      <sensor name='rplidar_sensor' type='ray'>
+        <visualize>false</visualize>
+        <update_rate>{{ spawner_args[spawner_keyword]['update_rate'] }}</update_rate>
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>{{ spawner_args[spawner_keyword]['horizontal_samples'] | int }}</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.1241390751</min_angle>
+              <max_angle>3.1241390751</max_angle>
+            </horizontal>
+          </scan>
+          <range>
+            <min>{{ spawner_args[spawner_keyword]['min_range'] }}</min>
+            <max>{{ spawner_args[spawner_keyword]['max_range'] }}</max>
+            <resolution>0.01</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>{{ spawner_args[spawner_keyword]['noise'] }}</stddev>
+          </noise>
+        </ray>
+        <plugin name='rplidar_plugin' filename='libMrsGazeboCommonResources_2DLidarPlugin.so'>
+          <topicName>rplidar/scan</topicName>
+          <frameName>{{ spawner_args['name'] }}/rplidar</frameName>
+          <parentFrameName>{{ spawner_args['name'] }}/fcu</parentFrameName>
+          <x>{{ x }}</x>
+          <y>{{ y }}</y>
+          <z>{{ z }}</z>
+          <roll>{{ roll }}</roll>
+          <pitch>{{ pitch }}</pitch>
+          <yaw>{{ yaw }}</yaw>
+        </plugin>
+      </sensor>
+      <!--}-->
+
+    </link>
+
+    <joint name="rplidar_joint" type="fixed">
+      <parent>{{ parent_link }}</parent>
+      <child>rplidar_link</child>
+    </joint>
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# ouster_macro {--> #}
+{%- macro ouster_macro(parent_link, sensor_name, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {% set spawner_keyword = 'enable-ouster' %}
+  {% set spawner_description = 'Add Ouster laser scanner to the vehicle. Select a model to automatically set number of lines, vertical FOV and range. Available models: OS0-32, OS0-64, OS0-128, OS1-16, OS1-32G1, OS1-32, OS1-64, OS1-128, OS2-32, OS2-64, OS2-128' %}
+  {% set spawner_default_args = {'model': 'OS1-16', 'horizontal_samples': 2048, 'update_rate': 10, 'noise': 0.03, 'use_gpu': false} %}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    {# model selection {--> #}
+    {%- set ouster_model = spawner_args[spawner_keyword]['model'] -%}
+
+    {# OS0 {--> #}
+
+    {# OS0-32 #}
+    {% if ouster_model == 'OS0-32' %}
+      {%- set lasers = 32 -%}
+      {%- set vfov_angle = 90 -%}
+      {%- set range = 55 -%}
+    {% endif %}
+
+    {# OS0-64 #}
+    {% if ouster_model == 'OS0-64' %}
+      {%- set lasers = 64 -%}
+      {%- set vfov_angle = 90 -%}
+      {%- set range = 55 -%}
+    {% endif %}
+
+    {# OS0-128 #}
+    {% if ouster_model == 'OS0-128' %}
+      {%- set lasers = 128 -%}
+      {%- set vfov_angle = 90 -%}
+      {%- set range = 55 -%}
+    {% endif %}
+
+    {# <!--}--> #}
+
+    {# OS1 Generation 1 {--> #}
+    {# <!-- OS1-16 Generation 1 --> #}
+    {% if ouster_model == 'OS1-16' %}
+      {%- set lasers = 16 -%}
+      {%- set vfov_angle = 33.2 -%}
+      {%- set range = 120 -%}
+    {% endif %}
+    {# <!--}--> #}
+
+    {# OS1 Generation 2 {--> #}
+
+    {# OS1-32 Generation 2 #}
+    {% if ouster_model == 'OS1-32' %}
+      {%- set lasers = 32 -%}
+      {%- set vfov_angle = 45 -%}
+      {%- set range = 120 -%}
+    {% endif %}
+
+    {# OS1-64 Generation 2 #}
+    {% if ouster_model == 'OS1-64' %}
+      {%- set lasers = 64 -%}
+      {%- set vfov_angle = 45 -%}
+      {%- set range = 120 -%}
+    {% endif %}
+
+    {# OS1-128 Generation 2 #}
+    {% if ouster_model == 'OS1-128' %}
+      {%- set lasers = 128 -%}
+      {%- set vfov_angle = 45 -%}
+      {%- set range = 120 -%}
+    {% endif %}
+
+    {# <!--}--> #}
+
+    {# OS2 {--> #}
+
+    {# OS2-32 #}
+    {% if ouster_model == 'OS2-32' %}
+      {%- set lasers = 32 -%}
+      {%- set vfov_angle = 22.5 -%}
+      {%- set range = 240 -%}
+    {% endif %}
+
+    {# OS2-64 #}
+    {% if ouster_model == 'OS2-64' %}
+      {%- set lasers = 64 -%}
+      {%- set vfov_angle = 22.5 -%}
+      {%- set range = 240 -%}
+    {% endif %}
+
+    {# OS2-128 #}
+    {% if ouster_model == 'OS2-128' %}
+      {%- set lasers = 128 -%}
+      {%- set vfov_angle = 22.5 -%}
+      {%- set range = 240 -%}
+    {% endif %}
+
+    {# <!--}--> #}
+
+    {# <!--}--> #}
+
+    {# The real ouster is transforming lidar data from lidar_frame to sensor_frame directly for user. #}
+    {# For simplicity, we are placing sensor_frame to the same place as the lidar_frame is. #}
+
+    {# setup local variables {--> #}
+
+    {# -- gazebo links -- #}
+    {%- set sensor_link = sensor_name + "_sensor_link" -%}
+
+    {# -- frame names -- #}
+    {%- set frame_fcu = spawner_args['name'] + "/fcu" -%}
+    {%- set frame_sensor = spawner_args['name'] + "/" + sensor_name + "_sensor" -%}
+    {%- set frame_lidar = spawner_args['name'] + "/" + sensor_name + "_lidar"  -%}
+    {%- set frame_imu = spawner_args['name'] + "/" + sensor_name + "_imu"  -%}
+
+    {# -- topics -- #}
+    {%- set topic_lidar = "/" + spawner_args['name'] + "/" + sensor_name + "_cloud_nodelet/points" -%}
+    {%- set topic_imu = "/" + spawner_args['name'] + "/" + sensor_name + "_cloud_nodelet/imu" -%}
+    {%- set topic_diag = "/" + spawner_args['name'] + "/" + sensor_name + "_cloud_nodelet/is_alive" -%}
+
+    {# -- tf from sensor to lidar -- #}
+    {%- set lidar_x = 0 -%}
+    {%- set lidar_y = 0 -%}
+    {%- set lidar_z = 0.0344 -%}
+    {%- set lidar_roll = 0 -%}
+    {%- set lidar_pitch = 0 -%}
+    {%- set lidar_yaw = 0 -%}
+
+    {# -- tf from sensor to imu -- #}
+    {%- set imu_x = 0.006253 -%}
+    {%- set imu_y = -0.011775 -%}
+    {%- set imu_z = 0.007645 -%}
+    {%- set imu_roll = 0 -%}
+    {%- set imu_pitch = 0 -%}
+    {%- set imu_yaw = 0 -%}
+
+    {% if spawner_args[spawner_keyword]['use_gpu'] %}
+      {%- set ouster_plugin_filename ="libMrsGazeboCommonResources_3DLidarGpuPlugin.so" -%}
+      {%- set sensor_type = "gpu_ray"  -%}
+    {% else %}
+      {%- set ouster_plugin_filename ="libMrsGazeboCommonResources_3DLidarPlugin.so" -%}
+      {%- set sensor_type = "ray"  -%}
+    {% endif %}
+
+    {# <!--}--> #}
+
+    <!-- Ouster  {-->
+    <link name="{{ sensor_link }}">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+      {{ generic.zero_inertial_macro() }}
+
+      <!-- visuals {-->
+      {{ generic.visual_mesh_macro(
+      name = "base_visual",
+      mesh_file = "model://mrs_robots_description/meshes/sensors/os1_64.dae",
+      mesh_scale = "1 1 1",
+      color = "White",
+      x = 0,
+      y = 0,
+      z = 0,
+      roll = 0,
+      pitch = 0,
+      yaw = math.radians(90))
+      }}
+      <visual name="window_visual">
+        <pose>0 0 {{ lidar_z }} 0 0 </pose>
+        <geometry>
+          <cylinder>
+            <length>0.035</length>
+            <radius>0.038</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+      <!--}-->
+
+      <!-- IMU {-->
+      <sensor name="{{ sensor_name }}_imu_sensor" type="imu">
+        <pose>{{ imu_x }} {{ imu_y }} {{ imu_z }} {{ imu_roll }} {{ imu_pitch }} {{ imu_yaw }}</pose>
+        <gravity>true</gravity>
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <visualize>false</visualize>
+        <topic>__default_topic__</topic>
+        <plugin name="{{ sensor_name }}_imu_plugin" filename="libgazebo_ros_imu_sensor.so">
+          <robotNamespace></robotNamespace>
+          <topicName>{{ topic_imu }}</topicName>
+          <bodyName>{{ sensor_link }}</bodyName>
+          <updateRateHZ>100</updateRateHZ>
+          <gaussianNoise>0.005</gaussianNoise>
+          <xyzOffset>0 0 0</xyzOffset>
+          <rpyOffset>0 0 0</rpyOffset>
+          <frameName>{{ frame_imu }}</frameName>
+        </plugin>
+      </sensor>
+      <!--}-->
+
+      <!-- LIDAR {-->
+      <sensor name="{{ sensor_name }}_lidar_sensor" type="{{ sensor_type }}">
+        <pose>{{ lidar_x }} {{ lidar_y }} {{ lidar_z }} {{ lidar_roll }} {{ lidar_pitch }} {{ lidar_yaw }}</pose>
+        <visualize>false</visualize>
+        <update_rate>{{ spawner_args[spawner_keyword]['update_rate'] }}</update_rate>
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>{{ spawner_args[spawner_keyword]['horizontal_samples'] }}</samples>
+              <resolution>1</resolution>
+              <min_angle>0</min_angle>
+              <max_angle>{{ 2*math.pi }}</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>{{ lasers }}</samples>
+              <resolution>1</resolution>
+              <min_angle>{{ -vfov_angle/2*math.radians(180)/180.0 }}</min_angle>
+              <max_angle>{{ vfov_angle/2*math.radians(180)/180.0 }}</max_angle>
+            </vertical>
+          </scan>
+          <range>
+            <min>0.1</min>
+            <max>{{ range }}</max>
+            <resolution>0.03</resolution>
+          </range>
+        </ray>
+        <plugin name="{{ sensor_name }}_lidar_plugin" filename="{{ ouster_plugin_filename }}">
+          <parentFrameName>{{ frame_fcu }}</parentFrameName>
+          <sensorFrameName>{{ frame_sensor }}</sensorFrameName>
+          <sensor_x>{{ x + lidar_x }}</sensor_x>
+          <sensor_y>{{ y + lidar_y }}</sensor_y>
+          <sensor_z>{{ z + lidar_z }}</sensor_z>
+          <sensor_roll>{{ roll + lidar_roll }}</sensor_roll>
+          <sensor_pitch>{{ pitch + lidar_pitch }}</sensor_pitch>
+          <sensor_yaw>{{ yaw + lidar_yaw }}</sensor_yaw>
+
+          <!-- Lidar parameters -->
+          <lidarFrameName>{{ frame_lidar }}</lidarFrameName>
+          <lidar_x>0</lidar_x>
+          <lidar_y>0</lidar_y>
+          <lidar_z>0</lidar_z>
+          <lidar_roll>0</lidar_roll>
+          <lidar_pitch>0</lidar_pitch>
+          <lidar_yaw>{{ math.radians(180) }}</lidar_yaw>
+          <topicName>{{ topic_lidar }}</topicName>
+          <topicDiagName>{{ topic_diag }}</topicDiagName>
+          <min_range>0.1</min_range>
+          <max_range>{{ range }}</max_range>
+          <ordered>true</ordered>
+          <gaussianNoise>{{ spawner_args[spawner_keyword]['noise'] }}</gaussianNoise>
+
+          <!-- IMU parameters -->
+          <imu>true</imu>
+          <imuFrameName>{{ frame_imu }}</imuFrameName>
+          <imu_x>{{ imu_x - lidar_x }}</imu_x>
+          <imu_y>{{ imu_y - lidar_y }}</imu_y>
+          <imu_z>{{ imu_z - lidar_z }}</imu_z>
+          <imu_roll>{{ imu_roll - lidar_roll }}</imu_roll>
+          <imu_pitch>{{ imu_pitch - lidar_pitch }}</imu_pitch>
+          <imu_yaw>{{ imu_yaw - lidar_yaw }}</imu_yaw>
+        </plugin>
+      </sensor>
+      <!--}-->
+
+    </link>
+
+    <joint name="{{ sensor_name }}_joint" type="fixed">
+      <parent>{{ parent_link }}</parent>
+      <child>{{ sensor_link }}</child>
+    </joint>
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
 
 </sdf>

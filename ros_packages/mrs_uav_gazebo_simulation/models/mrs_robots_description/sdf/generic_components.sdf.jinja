@@ -1,7 +1,7 @@
 <?xml version="1.0"? encoding="utf-8">
 <sdf version="1.6">
 
-<!-- zero_inertial_macro {-->
+{# zero_inertial_macro {--> #}
 {# macro to add the lowest mass and intertia that gazebo allows #}
 {%- macro zero_inertial_macro() -%}
   <inertial>
@@ -16,9 +16,9 @@
     </inertia>
   </inertial>
 {%- endmacro -%}
-<!--}-->
+{# <!--}--> #}
 
-<!-- visual_mesh_macro {-->
+{# visual_mesh_macro {--> #}
 {%- macro visual_mesh_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw) -%}
   <visual name="{{ name }}_visual">
     <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
@@ -36,9 +36,9 @@
     </material>
   </visual>
 {%- endmacro -%}
-<!--}-->
+{# <!--}--> #}
 
-<!-- visual_link_macro {-->
+{# visual_link_macro {--> #}
 {%- macro visual_link_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw, parent_link) -%}
   <link name="{{ name }}_link">
     {{ zero_inertial_macro() }}
@@ -51,9 +51,9 @@
     <parent>{{ parent_link }}</parent>
   </joint>
 {%- endmacro -%}
-<!--}-->
+{# <!--}--> #}
 
-<!-- odometry_sensor_macro {-->
+{# odometry_sensor_macro {--> #}
 {%- macro odometry_sensor_macro(odometry_sensor_name, parent_link, topic_name, noise, frame_name, update_rate, x, y, z, roll, pitch, yaw) -%}
   <link name="{{ odometry_sensor_name }}_link">
     <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
@@ -84,9 +84,9 @@
     <rpyOffset>{{ roll }} {{ pitch }} {{ yaw }}</rpyOffset>
   </plugin>
 {%- endmacro -%}
-<!--}-->
+{# <!--}--> #}
 
-<!-- rangefinder_sensor_macro {-->
+{# rangefinder_sensor_macro {--> #}
 {%- macro rangefinder_sensor_macro(name, parent_frame_name, sensor_frame_name, topic, update_rate, samples, fov, min_distance, max_distance, resolution, noise, x, y, z, roll, pitch, yaw) -%}
   <sensor name="lidar_sensor" type='ray'>
     <always_on>true</always_on>
@@ -135,9 +135,9 @@
     </plugin>
   </sensor>
 {%- endmacro -%}
-<!--}-->
+{# <!--}--> #}
 
-<!-- gazebo_gps_macro {-->
+{# gazebo_gps_macro {--> #}
 {%- macro gazebo_gps_macro(gps_name, parent_link, update_rate, gps_noise, gps_xy_random_walk, gps_z_random_walk, gps_xy_noise_density, gps_z_noise_density, gps_vxy_noise_density, gps_vz_noise_density, x, y, z, roll, pitch, yaw) -%}
 <link name="{{ gps_name }}_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
@@ -162,11 +162,10 @@
   <child>{{ gps_name }}_link</child>
   <parent>{{ parent_link }}</parent>
 </joint>
-
 {%- endmacro -%}
-<!--}-->
+{# <!--}--> #}
 
-<!-- gazebo_magnetometer_macro {-->
+{# gazebo_magnetometer_macro {--> #}
 {%- macro gazebo_magnetometer_macro(pub_rate, noise_density, random_walk, bias_correlation_time, mag_topic) -%}
 <plugin name="magnetometer_plugin" filename="libgazebo_magnetometer_plugin.so">
   <robotNamespace/>
@@ -177,9 +176,9 @@
   <magTopic>{{ mag_topic }}</magTopic>
 </plugin>
 {%- endmacro -%}
-<!--}-->
+{# <!--}--> #}
 
-<!-- gazebo_barometer_macro {-->
+{# gazebo_barometer_macro {--> #}
 {%- macro gazebo_barometer_macro(baro_topic, pub_rate, baro_drift_pa_per_sec) -%}
 <plugin name="barometer_plugin" filename="libgazebo_barometer_plugin.so">
   <robotNamespace/>
@@ -188,9 +187,9 @@
   <baroDriftPaPerSec>{{ baro_drift_pa_per_sec }}</baroDriftPaPerSec>
 </plugin>
 {%- endmacro -%}
-<!--}-->
+{# <!--}--> #}
 
-<!-- gazebo_imu_macro {-->
+{# gazebo_imu_macro {--> #}
 {%- macro gazebo_imu_macro(imu_name, parent_link, imu_topic, gyroscope_noise_density, gyroscope_random_walk, gyroscope_bias_correlation_time, gyroscope_turn_on_bias_sigma, accelerometer_noise_density, accelerometer_random_walk, accelerometer_bias_correlation_time, accelerometer_turn_on_bias_sigma, x, y, z, roll, pitch, yaw) -%}
   <link name="{{ imu_name }}_link">
     <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
@@ -226,9 +225,9 @@
     <accelerometerTurnOnBiasSigma>{{ accelerometer_turn_on_bias_sigma }}</accelerometerTurnOnBiasSigma> <!-- Accelerometer turn on bias standard deviation [m/s^2] -->
   </plugin>
 {%- endmacro -%}
-<!--}-->
+{# <!--}--> #}
 
-<!-- gazebo_groundtruth_macro {-->
+{# gazebo_groundtruth_macro {--> #}
 {%- macro gazebo_groundtruth_macro(home_latitude, home_longitude, home_altitude) -%}
   <!-- only used by gazebo_mavlink_interface for HITL -->
   <plugin name="gazebo_groundtruth_plugin" filename="libgazebo_groundtruth_plugin.so">
@@ -239,11 +238,10 @@
     <homeAltitude>{{ home_altitude }}</homeAltitude>
   </plugin>
 {%- endmacro -%}
-<!--}-->
+{# <!--}--> #}
 
-<!-- gazebo_mavlink_interface_macro {-->
+{# gazebo_mavlink_interface_macro {--> #}
 {%- macro gazebo_mavlink_interface_macro(imu_topic, mag_topic, baro_topic, lidar_topic, mavlink_config) -%}
-
 <plugin name="mavlink_interface_plugin" filename="libgazebo_mavlink_interface.so">
   <robotNamespace/>
   <imuSubTopic>{{ imu_topic }}</imuSubTopic>
@@ -335,6 +333,6 @@
   </control_channels>
 </plugin>
 {%- endmacro -%}
-<!--}-->
+{# <!--}--> #}
 
 </sdf>
