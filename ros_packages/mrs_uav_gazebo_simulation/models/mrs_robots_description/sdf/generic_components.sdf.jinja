@@ -137,60 +137,6 @@
 {%- endmacro -%}
 <!--}-->
 
-<!-- garmin_pixhawk_macro (connected through pixhawk -> ROS topic must be created by mavros!) {-->
-{%- macro garmin_pixhawk_macro(sensor_name, parent_link, sensor_frame, parent_frame, update_rate, min_range, max_range, noise, x, y, z, roll, pitch, yaw) -%}
-  
-  <link name="{{ sensor_name }}_link">
-    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-    
-    {{ zero_inertial_macro() }}
-    
-    {{ visual_mesh_macro(
-      name = sensor_name,
-      mesh_file = "model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl",
-      mesh_scale = "0.001 0.001 0.001",
-      color = "DarkGrey",
-      x = 0.015,
-      y = 0,
-      z = 0,
-      roll = 0,
-      pitch = 0,
-      yaw = 0)
-    }}
-      
-    {{ rangefinder_sensor_macro(
-      name = sensor_name,
-      parent_frame_name = parent_frame,
-      sensor_frame_name = sensor_frame,
-      topic = sensor_name,
-      update_rate = update_rate,
-      samples = 1,
-      fov = 0.03,
-      min_distance = min_range,
-      max_distance = max_range,
-      resolution = 0.005,
-      noise = noise,
-      x = x,
-      y = y,
-      z = z,
-      roll = roll,
-      pitch = pitch,
-      yaw = yaw)
-    }}
-  
-  </link>
-
-  <!-- NOTE: the joint is required by gazebo_mavlink_interface
-    It looks for a joint named ("lidar" + number) or a nested model named ("lidar" + number)
-  -->
-  <joint name='{{ sensor_name }}_joint' type='fixed'>
-    <child>{{ sensor_name }}_link</child>
-    <parent>{{ parent_link }}</parent>
-  </joint>
-
-{%- endmacro -%}
-<!--}-->
-
 <!-- gazebo_gps_macro {-->
 {%- macro gazebo_gps_macro(gps_name, parent_link, update_rate, gps_noise, gps_xy_random_walk, gps_z_random_walk, gps_xy_noise_density, gps_z_noise_density, gps_vxy_noise_density, gps_vz_noise_density, x, y, z, roll, pitch, yaw) -%}
 <link name="{{ gps_name }}_link">
