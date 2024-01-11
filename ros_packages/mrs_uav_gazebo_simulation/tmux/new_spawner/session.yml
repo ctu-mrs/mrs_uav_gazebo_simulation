@@ -16,10 +16,8 @@ windows:
       layout: tiled
       panes:
         - waitForRos; roslaunch mrs_uav_gazebo_simulation simulation.launch
-        - waitForRos; roslaunch mrs_uav_gazebo_simulation mrs_drone_spawner.launch
-        - 'history -s rosservice call /mrs_drone_spawner/spawn \"1 2 3 --$UAV_TYPE --enable-rangefinder\"'
+        - 'history -s rosservice call /mrs_drone_spawner/spawn \"1 --$UAV_TYPE --enable-rangefinder\"'
         # - 'history -s rosservice call /mrs_drone_spawner/spawn \"1 2 --$UAV_TYPE --enable-rangefinder\"'
-        # - 'history -s rosservice call /mrs_drone_spawner/spawn \"3 --$UAV_TYPE --enable-rangefinder pixgarm:=True\"'
         - export UAV_NAME=uav1; waitForControl; gz camera -c gzclient_camera -f $UAV_NAME; history -s gz camera -c gzclient_camera -f $UAV_NAME
   - status:
       layout: tiled
@@ -55,6 +53,12 @@ windows:
         - export UAV_NAME=uav1; waitForControl; rosservice call /$UAV_NAME/hw_api/arming 1; sleep 2; rosservice call /$UAV_NAME/hw_api/offboard
         - export UAV_NAME=uav2; waitForControl; rosservice call /$UAV_NAME/hw_api/arming 1; sleep 2; rosservice call /$UAV_NAME/hw_api/offboard
         - export UAV_NAME=uav3; waitForControl; rosservice call /$UAV_NAME/hw_api/arming 1; sleep 2; rosservice call /$UAV_NAME/hw_api/offboard
+  - goto:
+      layout: tiled
+      panes:
+        - 'export UAV_NAME=uav1; history -s rosservice call /$UAV_NAME/control_manager/goto \"goal: \[0.0, 10.0, 1.5, 0.0\]\"'
+        - 'export UAV_NAME=uav2; history -s rosservice call /$UAV_NAME/control_manager/goto \"goal: \[10.0, 10.0, 1.5, 0.0\]\"'
+        - 'export UAV_NAME=uav3; history -s rosservice call /$UAV_NAME/control_manager/goto \"goal: \[10.0, 0.0, 1.5, 0.0\]\"'
   - rviz:
       layout: tiled
       panes:

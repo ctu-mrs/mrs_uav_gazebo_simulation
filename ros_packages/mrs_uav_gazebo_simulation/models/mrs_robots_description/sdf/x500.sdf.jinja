@@ -693,12 +693,22 @@
     <!-- ||                compulsory sensor definitions                 || -->
     <!-- ================================================================== -->
 
-    <!-- Mavlink interface {-->
-    {{ components.mavlink_interface_macro(spawner_args['mavlink_config']) }}
+    <!-- pixhawk {-->
+    {%- set imu_topic = "/imu" -%}
+    {%- set mag_topic = "/mag" -%}
+    {%- set baro_topic = "/baro" -%}
+    {%- set lidar_topic = "/lidar" -%}
+
+    <!-- Gazebo ground truth {-->
+    {{ generic.gazebo_groundtruth_macro(
+      home_latitude = 0,
+      home_longitude = 0,
+      home_altitude = 0)
+    }}
     <!--}-->
 
     <!-- GPS {-->
-    {{ components.gps_macro(
+    {{ generic.gazebo_gps_macro(
       gps_name = "gps0",
       parent_link = root,
       update_rate = 10,
@@ -719,33 +729,36 @@
     <!--}-->
 
     <!-- Magnetometer {-->
-    {{ components.magnetometer_plugin_macro(
+    {{ generic.gazebo_magnetometer_macro(
       pub_rate = 100,
       noise_density = 0.0004,
       random_walk = 0.0000064,
       bias_correlation_time = 600,
-      mag_topic = "/mag")
-    }}
-    <!--}-->
-
-    <!-- GPS groundtruth {-->
-    {{ components.gps_groundtruth_plugin_macro(
-      home_latitude = 0,
-      home_longitude = 0,
-      home_altitude = 0)
+      mag_topic = mag_topic)
     }}
     <!--}-->
 
     <!-- Barometer {-->
-    {{ components.barometer_plugin_macro(
-      baro_topic = "/baro",
+    {{ generic.gazebo_barometer_macro(
+      baro_topic = baro_topic,
       pub_rate = 50,
       baro_drift_pa_per_sec = 0)
     }}
     <!--}-->
 
+    <!-- Mavlink interface {-->
+    {{ generic.gazebo_mavlink_interface_macro(
+      imu_topic = imu_topic,
+      mag_topic = mag_topic,
+      baro_topic = baro_topic,
+      lidar_topic = lidar_topic,
+      mavlink_config = spawner_args['mavlink_config'])
+    }}
+    <!--}-->
+
     <!-- IMU {-->
-    {{ components.imu_plugin_macro(
+    <!-- NOTE: IMU has to be last, otherwise the simulation will be extremely slow! -->
+    {{ generic.gazebo_imu_macro(
       imu_name = "imu",
       parent_link = root,
       imu_topic = "/imu",
@@ -766,20 +779,14 @@
     }}
     <!--}-->
 
-    <!--
-    <include>
-      <uri>model://lidar</uri>
-      <pose>0 0 -0.05 0 0 0</pose>
-      <name>lidar0</name>
-      </include>
-    -->
+    <!--}-->
 
     <!-- ================================================================== -->
     <!-- ||                  optional sensor definitions                 || -->
     <!-- ================================================================== -->
 
     {# Ground truth {--> #}
-    {{ components.groundtruth_macro(
+    {{ components.ground_truth_macro(
       parent_link = root,
       x = 0,
       y = 0,

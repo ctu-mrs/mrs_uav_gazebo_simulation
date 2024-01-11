@@ -39,7 +39,7 @@
   <arg     if="$(arg debug)" name="script_type" value="debug" />
 
   <!-- start spawner -->
-  <!-- <include file="$(find mrs_uav_gazebo_simulation)/launch/mrs_drone_spawner.launch" /> -->
+  <include file="$(find mrs_uav_gazebo_simulation)/launch/mrs_drone_spawner.launch" />
 
   <!-- start gazebo server-->
   <node name="gazebo" pkg="gazebo_ros" type="$(arg script_type)" respawn="false" output="screen"

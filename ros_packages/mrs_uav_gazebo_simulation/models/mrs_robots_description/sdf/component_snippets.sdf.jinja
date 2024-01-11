@@ -694,204 +694,6 @@ limitations under the License.
 
   <!--  {-->
 
-<!-- Macro to add the mavlink_interface_plugin {-->
-{%- macro mavlink_interface_macro(mavlink_config) -%}
-
-<plugin name="mavlink_interface_plugin" filename="libgazebo_mavlink_interface.so">
-  <robotNamespace/>
-  <imuSubTopic>/imu</imuSubTopic>
-  <magSubTopic>/mag</magSubTopic>
-  <baroSubTopic>/baro</baroSubTopic>
-  <lidarSubTopic>/lidar</lidarSubTopic>
-  <mavlink_addr>INADDR_ANY</mavlink_addr>
-  <mavlink_udp_port>{{ mavlink_config['mavlink_udp_port'] }}</mavlink_udp_port>
-  <mavlink_tcp_port>{{ mavlink_config['mavlink_tcp_port'] }}</mavlink_tcp_port>
-  <serialEnabled>0</serialEnabled>
-  <serialDevice>/dev/ttyACM0</serialDevice>
-  <baudRate>921600</baudRate>
-  <qgc_addr>INADDR_ANY</qgc_addr>
-  <qgc_udp_port>{{ mavlink_config['qgc_udp_port'] }}</qgc_udp_port>
-  <sdk_addr>INADDR_ANY</sdk_addr>
-  <sdk_udp_port>{{ mavlink_config['sdk_udp_port'] }}</sdk_udp_port>
-  <hil_mode>0</hil_mode>
-  <hil_state_level>0</hil_state_level>
-  <send_vision_estimation>{{ mavlink_config['send_vision_estimation'] }}</send_vision_estimation>
-  <send_odometry>{{ mavlink_config['send_odometry'] }}</send_odometry>
-  <enable_lockstep>{{ mavlink_config['enable_lockstep'] }}</enable_lockstep>
-  <use_tcp>{{ mavlink_config['use_tcp'] }}</use_tcp>
-  <motorSpeedCommandPubTopic>/gazebo/command/motor_speed</motorSpeedCommandPubTopic>
-  <control_channels>
-    <channel name="rotor1">
-      <input_index>0</input_index>
-      <input_offset>0.0</input_offset>
-      <input_scaling>0.85</input_scaling>
-      <zero_position_disarmed>0</zero_position_disarmed>
-      <zero_position_armed>0.15</zero_position_armed>
-      <joint_control_type>velocity</joint_control_type>
-    </channel>
-    <channel name="rotor2">
-      <input_index>1</input_index>
-      <input_offset>0.0</input_offset>
-      <input_scaling>0.85</input_scaling>
-      <zero_position_disarmed>0</zero_position_disarmed>
-      <zero_position_armed>0.15</zero_position_armed>
-      <joint_control_type>velocity</joint_control_type>
-    </channel>
-    <channel name="rotor3">
-      <input_index>2</input_index>
-      <input_offset>0.0</input_offset>
-      <input_scaling>0.85</input_scaling>
-      <zero_position_disarmed>0</zero_position_disarmed>
-      <zero_position_armed>0.15</zero_position_armed>
-      <joint_control_type>velocity</joint_control_type>
-    </channel>
-    <channel name="rotor4">
-      <input_index>3</input_index>
-      <input_offset>0.0</input_offset>
-      <input_scaling>0.85</input_scaling>
-      <zero_position_disarmed>0</zero_position_disarmed>
-      <zero_position_armed>0.15</zero_position_armed>
-      <joint_control_type>velocity</joint_control_type>
-    </channel>
-    <channel name="rotor5">
-      <input_index>4</input_index>
-      <input_offset>0.0</input_offset>
-      <input_scaling>0.85</input_scaling>
-      <zero_position_disarmed>0</zero_position_disarmed>
-      <zero_position_armed>0.15</zero_position_armed>
-      <joint_control_type>velocity</joint_control_type>
-    </channel>
-    <channel name="rotor6">
-      <input_index>5</input_index>
-      <input_offset>0.0</input_offset>
-      <input_scaling>0.85</input_scaling>
-      <zero_position_disarmed>0</zero_position_disarmed>
-      <zero_position_armed>0.15</zero_position_armed>
-      <joint_control_type>velocity</joint_control_type>
-    </channel>
-    <channel name="rotor7">
-      <input_index>6</input_index>
-      <input_offset>0.0</input_offset>
-      <input_scaling>0.85</input_scaling>
-      <zero_position_disarmed>0</zero_position_disarmed>
-      <zero_position_armed>0.15</zero_position_armed>
-      <joint_control_type>velocity</joint_control_type>
-    </channel>
-    <channel name="rotor8">
-      <input_index>7</input_index>
-      <input_offset>0.0</input_offset>
-      <input_scaling>0.85</input_scaling>
-      <zero_position_disarmed>0</zero_position_disarmed>
-      <zero_position_armed>0.15</zero_position_armed>
-      <joint_control_type>velocity</joint_control_type>
-    </channel>
-  </control_channels>
-</plugin>
-{%- endmacro -%}
-<!--}-->
-
-<!-- Macro to add the gps_plugin {-->
-{%- macro gps_macro(gps_name, parent_link, update_rate, gps_noise, gps_xy_random_walk, gps_z_random_walk, gps_xy_noise_density, gps_z_noise_density, gps_vxy_noise_density, gps_vz_noise_density, x, y, z, roll, pitch, yaw) -%}
-<link name="{{ gps_name }}_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <sensor name="gps_sensor" type="gps">
-    <plugin name="gps_plugin" filename="libgazebo_gps_plugin.so">
-      <robotNamespace/>
-      <update_rate>{{ update_rate }}</update_rate>
-      <gpsNoise>{{ gps_noise }}</gpsNoise>
-      <gpsXYRandomWalk>{{ gps_xy_random_walk }}</gpsXYRandomWalk>
-      <gpsZRandomWalk>{{ gps_z_random_walk }}</gpsZRandomWalk>
-      <gpsXYNoiseDensity>{{ gps_xy_noise_density }}</gpsXYNoiseDensity>
-      <gpsZNoiseDensity>{{ gps_z_noise_density }}</gpsZNoiseDensity>
-      <gpsVXYNoiseDensity>{{ gps_vxy_noise_density }}</gpsVXYNoiseDensity>
-      <gpsVZNoiseDensity>{{ gps_vz_noise_density }}</gpsVZNoiseDensity>
-      <topic>{{ gps_name }}</topic>
-    </plugin>
-  </sensor>
-</link>
-
-<joint name='{{ gps_name }}_joint' type='fixed'>
-  <child>{{ gps_name }}_link</child>
-  <parent>{{ parent_link }}</parent>
-</joint>
-
-{%- endmacro -%}
-<!--}-->
-
-<!-- Macro to add the magnetometer_plugin{-->
-{%- macro magnetometer_plugin_macro(pub_rate, noise_density, random_walk, bias_correlation_time, mag_topic) -%}
-<plugin name="magnetometer_plugin" filename="libgazebo_magnetometer_plugin.so">
-  <robotNamespace/>
-  <pubRate>{{ pub_rate }}</pubRate>
-  <noiseDensity>{{ noise_density }}</noiseDensity>
-  <randomWalk>{{ random_walk }}</randomWalk>
-  <biasCorrelationTime>{{ bias_correlation_time }}</biasCorrelationTime>
-  <magTopic>{{ mag_topic }}</magTopic>
-</plugin>
-{%- endmacro -%}
-<!--}-->
-
-<!-- Macro to add the GPS groundtruth_plugin{-->
-{%- macro gps_groundtruth_plugin_macro(home_latitude, home_longitude, home_altitude) -%}
-<plugin name="gps_groundtruth_plugin" filename="libgazebo_groundtruth_plugin.so">
-  <robotNamespace/>
-  <homeLatitude>{{ home_latitude }}</homeLatitude>
-  <homeLongitude>{{ home_longitude }}</homeLongitude>
-  <homeAltitude>{{ home_altitude }}</homeAltitude>
-</plugin>
-{%- endmacro -%}
-<!--}-->
-
-<!-- Macro to add the barometer_plugin{-->
-{%- macro barometer_plugin_macro(baro_topic, pub_rate, baro_drift_pa_per_sec) -%}
-<plugin name="barometer_plugin" filename="libgazebo_barometer_plugin.so">
-  <robotNamespace/>
-  <pubRate>{{ pub_rate }}</pubRate>
-  <baroTopic>{{ baro_topic }}</baroTopic>
-  <baroDriftPaPerSec>{{ baro_drift_pa_per_sec }}</baroDriftPaPerSec>
-</plugin>
-{%- endmacro -%}
-<!--}-->
-
-<!-- Macro to add the imu_plugin{-->
-{%- macro imu_plugin_macro(imu_name, parent_link, imu_topic, gyroscope_noise_density, gyroscope_random_walk, gyroscope_bias_correlation_time, gyroscope_turn_on_bias_sigma, accelerometer_noise_density, accelerometer_random_walk, accelerometer_bias_correlation_time, accelerometer_turn_on_bias_sigma, x, y, z, roll, pitch, yaw) -%}
-<link name="{{ imu_name }}_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-</link>
-<joint name="{{ imu_name }}_joint" type="revolute">
-  <parent>{{ parent_link }}</parent>
-  <child>{{ imu_name }}_link</child>
-  <axis>
-    <xyz>0 0 1</xyz>
-    <limit>
-      <upper>0</upper>
-      <lower>0</lower>
-      <effort>0</effort>
-      <velocity>0</velocity>
-    </limit>
-    <use_parent_model_frame>1</use_parent_model_frame>
-  </axis>
-</joint>
-<plugin filename="libgazebo_imu_plugin.so" name="{{ imu_name }}_plugin">
-<!-- A good description of the IMU parameters can be found in the kalibr documentation:
-     https://github.com/ethz-asl/kalibr/wiki/IMU-Noise-Model-and-Intrinsics -->
-  <robotNamespace/> <!-- (string, required): ros namespace in which the messages are published -->
-  <linkName>{{ imu_name }}_link</linkName> <!-- (string, required): name of the body which holds the IMU sensor -->
-  <imuTopic>{{ imu_topic }}</imuTopic> <!-- (string): name of the sensor output topic and prefix of service names (defaults to imu) -->
-  <gyroscopeNoiseDensity>{{ gyroscope_noise_density }}</gyroscopeNoiseDensity> <!-- Gyroscope noise density (two-sided spectrum) [rad/s/sqrt(Hz)] -->
-  <gyroscopeRandomWalk>{{ gyroscope_random_walk }}</gyroscopeRandomWalk> <!-- Gyroscope bias random walk [rad/s/s/sqrt(Hz)] -->
-  <gyroscopeBiasCorrelationTime>{{ gyroscope_bias_correlation_time }}</gyroscopeBiasCorrelationTime> <!-- Gyroscope bias correlation time constant [s] -->
-  <gyroscopeTurnOnBiasSigma>{{ gyroscope_turn_on_bias_sigma }}</gyroscopeTurnOnBiasSigma> <!-- Gyroscope turn on bias standard deviation [rad/s] -->
-  <accelerometerNoiseDensity>{{ accelerometer_noise_density }}</accelerometerNoiseDensity> <!-- Accelerometer noise density (two-sided spectrum) [m/s^2/sqrt(Hz)] -->
-  <accelerometerRandomWalk>{{ accelerometer_random_walk }}</accelerometerRandomWalk> <!-- Accelerometer bias random walk. [m/s^2/s/sqrt(Hz)] -->
-  <accelerometerBiasCorrelationTime>{{ accelerometer_bias_correlation_time }}</accelerometerBiasCorrelationTime> <!-- Accelerometer bias correlation time constant [s] -->
-  <accelerometerTurnOnBiasSigma>{{ accelerometer_turn_on_bias_sigma }}</accelerometerTurnOnBiasSigma> <!-- Accelerometer turn on bias standard deviation [m/s^2] -->
-</plugin>
-{%- endmacro -%}
-<!--}-->
-
 <!-- Macro to add imu with configurable rate {-->
 {%- macro custom_imu_macro(sensor_name, parent_link, update_rate, topic_name, frame_name, noise_mean, x, y, z, roll, pitch, yaw) -%}
 <link name="{{ sensor_name }}_link">
@@ -3211,11 +3013,11 @@ limitations under the License.
 <!-- ||                   Components using spawner API               || -->
 <!-- ================================================================== -->
 
-<!-- groundtruth_macro {-->
-{%- macro groundtruth_macro(parent_link, x, y, z, roll, pitch, yaw, spawner_args) -%}
+<!-- ground_truth_macro {-->
+{%- macro ground_truth_macro(parent_link, x, y, z, roll, pitch, yaw, spawner_args) -%}
   
-  {% set spawner_keyword = 'enable_ground_truth' %}
-  {% set spawner_description = 'Enable topic with ground-truth odometry' %}
+  {% set spawner_keyword = 'enable-ground-truth' %}
+  {% set spawner_description = 'Enable ROS topic with ground truth odometry published under model namespace' %}
   {% set spawner_default_args = {'topic_name': 'ground_truth', 'frame_name': 'world', 'update_rate': 150} %}
 
   {% set odometry_sensor_name = "ground_truth" %}
@@ -3250,8 +3052,8 @@ limitations under the License.
 {%- macro garmin_down_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
 
   {% set spawner_keyword = 'enable-rangefinder' %}
-  {% set spawner_description = 'Add a laser rangefinder (Garmin LIDAR-Lite v3) pointing down. By default connected directly to computer. Use param {"pixgarm": true} to connect Garmin through Pixhawk. Do not set range outside of <0.06 - 40.0> (unrealistic)' %}
-  {% set spawner_default_args = {'pixgarm': false, 'update_rate': 100, 'min_range': 0.1, 'max_range': 36.0, 'noise': 0.01} %}
+  {% set spawner_description = 'Add a laser rangefinder (Garmin LIDAR-Lite v3) pointing down. Creates a gazebo publisher for gazebo_mavlink_interface. ROS topic must be created by mavros. Do not set range outside of <0.06 - 40.0> (unrealistic)' %}
+  {% set spawner_default_args = {'update_rate': 100, 'min_range': 0.1, 'max_range': 36.0, 'noise': 0.01} %}
   
   {%- if spawner_keyword in spawner_args.keys() -%}
   
@@ -3263,11 +3065,10 @@ limitations under the License.
       parent_link = parent_link,
       sensor_frame = spawner_args['name'] + '/garmin',
       parent_frame = spawner_args['name'] + '/fcu',
-      topic = spawner_args['name'],
       update_rate = spawner_args[spawner_keyword]['update_rate'],
       min_range = spawner_args[spawner_keyword]['min_range'],
       max_range = spawner_args[spawner_keyword]['max_range'],
-      noise= spawner_args[spawner_keyword]['noise'],
+      noise = spawner_args[spawner_keyword]['noise'],
       x = x,
       y = y,
       z = z,
