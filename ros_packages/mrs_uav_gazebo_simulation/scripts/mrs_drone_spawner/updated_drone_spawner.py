@@ -531,7 +531,7 @@ class MrsDroneSpawner:
                         try:
                             # try to convert arg to number
                             params_dict[kw] = ast.literal_eval(arg)
-                        except ValueError:
+                        except (SyntaxError, ValueError):
                             # leave non-numbers as string
                             params_dict[kw] = arg
                 except TypeError:
