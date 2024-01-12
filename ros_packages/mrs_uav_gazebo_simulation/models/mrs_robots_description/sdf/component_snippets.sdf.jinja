@@ -741,77 +741,6 @@ limitations under the License.
 <!--}-->
 
 
-<!-- Macro to add the camera_plugin {-->
-{%- macro camera_macro(parent_link, camera_name, camera_frame_name, sensor_base_frame_name, frame_rate, parent_frame_name, horizontal_fov, image_width, image_height, min_distance, max_distance, noise_mean, noise_stddev, mesh_file, mesh_scale, color, visual_x, visual_y, visual_z, visual_roll, visual_pitch, visual_yaw, x, y, z, roll, pitch, yaw) -%}
-<link name="{{ camera_name }}_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  {{ visual_mesh_macro(
-    name = "",
-    mesh_file = mesh_file,
-    mesh_scale = mesh_scale,
-    color = color,
-    x = visual_x,
-    y = visual_y,
-    z = visual_z,
-    roll = visual_roll,
-    pitch = visual_pitch,
-    yaw = visual_yaw)
-  }}
-  <sensor name="{{ camera_name }}_sensor" type="camera">
-    <update_rate>{{ frame_rate }}</update_rate>
-    <camera>
-      <horizontal_fov>{{ horizontal_fov }}</horizontal_fov>
-      <image>
-        <width>{{ image_width }}</width>
-        <height>{{ image_height }}</height>
-      </image>
-      <clip>
-        <near>{{ min_distance }}</near>
-        <far>{{ max_distance }}</far>
-      </clip>
-      <noise>
-        <type>gaussian</type>
-        <!-- Noise is sampled independently per pixel on each frame.
-        That pixel's noise value is added to each of its color
-        channels, which at that point lie in the range [0,1]. -->
-        <mean>{{ noise_mean }}</mean>
-        <stddev>{{ noise_stddev }}</stddev>
-      </noise>
-    </camera>
-    <plugin name="{{ camera_name }}_plugin" filename="libMrsGazeboCommonResources_CameraPlugin.so">
-      <alwaysOn>true</alwaysOn>
-      <updateRate>{{ frame_rate }}</updateRate>
-      <cameraName>{{ camera_name }}</cameraName>
-      <imageTopicName>image_raw</imageTopicName>
-      <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-      <frameName>/{{ camera_frame_name }}</frameName>
-      <hackBaseline>0.0</hackBaseline>
-      <distortionK1>0.0</distortionK1>
-      <distortionK2>0.0</distortionK2>
-      <distortionK3>0.0</distortionK3>
-      <distortionT1>0.0</distortionT1>
-      <distortionT2>0.0</distortionT2>
-      <parentFrameName>{{ parent_frame_name }}</parentFrameName>
-      <sensorBaseFrameName>{{ sensor_base_frame_name }}</sensorBaseFrameName>
-      <x>{{ x }}</x>
-      <y>{{ y }}</y>
-      <z>{{ z }}</z>
-      <roll>{{ roll }}</roll>
-      <pitch>{{ pitch }}</pitch>
-      <yaw>{{ yaw }}</yaw>
-    </plugin>
-  </sensor>
-</link>
-
-<joint name="{{ camera_name }}_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>{{ camera_name }}_link</child>
-</joint>
-
-{%- endmacro -%}
-<!--}-->
-
 <!-- Macro to add the fisheye_camera_plugin {-->
 {%- macro fisheye_macro(parent_link, camera_name, topic_ns_prefix, camera_frame_name, sensor_base_frame_name, frame_rate, parent_frame_name, horizontal_fov, image_width, image_height, min_distance, max_distance, lens_type, lens_c1, lens_c2, lens_f, lens_fun, lens_scale, lens_cutoff_angle, lens_texture_size, noise_mean, noise_stddev, mesh_file, mesh_scale, color, visual_x, visual_y, visual_z, visual_roll, visual_pitch, visual_yaw, x, y, z, roll, pitch, yaw) -%}
 {# -- topics -- #}
@@ -1266,243 +1195,6 @@ limitations under the License.
 <!--}-->
 
 <!-- ========================= camera sensors ========================= -->
-
-<!-- Macro to add an Intel Realsense D435 {-->
-{%- macro realsense_macro(namespace, camera_name, camera_suffix, parent_link, enable_realistic_realsense, x, y, z, roll, pitch, yaw) -%}
-{# -- frame names -- #}
-{%- set frame_fcu = namespace + "/fcu" -%}
-
-<link name="{{ camera_name }}_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="body_visual">
-    <pose>0 0 0 {{ -math.radians(90) }} 0 {{ -math.radians(90) }}</pose>
-    <geometry>
-      <mesh>
-        <uri>model://mrs_robots_description/meshes/sensors/realsense_body.stl</uri>
-        <scale>0.001 0.001 0.001</scale>
-      </mesh>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/White</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <visual name="glass_visual">
-    <pose>0 0 0 {{ -math.radians(90) }} 0 {{ -math.radians(90) }}</pose>
-    <geometry>
-      <mesh>
-        <uri>model://mrs_robots_description/meshes/sensors/realsense_glass.stl</uri>
-        <scale>0.001 0.001 0.001</scale>
-      </mesh>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/BlackTransparent</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-
-  <!-- sensors {-->
-  <!-- rgb camera {-->
-  <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_color" type="camera">
-    {# <pose>0 -0.046 0.004 0 0 0</pose> #}
-    <pose>0 0 -0.0115 0 0 0</pose>
-      <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_color">
-      {# <horizontal_fov>1.211259</horizontal_fov> #}
-      <horizontal_fov>1.211259</horizontal_fov>
-      <image>
-        <width>1280</width>
-        <height>720</height>
-        <format>RGB_INT8</format>
-      </image>
-      <clip>
-        <near>0.1</near>
-        <far>100</far>
-      </clip>
-      <noise>
-        <type>gaussian</type>
-        <mean>0.0</mean>
-        <stddev>0.007</stddev>
-      </noise>
-    </camera>
-    <always_on>1</always_on>
-    <update_rate>60</update_rate>
-    <visualize>0</visualize>
-  </sensor>
-  <!--}-->
-
-  <!-- infra stereo {-->
-  <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_infra_stereo" type="multicamera">
-    <always_on>1</always_on>
-    <update_rate>30</update_rate>
-    <visualize>0</visualize>
-    <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_infra1">
-      {# <horizontal_fov>1.7523106</horizontal_fov> #}
-      <horizontal_fov>1.211259</horizontal_fov>
-      <image>
-        <width>640</width>
-        <height>360</height>
-        <format>L_INT8</format>
-      </image>
-      <clip>
-        <near>0.1</near>
-        <far>50</far>
-      </clip>
-      <noise>
-        <type>gaussian</type>
-        <mean>0.0</mean>
-        <stddev>0.005</stddev>
-      </noise>
-    </camera>
-    <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_infra2">
-      <pose>0 0.05 0 0 0 0</pose>
-      {# <horizontal_fov>1.7523106</horizontal_fov> #}
-      <horizontal_fov>1.211259</horizontal_fov>
-      <image>
-        <width>640</width>
-        <height>360</height>
-        <format>L_INT8</format>
-      </image>
-      <clip>
-        <near>0.1</near>
-        <far>50</far>
-      </clip>
-      <noise>
-        <type>gaussian</type>
-        <mean>0.0</mean>
-        <stddev>0.005</stddev>
-      </noise>
-    </camera>
-  </sensor>
-  <!--}-->
-
-  <!-- (unused) infra2 {-->
-    <!-- <sensor name="infra2" type="camera"> -->
-    <!-- <parent link="${camera_name}${camera_suffix}_camera_${camera_suffix}"/> -->
-    <!-- <pose>0 -1.0325 0 0 0 0</pose> -->
-    <!--   <pose frame="${camera_name}${camera_suffix}/camera_infra2">0 -1.0325 0 0 0 0</pose> -->
-    <!--   <camera name="${camera_name}${camera_suffix}/camera_${camera_suffix}_infra2"> -->
-      <!-- <horizontal_fov>1.7523106</horizontal_fov> -->
-      <!--     <horizontal_fov>1.211259</horizontal_fov> -->
-      <!--     <image> -->
-        <!--       <width>1280</width> -->
-        <!--       <height>720</height> -->
-        <!--       <format>L_INT8</format> -->
-        <!--     </image> -->
-      <!--     <clip> -->
-        <!--       <near>0.1</near> -->
-        <!--       <far>10</far> -->
-        <!--     </clip> -->
-      <!--     <noise> -->
-        <!--       <type>gaussian</type> -->
-        <!--       <mean>0.0</mean> -->
-        <!--       <stddev>0.05</stddev> -->
-        <!--     </noise> -->
-      <!--   </camera> -->
-    <!--   <always_on>1</always_on> -->
-    <!--   <update_rate>60</update_rate> -->
-    <!--   <visualize>0</visualize> -->
-      <!-- </sensor> -->
-      <!--}-->
-
-  <!-- aligned depth to color {-->
-  <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_aligned_depth_to_color" type="depth">
-    <pose>0 -0.0115 0.0 0 0 0</pose>
-    <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_aligned_depth_to_color">
-      <horizontal_fov>1.211259</horizontal_fov>
-      <image>
-        {% if enable_realistic_realsense %}
-          <width>320</width>
-          <height>180</height>
-        {% else %}
-          <width>1280</width>
-          <height>720</height>
-        {% endif %}
-      </image>
-      <clip>
-        <near>0.3</near>
-        <far>12</far>
-      </clip>
-      <noise>
-        <type>gaussian</type>
-        <mean>0.0</mean>
-        <stddev>5000.0</stddev>
-      </noise>
-    </camera>
-    <always_on>1</always_on>
-    <update_rate>60</update_rate>
-    <visualize>0</visualize>
-  </sensor>
-  <!--}-->
-
-</link>
-
-<plugin name="{{ camera_name }}{{ camera_suffix }}_plugin" filename="libMrsGazeboCommonResources_RealsensePlugin.so">
-  <camera_name>{{ camera_name }}</camera_name>
-  <camera_suffix>{{ camera_suffix }}</camera_suffix>
-  <useRealistic>{{ enable_realistic_realsense }}</useRealistic>
-  <noisePerMeter>0.2</noisePerMeter>
-  <minNoiseDistance>4.0</minNoiseDistance>
-  <perlinEmptyThreshold>0.8</perlinEmptyThreshold>
-  <perlinEmptySpeed>0.2</perlinEmptySpeed>
-  <imageScaling>4</imageScaling>
-  <blurSize>15</blurSize>
-  <erosionSize>5</erosionSize>
-  <parentFrameName>{{ frame_fcu }}</parentFrameName>
-  <x>{{ x }}</x>
-  <y>{{ y }}</y>
-  <z>{{ z }}</z>
-  <roll>{{ roll }}</roll>
-  <pitch>{{ pitch }}</pitch>
-  <yaw>{{ yaw }}</yaw>
-</plugin>
-
-<joint name="{{ camera_name }}_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>{{ camera_name }}_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
-<!--}-->
-
-<!-- Macro to add a Bluefox camera {-->
-{%- macro bluefox_camera_macro(namespace, camera_name, parent_link, frame_rate, hfov, noise, x, y, z, roll, pitch, yaw) -%}
-{{ camera_macro(
-  parent_link = parent_link,
-  camera_name = camera_name,
-  parent_frame_name = namespace + "/fcu",
-  camera_frame_name = namespace + "/" + camera_name + "_optical",
-  sensor_base_frame_name = namespace  + "/" + camera_name,
-  frame_rate = frame_rate,
-  horizontal_fov = hfov,
-  image_width = 752,
-  image_height = 480,
-  min_distance = 0.02,
-  max_distance = 80,
-  noise_mean = 0.0,
-  noise_stddev = noise,
-  mesh_file = "model://mrs_robots_description/meshes/sensors/bluefox.dae",
-  mesh_scale = "1 1 1",
-  color = "DarkGrey",
-  visual_x = 0,
-  visual_y = 0,
-  visual_z = 0,
-  visual_roll = math.radians(90),
-  visual_pitch = 0,
-  visual_yaw = 0,
-  x = x,
-  y = y,
-  z = z,
-  roll = roll,
-  pitch = pitch,
-  yaw = yaw)
-}}
-{%- endmacro -%}
-<!--}-->
 
 <!-- Macro to add a Basler Dart camera {-->
 {%- macro basler_camera_macro(namespace, camera_name, parent_link, frame_rate, hfov, noise, x, y, z, roll, pitch, yaw) -%}
@@ -2970,23 +2662,23 @@ limitations under the License.
 
     {# <!--}--> #}
 
-    <!-- Ouster  {-->
+    <!-- Ouster {-->
     <link name="{{ sensor_link }}">
       <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
       {{ generic.zero_inertial_macro() }}
 
       <!-- visuals {-->
       {{ generic.visual_mesh_macro(
-      name = "base_visual",
-      mesh_file = "model://mrs_robots_description/meshes/sensors/os1_64.dae",
-      mesh_scale = "1 1 1",
-      color = "White",
-      x = 0,
-      y = 0,
-      z = 0,
-      roll = 0,
-      pitch = 0,
-      yaw = math.radians(90))
+        name = "base_visual",
+        mesh_file = "://mrs_robots_description/meshes/sensors/os1_64.dae",
+        mesh_scale = "1 1 1",
+        color = "White",
+        x = 0,
+        y = 0,
+        z = 0,
+        roll = 0,
+        pitch = 0,
+        yaw = math.radians(90))
       }}
       <visual name="window_visual">
         <pose>0 0 {{ lidar_z }} 0 0 </pose>
@@ -3096,6 +2788,226 @@ limitations under the License.
       <parent>{{ parent_link }}</parent>
       <child>{{ sensor_link }}</child>
     </joint>
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# realsense_front_macro {--> #}
+{%- macro realsense_front_macro(camera_name, camera_suffix, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {% set spawner_keyword = 'enable-realsense-front' %}
+  {% set spawner_description = 'Add Intel Realsense D435 depth camera to the vehicle [1280x720 @ 30hz], pointed forward placed on the front holder between the legs' %}
+  {% set spawner_default_args = {'realistic': False, 'update_rate': 30} %}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Realsense front {-->
+    {{ generic.realsense_d435_macro(
+      namespace = spawner_args['name'],
+      camera_name = camera_name,
+      camera_suffix = camera_suffix,
+      parent_link = parent_link,
+      realistic = spawner_args[spawner_keyword]['realistic'],
+      update_rate = spawner_args[spawner_keyword]['update_rate'],
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# realsense_up_macro {--> #}
+{%- macro realsense_up_macro(camera_name, camera_suffix, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {% set spawner_keyword = 'enable-realsense-up' %}
+  {% set spawner_description = 'Add Intel Realsense D435 depth camera to the vehicle [1280x720 @ 30hz], pointed upwards' %}
+  {% set spawner_default_args = {'realistic': False, 'update_rate': 30} %}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Realsense up {-->
+    {{ generic.realsense_d435_macro(
+      namespace = spawner_args['name'],
+      camera_name = camera_name,
+      camera_suffix = camera_suffix,
+      parent_link = parent_link,
+      realistic = spawner_args[spawner_keyword]['realistic'],
+      update_rate = spawner_args[spawner_keyword]['update_rate'],
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# realsense_down_macro {--> #}
+{%- macro realsense_down_macro(camera_name, camera_suffix, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {% set spawner_keyword = 'enable-realsense-down' %}
+  {% set spawner_description = 'Add Intel Realsense D435 depth camera to the vehicle [1280x720 @ 30hz], pointed down' %}
+  {% set spawner_default_args = {'realistic': False, 'update_rate': 30} %}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Realsense down {-->
+    {{ generic.realsense_d435_macro(
+      namespace = spawner_args['name'],
+      camera_name = camera_name,
+      camera_suffix = camera_suffix,
+      parent_link = parent_link,
+      realistic = spawner_args[spawner_keyword]['realistic'],
+      update_rate = spawner_args[spawner_keyword]['update_rate'],
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# bluefox_camera_macro {--> #}
+{%- macro bluefox_camera_macro(camera_name, parent_link, x, y, z, mount, spawner_args) -%}
+
+  {% set spawner_keyword = 'enable-bluefox-camera' %}
+  {% set spawner_description = 'Add bluefox camera to the vehicle [752x480 @ 50hz], pointing down' %}
+  {% set spawner_default_args = {'update_rate': 100, 'noise': 0.0} %}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- bluefox camera {-->
+    {{ generic.camera_macro(
+      parent_link = parent_link,
+      camera_name = camera_name,
+      parent_frame_name = spawner_args['name'] + "/fcu",
+      camera_frame_name = spawner_args['name'] + "/" + camera_name + "_optical",
+      sensor_base_frame_name = spawner_args['name'] + "/" + camera_name,
+      frame_rate = spawner_args[spawner_keyword]['update_rate'],
+      horizontal_fov = 2.1,
+      image_width = 752,
+      image_height = 480,
+      min_distance = 0.02,
+      max_distance = 80,
+      noise_mean = 0.0,
+      noise_stddev = spawner_args[spawner_keyword]['noise'],
+      mesh_file = "model://mrs_robots_description/meshes/sensors/bluefox.dae",
+      mesh_scale = "1 1 1",
+      color = "DarkGrey",
+      visual_x = 0,
+      visual_y = 0,
+      visual_z = 0,
+      visual_roll = math.radians(90),
+      visual_pitch = 0,
+      visual_yaw = 0,
+      x = x,
+      y = y,
+      z = z,
+      roll = 0,
+      pitch = math.radians(90),
+      yaw = 0)
+    }}
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# bluefox_camera_reverse_macro {--> #}
+{%- macro bluefox_camera_reverse_macro(camera_name, parent_link, x, y, z, mount, spawner_args) -%}
+
+  {% set spawner_keyword = 'enable-bluefox-camera-reverse' %}
+  {% set spawner_description = 'Add bluefox camera to the vehicle [752x480 @ 50hz], pointing down but image is rotated by 180 deg' %}
+  {% set spawner_default_args = {'update_rate': 100, 'noise': 0.0} %}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- bluefox camera reverse {-->
+    {{ generic.camera_macro(
+      parent_link = parent_link,
+      camera_name = camera_name,
+      parent_frame_name = spawner_args['name'] + "/fcu",
+      camera_frame_name = spawner_args['name'] + "/" + camera_name + "_optical",
+      sensor_base_frame_name = spawner_args['name'] + "/" + camera_name,
+      frame_rate = spawner_args[spawner_keyword]['update_rate'],
+      horizontal_fov = 2.1,
+      image_width = 752,
+      image_height = 480,
+      min_distance = 0.02,
+      max_distance = 80,
+      noise_mean = 0.0,
+      noise_stddev = spawner_args[spawner_keyword]['noise'],
+      mesh_file = "model://mrs_robots_description/meshes/sensors/bluefox.dae",
+      mesh_scale = "1 1 1",
+      color = "DarkGrey",
+      visual_x = 0,
+      visual_y = 0,
+      visual_z = 0,
+      visual_roll = math.radians(90),
+      visual_pitch = 0,
+      visual_yaw = 0,
+      x = x,
+      y = y,
+      z = z,
+      roll = 0,
+      pitch = math.radians(90),
+      yaw = math.radians(180))
+    }}
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
     <!--}-->
 
   {%- endif -%}

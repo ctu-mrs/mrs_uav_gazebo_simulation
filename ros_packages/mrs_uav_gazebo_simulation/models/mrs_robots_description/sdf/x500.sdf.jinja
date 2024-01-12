@@ -404,7 +404,7 @@
       {% endfor %}
       <!--}-->
 
-      <!-- component mounts and holders {-->
+      {# component mounts and holders {--> #}
 
       {# garmin down mount {--> #}
       {%- set garmin_down_mount -%}
@@ -426,25 +426,93 @@
 
       {# lidar mount {--> #}
       {%- set lidar_mount -%}
-      {{ generic.visual_link_macro(
-        name = "rplidar_mount",
-        mesh_file = lidar_mount_mesh_file,
-        mesh_scale = mesh_scale,
-        color = "FlatBlack",
-        x = 0,
-        y = 0,
-        z = 0,
-        roll = 0,
-        pitch = 0,
-        yaw = math.radians(90),
-        parent_link = root)
-      }}
+        {{ generic.visual_link_macro(
+          name = "rplidar_mount",
+          mesh_file = lidar_mount_mesh_file,
+          mesh_scale = mesh_scale,
+          color = "FlatBlack",
+          x = 0,
+          y = 0,
+          z = 0,
+          roll = 0,
+          pitch = 0,
+          yaw = math.radians(90),
+          parent_link = root)
+        }}
       {%- endset -%}
       {# <!--}--> #}
 
-      <!--}-->
+      {# realsense mount {--> #}
+      {%- set realsense_mount -%}
+        {{ components.visual_mesh_macro(
+          name = "realsense_mount",
+          mesh_file = realsense_mount_mesh_file,
+          mesh_scale = mesh_scale,
+          color = "Black",
+          x = 0,
+          y = 0,
+          z = 0,
+          roll = 0,
+          pitch = 0,
+          yaw = math.radians(90))
+        }}
+      {%- endset -%}
+      {# <!--}--> #}
 
+      {# bluefox mount {--> #}
+      {%- set bluefox_mount -%}
+        {{ components.visual_mesh_macro(
+          name = "bluefox_mount",
+          mesh_file = bluefox_mount_mesh_file,
+          mesh_scale = mesh_scale_milimeters,
+          color = "FlatBlack",
+          x = 0,
+          y = 0,
+          z = 0,
+          roll = 0,
+          pitch = 0,
+          yaw = math.radians(90))
+        }}
+      {%- endset -%}
+      {# <!--}--> #}
 
+      {# uvdar mount {--> #}
+      {%- set uvdar_mount -%}
+        {{ components.visual_mesh_macro(
+          name = "uvdar_mount",
+          mesh_file = uvdar_mount_mesh,
+          mesh_scale = mesh_scale_milimeters,
+          color = "DarkGrey",
+          x = 0.027,
+          y = 0,
+          z = 0.075,
+          roll = 0,
+          pitch = 0,
+          yaw = 0)
+        }}
+      {%- endset -%}
+      {# <!--}--> #}
+
+      {# Qorvo DW1000 mount {--> #}
+      {%- set qorvo_dw1000_mount -%}
+        {{components.visual_mesh_macro(
+          name = "qorvo_dw1000_mount",
+          mesh_file = qorvo_dw1000_mount_file,
+          mesh_scale = mesh_scale_milimeters,
+          color = "DarkGrey",
+          x = 0.0,
+          y = -0.01,
+          z = -0.078,
+          roll = 0,
+          pitch = 0,
+          yaw = 0)
+        }}
+      {%- endset -%}
+      {# <!--}--> #}
+
+      {# <!--}--> #}
+
+      {# TODO: solve battery and GPS visuals #}
       {% if use_battery_mount %}
       <!-- battery mount and battery {-->
       {{ components.visual_mesh_macro(
@@ -499,74 +567,6 @@
         roll = 0,
         pitch = 0,
         yaw = math.radians(90))
-      }}
-      <!--}-->
-      {% endif %}
-
-      {% if enable_realsense_front or enable_realsense_down or enable_realsense_up%}
-      <!-- realsense mount {-->
-      {{ components.visual_mesh_macro(
-        name = "realsense_mount",
-        mesh_file = realsense_mount_mesh_file,
-        mesh_scale = mesh_scale,
-        color = "Black",
-        x = 0,
-        y = 0,
-        z = 0,
-        roll = 0,
-        pitch = 0,
-        yaw = math.radians(90))
-      }}
-      <!--}-->
-      {% endif %}
-
-      {% if enable_bluefox_camera_reverse or enable_bluefox_camera%}
-      <!-- bluefox mount {-->
-      {{ components.visual_mesh_macro(
-        name = "bluefox_mount",
-        mesh_file = bluefox_mount_mesh_file,
-        mesh_scale = mesh_scale_milimeters,
-        color = "FlatBlack",
-        x = 0,
-        y = 0,
-        z = 0,
-        roll = 0,
-        pitch = 0,
-        yaw = math.radians(90))
-      }}
-      <!--}-->
-      {% endif %}
-
-      {% if enable_dual_uv_cameras %}
-      <!-- UVDAR mount {-->
-      {{ components.visual_mesh_macro(
-        name = "uvdar_mount",
-        mesh_file = uvdar_mount_mesh,
-        mesh_scale = mesh_scale_milimeters,
-        color = "DarkGrey",
-        x = 0.027,
-        y = 0,
-        z = 0.075,
-        roll = 0,
-        pitch = 0,
-        yaw = 0)
-      }}
-      <!--}-->
-      {% endif %}
-
-      {% if enable_qorvo_dw1000 %}
-      <!-- Qorvo DW1000 mount {-->
-      {{components.visual_mesh_macro(
-        name = "qorvo_dw1000_mount",
-        mesh_file = qorvo_dw1000_mount_file,
-        mesh_scale = mesh_scale_milimeters,
-        color = "DarkGrey",
-        x = 0.0,
-        y = -0.01,
-        z = -0.078,
-        roll = 0,
-        pitch = 0,
-        yaw = 0)
       }}
       <!--}-->
       {% endif %}
@@ -781,7 +781,7 @@
     <!--}-->
 
     <!-- IMU {-->
-    <!-- NOTE: IMU has to be last, otherwise the simulation will be extremely slow! -->
+    <!-- NOTE: IMU has to be last, otherwise the simulation is extremely slow! -->
     {{ generic.gazebo_imu_macro(
       imu_name = "imu",
       parent_link = root,
@@ -872,105 +872,85 @@
 
     <!-- ========================== camera sensors ========================= -->
 
-    <!-- Realsense placements {-->
+    {# Realsense placements {--> #}
 
-    {% if enable_realsense_front %}
-    <!-- realsense front {-->
-    {{ components.realsense_macro(
-      namespace = namespace,
+    {# realsense front {--> #}
+    {{ components.realsense_front_macro(
       camera_name = "front_rgbd",
       camera_suffix="",
       parent_link = root,
-      enable_realistic_realsense = enable_realistic_realsense,
       x = 0.092,
       y = 0.0,
       z = 0.016,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      mount = realsense_mount,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
 
-    {% if enable_realsense_up%}
-    <!-- realsense up {-->
-    {{ components.realsense_macro(
-      namespace = namespace,
+    {# realsense up {--> #}
+    {{ components.realsense_up_macro(
       camera_name = "up_rgbd",
       camera_suffix="",
       parent_link = root,
-      enable_realistic_realsense = enable_realistic_realsense,
       x = 0.086,
       y = 0,
       z = 0.03,
       roll = 0,
-      pitch = - math.radians(90),
-      yaw = 0)
+      pitch = -math.radians(90),
+      yaw = 0,
+      mount = realsense_mount,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
 
-    {% if enable_realsense_down%}
-    <!-- realsense down {-->
-    {{ components.realsense_macro(
-      namespace = namespace,
+    {# realsense down {--> #}
+    {{ components.realsense_down_macro(
       camera_name = "down_rgbd",
       camera_suffix="",
       parent_link = root,
-      enable_realistic_realsense = enable_realistic_realsense,
       x = 0.086,
       y = 0,
       z = 0.002,
       roll = 0,
       pitch = math.radians(90),
-      yaw = 0)
+      yaw = 0,
+      mount = realsense_mount,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
 
-    <!--}-->
+    {# <!--}--> #}
 
-    <!-- Bluefox camera placements{-->
+    {# Bluefox camera placements {--> #}
 
-    {% if enable_bluefox_camera_reverse %}
-    <!-- bluefox reverse {-->
+    {# bluefox (classic) {--> #}
     {{ components.bluefox_camera_macro(
-      namespace = namespace,
       camera_name = "bluefox_optflow",
       parent_link = root,
-      frame_rate = 100.0,
-      hfov = 2.1,
-      noise = 0.0,
       x = 0.0,
       y = -0.0515,
       z = -0.038,
-      roll = 0,
-      pitch = math.radians(90),
-      yaw = math.radians(180))
+      mount = bluefox_mount,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
 
-    {% if enable_bluefox_camera %}
-    <!-- bluefox classic {-->
-    {{ components.bluefox_camera_macro(
-      namespace = namespace,
+    {# bluefox reverse {--> #}
+    {{ components.bluefox_camera_reverse_macro(
       camera_name = "bluefox_optflow",
       parent_link = root,
-      frame_rate = 100.0,
-      hfov = 2.1,
-      noise = 0.0,
       x = 0.0,
       y = -0.0515,
       z = -0.038,
-      roll = 0,
-      pitch = math.radians(90),
-      yaw = 0)
+      mount = bluefox_mount,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
 
-    <!--}-->
+    {# <!--}--> #}
 
     {# Dual UV cameras {--> #}
     {% if enable_dual_uv_cameras %}

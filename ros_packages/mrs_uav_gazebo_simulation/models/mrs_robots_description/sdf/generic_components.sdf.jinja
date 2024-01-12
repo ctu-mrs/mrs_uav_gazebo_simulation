@@ -335,4 +335,284 @@
 {%- endmacro -%}
 {# <!--}--> #}
 
+    <!-- ========================== camera sensors ========================= -->
+
+{# camera_macro {--> #}
+{%- macro camera_macro(parent_link, camera_name, camera_frame_name, sensor_base_frame_name, frame_rate, parent_frame_name, horizontal_fov, image_width, image_height, min_distance, max_distance, noise_mean, noise_stddev, mesh_file, mesh_scale, color, visual_x, visual_y, visual_z, visual_roll, visual_pitch, visual_yaw, x, y, z, roll, pitch, yaw) -%}
+<link name="{{ camera_name }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  {{ visual_mesh_macro(
+    name = camera_name + "_visual",
+    mesh_file = mesh_file,
+    mesh_scale = mesh_scale,
+    color = color,
+    x = visual_x,
+    y = visual_y,
+    z = visual_z,
+    roll = visual_roll,
+    pitch = visual_pitch,
+    yaw = visual_yaw)
+  }}
+  <sensor name="{{ camera_name }}_sensor" type="camera">
+    <update_rate>{{ frame_rate }}</update_rate>
+    <camera>
+      <horizontal_fov>{{ horizontal_fov }}</horizontal_fov>
+      <image>
+        <width>{{ image_width }}</width>
+        <height>{{ image_height }}</height>
+      </image>
+      <clip>
+        <near>{{ min_distance }}</near>
+        <far>{{ max_distance }}</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <!-- Noise is sampled independently per pixel on each frame.
+        That pixel's noise value is added to each of its color
+        channels, which at that point lie in the range [0,1]. -->
+        <mean>{{ noise_mean }}</mean>
+        <stddev>{{ noise_stddev }}</stddev>
+      </noise>
+    </camera>
+    <plugin name="{{ camera_name }}_plugin" filename="libMrsGazeboCommonResources_CameraPlugin.so">
+      <alwaysOn>true</alwaysOn>
+      <updateRate>{{ frame_rate }}</updateRate>
+      <cameraName>{{ camera_name }}</cameraName>
+      <imageTopicName>image_raw</imageTopicName>
+      <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+      <frameName>/{{ camera_frame_name }}</frameName>
+      <hackBaseline>0.0</hackBaseline>
+      <distortionK1>0.0</distortionK1>
+      <distortionK2>0.0</distortionK2>
+      <distortionK3>0.0</distortionK3>
+      <distortionT1>0.0</distortionT1>
+      <distortionT2>0.0</distortionT2>
+      <parentFrameName>{{ parent_frame_name }}</parentFrameName>
+      <sensorBaseFrameName>{{ sensor_base_frame_name }}</sensorBaseFrameName>
+      <x>{{ x }}</x>
+      <y>{{ y }}</y>
+      <z>{{ z }}</z>
+      <roll>{{ roll }}</roll>
+      <pitch>{{ pitch }}</pitch>
+      <yaw>{{ yaw }}</yaw>
+    </plugin>
+  </sensor>
+</link>
+
+<joint name="{{ camera_name }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>{{ camera_name }}_link</child>
+</joint>
+
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# realsense_d435_macro {--> #}
+{%- macro realsense_d435_macro(namespace, camera_name, camera_suffix, parent_link, realistic, update_rate, x, y, z, roll, pitch, yaw) -%}
+  {# -- frame names -- #}
+  {%- set frame_fcu = namespace + "/fcu" -%}
+
+  <link name="{{ camera_name }}_link">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    {{ zero_inertial_macro() }}
+
+    <!-- visuals {-->
+    <visual name="body_visual">
+      <pose>0 0 0 {{ -math.radians(90) }} 0 {{ -math.radians(90) }}</pose>
+      <geometry>
+        <mesh>
+          <uri>model://mrs_robots_description/meshes/sensors/realsense_body.stl</uri>
+          <scale>0.001 0.001 0.001</scale>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <name>Gazebo/White</name>
+          <uri>file://media/materials/scripts/gazebo.material</uri>
+        </script>
+      </material>
+    </visual>
+    <visual name="glass_visual">
+      <pose>0 0 0 {{ -math.radians(90) }} 0 {{ -math.radians(90) }}</pose>
+      <geometry>
+        <mesh>
+          <uri>model://mrs_robots_description/meshes/sensors/realsense_glass.stl</uri>
+          <scale>0.001 0.001 0.001</scale>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <name>Gazebo/BlackTransparent</name>
+          <uri>file://media/materials/scripts/gazebo.material</uri>
+        </script>
+      </material>
+    </visual>
+    <!--}-->
+
+    <!-- sensors {-->
+
+    <!-- rgb camera {-->
+    <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_color" type="camera">
+      {# <pose>0 -0.046 0.004 0 0 0</pose> #}
+      <pose>0 0 -0.0115 0 0 0</pose>
+        <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_color">
+        {# <horizontal_fov>1.211259</horizontal_fov> #}
+        <horizontal_fov>1.211259</horizontal_fov>
+        <image>
+          <width>1280</width>
+          <height>720</height>
+          <format>RGB_INT8</format>
+        </image>
+        <clip>
+          <near>0.1</near>
+          <far>100</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.007</stddev>
+        </noise>
+      </camera>
+      <always_on>1</always_on>
+      <update_rate>{{ update_rate }}</update_rate>
+      <visualize>0</visualize>
+    </sensor>
+    <!--}-->
+
+    <!-- infra stereo {-->
+    <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_infra_stereo" type="multicamera">
+      <always_on>1</always_on>
+      <update_rate>{{ update_rate }}</update_rate>
+      <visualize>0</visualize>
+      <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_infra1">
+        {# <horizontal_fov>1.7523106</horizontal_fov> #}
+        <horizontal_fov>1.211259</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>360</height>
+          <format>L_INT8</format>
+        </image>
+        <clip>
+          <near>0.1</near>
+          <far>50</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.005</stddev>
+        </noise>
+      </camera>
+      <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_infra2">
+        <pose>0 0.05 0 0 0 0</pose>
+        {# <horizontal_fov>1.7523106</horizontal_fov> #}
+        <horizontal_fov>1.211259</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>360</height>
+          <format>L_INT8</format>
+        </image>
+        <clip>
+          <near>0.1</near>
+          <far>50</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.005</stddev>
+        </noise>
+      </camera>
+    </sensor>
+    <!--}-->
+
+    <!-- (unused) infra2 {-->
+      <!-- <sensor name="infra2" type="camera"> -->
+      <!-- <parent link="${camera_name}${camera_suffix}_camera_${camera_suffix}"/> -->
+      <!-- <pose>0 -1.0325 0 0 0 0</pose> -->
+      <!--   <pose frame="${camera_name}${camera_suffix}/camera_infra2">0 -1.0325 0 0 0 0</pose> -->
+      <!--   <camera name="${camera_name}${camera_suffix}/camera_${camera_suffix}_infra2"> -->
+        <!-- <horizontal_fov>1.7523106</horizontal_fov> -->
+        <!--     <horizontal_fov>1.211259</horizontal_fov> -->
+        <!--     <image> -->
+          <!--       <width>1280</width> -->
+          <!--       <height>720</height> -->
+          <!--       <format>L_INT8</format> -->
+          <!--     </image> -->
+        <!--     <clip> -->
+          <!--       <near>0.1</near> -->
+          <!--       <far>10</far> -->
+          <!--     </clip> -->
+        <!--     <noise> -->
+          <!--       <type>gaussian</type> -->
+          <!--       <mean>0.0</mean> -->
+          <!--       <stddev>0.05</stddev> -->
+          <!--     </noise> -->
+        <!--   </camera> -->
+      <!--   <always_on>1</always_on> -->
+        <!--   <update_rate> {{update_rate }}</update_rate> -->
+      <!--   <visualize>0</visualize> -->
+        <!-- </sensor> -->
+        <!--}-->
+
+    <!-- aligned depth to color {-->
+    <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_aligned_depth_to_color" type="depth">
+      <pose>0 -0.0115 0.0 0 0 0</pose>
+      <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_aligned_depth_to_color">
+        <horizontal_fov>1.211259</horizontal_fov>
+        <image>
+          {% if realistic %}
+            <width>320</width>
+            <height>180</height>
+          {% else %}
+            <width>1280</width>
+            <height>720</height>
+          {% endif %}
+        </image>
+        <clip>
+          <near>0.3</near>
+          <far>12</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>5000.0</stddev>
+        </noise>
+      </camera>
+      <always_on>1</always_on>
+      <update_rate>{{ update_rate }}</update_rate>
+      <visualize>0</visualize>
+    </sensor>
+    <!--}-->
+
+    <!--}-->
+
+  </link>
+
+  <plugin name="{{ camera_name }}{{ camera_suffix }}_plugin" filename="libMrsGazeboCommonResources_RealsensePlugin.so">
+    <camera_name>{{ camera_name }}</camera_name>
+    <camera_suffix>{{ camera_suffix }}</camera_suffix>
+    <useRealistic>{{ realistic }}</useRealistic>
+    <noisePerMeter>0.2</noisePerMeter>
+    <minNoiseDistance>4.0</minNoiseDistance>
+    <perlinEmptyThreshold>0.8</perlinEmptyThreshold>
+    <perlinEmptySpeed>0.2</perlinEmptySpeed>
+    <imageScaling>4</imageScaling>
+    <blurSize>15</blurSize>
+    <erosionSize>5</erosionSize>
+    <parentFrameName>{{ frame_fcu }}</parentFrameName>
+    <x>{{ x }}</x>
+    <y>{{ y }}</y>
+    <z>{{ z }}</z>
+    <roll>{{ roll }}</roll>
+    <pitch>{{ pitch }}</pitch>
+    <yaw>{{ yaw }}</yaw>
+  </plugin>
+
+  <joint name="{{ camera_name }}_joint" type="fixed">
+    <parent>{{ parent_link }}</parent>
+    <child>{{ camera_name }}_link</child>
+  </joint>
+{%- endmacro -%}
+<!--}-->
+
 </sdf>
