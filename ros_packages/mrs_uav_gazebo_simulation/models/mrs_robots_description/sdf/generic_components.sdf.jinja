@@ -615,4 +615,115 @@
 {%- endmacro -%}
 <!--}-->
 
+  <!-- ======================== UV leds and cameras ======================== -->
+
+{# uvcam_macro {--> #}
+{%- macro uvcam_macro(parent_link, calibration_file, occlusions, frame_rate, device_id, camera_publish_topic, x, y, z, roll, pitch, yaw) -%}
+<link name="uvcam_{{ device_id }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="visual">
+    <pose>0 0 0 {{ math.radians(90) }} 0 0</pose>
+    <geometry>
+      <mesh>
+        <uri>model://mrs_robots_description/meshes/sensors/bluefox.dae</uri>
+        <scale>1 1 1</scale>
+      </mesh>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Black</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <sensor name="uvcam_{{ device_id }}_sensor" type="rfid" >
+    <update_rate>1</update_rate>
+    <plugin name='uvcam_{{ device_id }}_plugin' filename="libuvdar_cam.so">
+      <alwaysOn>false</alwaysOn>
+      <updateRate>{{ frame_rate }}</updateRate>
+      <occlusion>{{ occlusions }}</occlusion>
+      <framerate>{{ frame_rate }}</framerate>
+      <calibration_file>{{ calibration_file }}</calibration_file>
+      <device_id>{{ device_id }}</device_id>
+      <camera_publish_topic>{{ camera_publish_topic }}</camera_publish_topic>
+    </plugin>
+  </sensor>
+</link>
+
+<joint name="uvcam_{{ device_id }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>uvcam_{{ device_id }}_link</child>
+</joint>
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# uvled_macro {--> #}
+{%- macro uvled_macro(parent_link, device_id, signal_id , x, y, z, roll, pitch, yaw) -%}
+<link name="uvled_{{ device_id }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <visual name="main_body_visual">
+    <pose>0 0 -0.0025 0 0 0</pose>
+    <geometry>
+      <cylinder>
+        <length>0.005</length>
+        <radius>0.007</radius>
+      </cylinder>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/DarkGrey</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <visual name="electrodes_visual">
+    <pose>0 0 -0.0025 0 0 0</pose>
+    <geometry>
+      <box>
+        <size>0.001 0.02 0.001</size>
+      </box>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/DarkGrey</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <visual name="lens_visual">
+    <pose>0 0 0 0 0 0</pose>
+    <geometry>
+      <sphere>
+        <radius>0.005</radius>
+      </sphere>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/BlueTransparent</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <sensor name="uvled_{{ device_id }}_sensor" type="rfid">
+    <update_rate>1</update_rate>
+    <plugin name='uvled_{{ device_id }}_plugin' filename="libuvdar_led.so">
+      <alwaysOn>false</alwaysOn>
+      <updateRate>1</updateRate>
+      <signal_id>{{ signal_id }}</signal_id>
+      <device_id>{{ device_id }}</device_id>
+    </plugin>
+  </sensor>
+</link>
+
+<joint name="uvled_{{ device_id }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>uvled_{{ device_id }}_link</child>
+  <disableFixedJointLumping>true</disableFixedJointLumping>
+  <preserveFixedJoint>true</preserveFixedJoint>
+</joint>
+{%- endmacro -%}
+{# <!--}--> #}
+
 </sdf>

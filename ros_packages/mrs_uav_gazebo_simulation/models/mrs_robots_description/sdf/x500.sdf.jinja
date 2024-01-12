@@ -444,7 +444,7 @@
 
       {# realsense mount {--> #}
       {%- set realsense_mount -%}
-        {{ components.visual_mesh_macro(
+        {{ generic.visual_link_macro(
           name = "realsense_mount",
           mesh_file = realsense_mount_mesh_file,
           mesh_scale = mesh_scale,
@@ -454,14 +454,15 @@
           z = 0,
           roll = 0,
           pitch = 0,
-          yaw = math.radians(90))
+          yaw = math.radians(90),
+          parent_link = root)
         }}
       {%- endset -%}
       {# <!--}--> #}
 
       {# bluefox mount {--> #}
       {%- set bluefox_mount -%}
-        {{ components.visual_mesh_macro(
+        {{ generic.visual_link_macro(
           name = "bluefox_mount",
           mesh_file = bluefox_mount_mesh_file,
           mesh_scale = mesh_scale_milimeters,
@@ -471,14 +472,15 @@
           z = 0,
           roll = 0,
           pitch = 0,
-          yaw = math.radians(90))
+          yaw = math.radians(90),
+          parent_link = root)
         }}
       {%- endset -%}
       {# <!--}--> #}
 
       {# uvdar mount {--> #}
       {%- set uvdar_mount -%}
-        {{ components.visual_mesh_macro(
+        {{ generic.visual_link_macro(
           name = "uvdar_mount",
           mesh_file = uvdar_mount_mesh,
           mesh_scale = mesh_scale_milimeters,
@@ -488,14 +490,15 @@
           z = 0.075,
           roll = 0,
           pitch = 0,
-          yaw = 0)
+          yaw = 0,
+          parent_link = root)
         }}
       {%- endset -%}
       {# <!--}--> #}
 
       {# Qorvo DW1000 mount {--> #}
       {%- set qorvo_dw1000_mount -%}
-        {{components.visual_mesh_macro(
+        {{ generic.visual_link_macro(
           name = "qorvo_dw1000_mount",
           mesh_file = qorvo_dw1000_mount_file,
           mesh_scale = mesh_scale_milimeters,
@@ -505,7 +508,8 @@
           z = -0.078,
           roll = 0,
           pitch = 0,
-          yaw = 0)
+          yaw = 0,
+          parent_link = root)
         }}
       {%- endset -%}
       {# <!--}--> #}
@@ -952,110 +956,56 @@
 
     {# <!--}--> #}
 
-    {# Dual UV cameras {--> #}
-    {% if enable_dual_uv_cameras %}
-    <!-- Dual UV cameras {-->
-    {{ components.uvcam_macro(
-      parent_link = root,
-      camera_publish_topic = "/" + namespace + "/uvdar_bluefox_left/image_raw",
-      calibration_file = uvcam_calib_file,
-      occlusions = uvcam_occlusions,
-      frame_rate = 60,
-      device_id = namespace + "_1",
-      x = 0.039,
-      y = 0.1175,
-      z = 0.089,
-      roll = 0,
-      pitch = 0,
-      yaw = math.radians(70))
-    }}
+    {# UV camera placements {--> #}
 
-    {{ components.uvcam_macro(
+    {# Dual UV cameras {--> #}
+    {{ components.dual_uv_cameras_macro(
       parent_link = root,
-      camera_publish_topic = "/" + namespace + "/uvdar_bluefox_right/image_raw",
-      calibration_file = uvcam_calib_file,
-      occlusions = uvcam_occlusions,
-      frame_rate = 60,
-      device_id =  namespace + "_2",
-      x = 0.039,
-      y = -0.1175,
-      z = 0.089,
-      roll = 0,
-      pitch = 0,
-      yaw = -math.radians(70))
+      x1 = 0.039,
+      y1 = 0.1175,
+      z1 = 0.089,
+      roll1 = 0,
+      pitch1 = 0,
+      yaw1 = math.radians(70),
+      x2 = 0.039,
+      y2 = -0.1175,
+      z2 = 0.089,
+      roll2 = 0,
+      pitch2 = 0,
+      yaw2 = -math.radians(70),
+      mount = uvdar_mount,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
-    {# Back UV cameras {--> #}
-    {% if enable_back_uv_camera %}
-    <!-- Back UV camera {-->
-    {{ components.uvcam_macro(
+    {# Back UV camera {--> #}
+    {{ components.back_uv_camera_macro(
       parent_link = root,
-      camera_publish_topic = "/" + namespace + "/uvdar_bluefox_back/image_raw",
-      calibration_file = uvcam_calib_file,
-      occlusions = uvcam_occlusions,
-      frame_rate = 60,
-      device_id =  namespace + "_3",
       x = -0.1,
       y = 0.0,
       z = 0.085,
       roll = math.radians(90),
       pitch = 0,
-      yaw = math.radians(180))
+      yaw = math.radians(180),
+      mount = none,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
+
     {# <!--}--> #}
 
     <!-- ========================== other sensors ========================= -->
 
     {# UV leds {--> #}
-    {% if enable_uv_leds %}
-    <!-- UV leds {-->
-
-    {% if uvled_s_l != "None" %}
-      {% set led1 = uvled_s_l %}
-      {% set led3 = uvled_s_l %}
-    {% else %}
-      {% set led1 = uvled_s[0] %}
-      {% set led3 = uvled_s[2] %}
-    {% endif %}
-
-    {% if uvled_s_r != "None" %}
-      {% set led2 = uvled_s_r %}
-      {% set led4 = uvled_s_r %}
-    {% else %}
-      {% set led2 = uvled_s[1] %}
-      {% set led4 = uvled_s[3] %}
-    {% endif %}
-
-    {# -- leds configuration -- (id, signal_id, x, y, z, roll, pitch, yaw) #}
-    {%- set uv_leds_macro_parameters = [(1, led1,  0.2017755,  0.1947045, 0.025, 0.0, math.radians(90),  0.0),
-                                        (2, led1,  0.1947045,  0.2017755, 0.025, 0.0, math.radians(90),  math.radians(90)),
-                                        (3, led2,  0.1947045, -0.2017755, 0.025, 0.0, math.radians(90), -math.radians(90)),
-                                        (4, led2,  0.2017755, -0.1947045, 0.025, 0.0, math.radians(90),  0.0),
-                                        (5, led3, -0.1947045,  0.2017755, 0.025, 0.0, math.radians(90),  math.radians(90)),
-                                        (6, led3, -0.2017755,  0.1947045, 0.025, 0.0, math.radians(90),  math.radians(180)),
-                                        (7, led4, -0.2017755, -0.1947045, 0.025, 0.0, math.radians(90), -math.radians(180)),
-                                        (8, led4, -0.1947045, -0.2017755, 0.025, 0.0, math.radians(90), -math.radians(90))] -%}
-
-    {% for id_, signal_id_, x_, y_, z_, roll_, pitch_, yaw_ in uv_leds_macro_parameters %}
-      {{ components.uvled_macro(
-        parent_link = root,
-        device_id = namespace + "_" + id_ | string(),
-        signal_id = signal_id_,
-        x = x_,
-        y = y_,
-        z = z_,
-        roll = roll_,
-        pitch = pitch_,
-        yaw = yaw_)
-      }}
-    {% endfor %}
-    <!--}-->
-    {% endif %}
+    {{ components.uv_leds_macro(
+      parent_link = root,
+      x1 = 0.2017755,
+      x2 = 0.1947045,
+      y1 = 0.1947045,
+      y2 = 0.2017755,
+      z = 0.025,
+      spawner_args = spawner_args)
+    }}
     {# <!--}--> #}
 
     {# UV leds beacon {--> #}
@@ -1101,7 +1051,6 @@
     <!--}-->
     {% endif %}
     {# <!--}--> #}
-
 
   </model>
 </sdf>

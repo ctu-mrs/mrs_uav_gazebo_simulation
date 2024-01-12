@@ -1381,47 +1381,6 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-<!-- Macro to add a UV Camera {-->
-{%- macro uvcam_macro(parent_link, calibration_file, occlusions, frame_rate, device_id, camera_publish_topic, x, y, z, roll, pitch, yaw) -%}
-<link name="uvcam_{{ device_id }}_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="visual">
-    <pose>0 0 0 {{ math.radians(90) }} 0 0</pose>
-    <geometry>
-      <mesh>
-        <uri>model://mrs_robots_description/meshes/sensors/bluefox.dae</uri>
-        <scale>1 1 1</scale>
-      </mesh>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Black</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <sensor name="uvcam_{{ device_id }}_sensor" type="rfid" >
-    <update_rate>1</update_rate>
-    <plugin name='uvcam_{{ device_id }}_plugin' filename="libuvdar_cam.so">
-      <alwaysOn>false</alwaysOn>
-      <updateRate>{{ frame_rate }}</updateRate>
-      <occlusion>{{ occlusions }}</occlusion>
-      <framerate>{{ frame_rate }}</framerate>
-      <calibration_file>{{ calibration_file }}</calibration_file>
-      <device_id>{{ device_id }}</device_id>
-      <camera_publish_topic>{{ camera_publish_topic }}</camera_publish_topic>
-    </plugin>
-  </sensor>
-</link>
-
-<joint name="uvcam_{{ device_id }}_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>uvcam_{{ device_id }}_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
-
 <!-- Macro to add a camera mounted on virtual servo {-->
 {%- macro servo_camera_macro(parent, offset_pitch_link_x, offset_pitch_link_y, offset_pitch_link_z, offset_pitch_link_yaw, offset_pitch_link_roll, offset_pitch_link_pitch, offset_roll_link_x, offset_roll_link_y, offset_roll_link_z, offset_roll_link_yaw, offset_roll_link_roll, offset_roll_link_pitch, tilt_update_rate, max_pitch, min_pitch, max_pitch_rate, max_roll, min_roll, max_roll_rate, compensate_tilt_roll, compensate_tilt_pitch, parent_frame_name, sensor_base_frame_name, camera_frame_name, camera_update_rate, horizontal_fov, img_width, img_height, roll_link_mesh_file, pitch_link_mesh_file, mesh_scale) -%}
 
@@ -2059,73 +2018,6 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-<!-- Macro to add a UV LED{-->
-{%- macro uvled_macro(parent_link, device_id, signal_id , x, y, z, roll, pitch, yaw) -%}
-<link name="uvled_{{ device_id }}_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="main_body_visual">
-    <pose>0 0 -0.0025 0 0 0</pose>
-    <geometry>
-      <cylinder>
-        <length>0.005</length>
-        <radius>0.007</radius>
-      </cylinder>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/DarkGrey</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <visual name="electrodes_visual">
-    <pose>0 0 -0.0025 0 0 0</pose>
-    <geometry>
-      <box>
-        <size>0.001 0.02 0.001</size>
-      </box>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/DarkGrey</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <visual name="lens_visual">
-    <pose>0 0 0 0 0 0</pose>
-    <geometry>
-      <sphere>
-        <radius>0.005</radius>
-      </sphere>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/BlueTransparent</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <sensor name="uvled_{{ device_id }}_sensor" type="rfid">
-    <update_rate>1</update_rate>
-    <plugin name='uvled_{{ device_id }}_plugin' filename="libuvdar_led.so">
-      <alwaysOn>false</alwaysOn>
-      <updateRate>1</updateRate>
-      <signal_id>{{ signal_id }}</signal_id>
-      <device_id>{{ device_id }}</device_id>
-    </plugin>
-  </sensor>
-</link>
-
-<joint name="uvled_{{ device_id }}_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>uvled_{{ device_id }}_link</child>
-  <disableFixedJointLumping>true</disableFixedJointLumping>
-  <preserveFixedJoint>true</preserveFixedJoint>
-</joint>
-{%- endmacro -%}
-<!--}-->
 
 <!-- ================================================================== -->
 <!-- ||         other equipment definitions (holders, boxes ...)     || -->
@@ -3009,6 +2901,158 @@ limitations under the License.
     <!--}-->
 
     <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# dual_uv_cameras_macro {--> #}
+{%- macro dual_uv_cameras_macro(parent_link, x1, y1, z1, roll1, pitch1, yaw1, x2, y2, z2, roll2, pitch2, yaw2, mount, spawner_args) -%}
+
+  {% set spawner_keyword = 'enable-dual-uv-cameras' %}
+  {% set spawner_description = 'Add right and left UV cameras on the vehicle. Requires param "calib_file" to be set' %}
+  {% set spawner_default_args = {'occlusions': False, 'calib_file': none, 'update_rate': 60} %}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    {%- if spawner_args[spawner_keyword]['calib_file'] is not none -%}
+      <!-- Dual UV cameras {-->
+      {{ generic.uvcam_macro(
+        parent_link = parent_link,
+        camera_publish_topic = "/" + spawner_args['name'] + "/uvdar_bluefox_left/image_raw",
+        calibration_file = spawner_args[spawner_keyword]['calib_file'],
+        occlusions = spawner_args[spawner_keyword]['occlusions'],
+        frame_rate = spawner_args[spawner_keyword]['update_rate'],
+        device_id = spawner_args['name'] + "_1",
+        x = x1,
+        y = y1,
+        z = z1,
+        roll = roll1,
+        pitch = pitch1,
+        yaw = yaw1)
+      }}
+
+      {{ generic.uvcam_macro(
+        parent_link = parent_link,
+        camera_publish_topic = "/" + spawner_args['name'] + "/uvdar_bluefox_right/image_raw",
+        calibration_file = spawner_args[spawner_keyword]['calib_file'],
+        occlusions = spawner_args[spawner_keyword]['occlusions'],
+        frame_rate = spawner_args[spawner_keyword]['update_rate'],
+        device_id = spawner_args['name'] + "_2",
+        x = x2,
+        y = y2,
+        z = z2,
+        roll = roll2,
+        pitch = pitch2,
+        yaw = yaw2)
+      }}
+
+      <!-- mount {-->
+      {{ mount }}
+      <!--}-->
+
+      <!--}-->
+    {%- endif -%}
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# back_uv_camera_macro {--> #}
+{%- macro back_uv_camera_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {% set spawner_keyword = 'enable-back-uv-camera' %}
+  {% set spawner_description = 'Add a back UV camera on the vehicle. Requires param "calib_file" to be set' %}
+  {% set spawner_default_args = {'occlusions': False, 'calib_file': none, 'update_rate': 60} %}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Back UV camera {-->
+    {{ generic.uvcam_macro(
+      parent_link = parent_link,
+      camera_publish_topic = "/" + spawner_args['name'] + "/uvdar_bluefox_back/image_raw",
+      calibration_file = spawner_args[spawner_keyword]['calib_file'],
+      occlusions = spawner_args[spawner_keyword]['occlusions'],
+      frame_rate = spawner_args[spawner_keyword]['update_rate'],
+      device_id = spawner_args['name'] + "_3",
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# uv_leds_macro {--> #}
+{%- macro uv_leds_macro(parent_link, x1, x2, y1, y2, z, spawner_args) -%}
+
+  {% set spawner_keyword = 'enable-uv-leds' %}
+  {% set spawner_description = 'Add UV LEDs to the vehicle. Requires param "signal_id" to be set. Legacy params "left_id" and "right_id" available for backwards compatibility' %}
+  {% set spawner_default_args = {'signal_id': none, 'left_id': none, 'right_id': none} %}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+
+    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    {%- if spawner_args[spawner_keyword]['signal_id'] is not none or
+  (spawner_args[spawner_keyword]['left_id'] is not none and spawner_args[spawner_keyword]['right_id'] is not none) -%}
+
+      {# setup signal params {--> #}
+      {% if spawner_args[spawner_keyword]['left_id'] is none %}
+        {% set led1 = spawner_args[spawner_keyword]['left_id'] %}
+        {% set led3 = spawner_args[spawner_keyword]['left_id'] %}
+      {% else %}
+        {% set led1 = spawner_args[spawner_keyword]['signal_id'][0] %}
+        {% set led3 = spawner_args[spawner_keyword]['signal_id'][2] %}
+      {% endif %}
+
+      {% if spawner_args[spawner_keyword]['left_id'] is none %}
+        {% set led2 = spawner_args[spawner_keyword]['right_id'] %}
+        {% set led4 = spawner_args[spawner_keyword]['right_id'] %}
+      {% else %}
+        {% set led2 = spawner_args[spawner_keyword]['signal_id'][1] %}
+        {% set led4 = spawner_args[spawner_keyword]['signal_id'][3] %}
+      {% endif %}
+
+      {# -- leds configuration -- (id, signal_id, x, y, z, roll, pitch, yaw) #}
+      {%- set uv_leds_macro_parameters = [(1, led1,  x1,  y1, z, 0.0, math.radians(90),  0.0),
+                                          (2, led1,  x2,  y2, z, 0.0, math.radians(90),  math.radians(90)),
+                                          (3, led2,  x2, -y2, z, 0.0, math.radians(90), -math.radians(90)),
+                                          (4, led2,  x1, -y1, z, 0.0, math.radians(90),  0.0),
+                                          (5, led3, -x2,  y2, z, 0.0, math.radians(90),  math.radians(90)),
+                                          (6, led3, -x1,  y1, z, 0.0, math.radians(90),  math.radians(180)),
+                                          (7, led4, -x1, -y1, z, 0.0, math.radians(90), -math.radians(180)),
+                                          (8, led4, -x2, -y2, z, 0.0, math.radians(90), -math.radians(90))] -%}
+
+      {# <!--}--> #}
+
+      {% for id_, signal_id_, x_, y_, z_, roll_, pitch_, yaw_ in uv_leds_macro_parameters %}
+        {{ generic.uvled_macro(
+          parent_link = parent_link,
+          device_id = spawner_args['name'] + "_" + id_ | string(),
+          signal_id = signal_id_,
+          x = x_,
+          y = y_,
+          z = z_,
+          roll = roll_,
+          pitch = pitch_,
+          yaw = yaw_)
+        }}
+      {% endfor %}
+
+    {%- endif -%}
 
   {%- endif -%}
 {%- endmacro -%}
