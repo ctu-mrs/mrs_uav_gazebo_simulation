@@ -2999,32 +2999,32 @@ limitations under the License.
 {%- macro uv_leds_macro(parent_link, x1, x2, y1, y2, z, spawner_args) -%}
 
   {% set spawner_keyword = 'enable-uv-leds' %}
-  {% set spawner_description = 'Add UV LEDs to the vehicle. Requires param "signal_id" to be set. Legacy params "left_id" and "right_id" available for backwards compatibility' %}
+  {% set spawner_description = 'Add UV LEDs to the vehicle. Requires param "signal_id" to be set. Legacy params "left_id" and "right_id" may replace "signal_id" (for backwards compatibility)' %}
   {% set spawner_default_args = {'signal_id': none, 'left_id': none, 'right_id': none} %}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
 
     {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
-    {%- if spawner_args[spawner_keyword]['signal_id'] is not none or
-  (spawner_args[spawner_keyword]['left_id'] is not none and spawner_args[spawner_keyword]['right_id'] is not none) -%}
+    {# setup led signals {--> #}
+    {%- if spawner_args[spawner_keyword]['signal_id'] is not none and spawner_args[spawner_keyword]['signal_id'] | length > 3 -%}
 
-      {# setup signal params {--> #}
-      {% if spawner_args[spawner_keyword]['left_id'] is none %}
-        {% set led1 = spawner_args[spawner_keyword]['left_id'] %}
-        {% set led3 = spawner_args[spawner_keyword]['left_id'] %}
-      {% else %}
-        {% set led1 = spawner_args[spawner_keyword]['signal_id'][0] %}
-        {% set led3 = spawner_args[spawner_keyword]['signal_id'][2] %}
-      {% endif %}
+      {% set led1 = spawner_args[spawner_keyword]['signal_id'][0] %}
+      {% set led2 = spawner_args[spawner_keyword]['signal_id'][1] %}
+      {% set led4 = spawner_args[spawner_keyword]['signal_id'][3] %}
+      {% set led3 = spawner_args[spawner_keyword]['signal_id'][2] %}
 
-      {% if spawner_args[spawner_keyword]['left_id'] is none %}
-        {% set led2 = spawner_args[spawner_keyword]['right_id'] %}
-        {% set led4 = spawner_args[spawner_keyword]['right_id'] %}
-      {% else %}
-        {% set led2 = spawner_args[spawner_keyword]['signal_id'][1] %}
-        {% set led4 = spawner_args[spawner_keyword]['signal_id'][3] %}
-      {% endif %}
+    {%- elif spawner_args[spawner_keyword]['left_id'] is not none and spawner_args[spawner_keyword]['right_id'] is not none -%}
+
+      {% set led1 = spawner_args[spawner_keyword]['left_id'] %}
+      {% set led2 = spawner_args[spawner_keyword]['right_id'] %}
+      {% set led3 = spawner_args[spawner_keyword]['left_id'] %}
+      {% set led4 = spawner_args[spawner_keyword]['right_id'] %}
+
+    {%- endif -%}
+    {# <!--}--> #}
+
+    {%- if led1 is not none and led2 is not none and led3 is not none and led4 is not none -%}
 
       {# -- leds configuration -- (id, signal_id, x, y, z, roll, pitch, yaw) #}
       {%- set uv_leds_macro_parameters = [(1, led1,  x1,  y1, z, 0.0, math.radians(90),  0.0),
@@ -3036,9 +3036,8 @@ limitations under the License.
                                           (7, led4, -x1, -y1, z, 0.0, math.radians(90), -math.radians(180)),
                                           (8, led4, -x2, -y2, z, 0.0, math.radians(90), -math.radians(90))] -%}
 
-      {# <!--}--> #}
-
       {% for id_, signal_id_, x_, y_, z_, roll_, pitch_, yaw_ in uv_leds_macro_parameters %}
+        <!-- LED {{ id_ }} {-->
         {{ generic.uvled_macro(
           parent_link = parent_link,
           device_id = spawner_args['name'] + "_" + id_ | string(),
@@ -3050,7 +3049,102 @@ limitations under the License.
           pitch = pitch_,
           yaw = yaw_)
         }}
+        <!--}-->
       {% endfor %}
+
+    {%- endif -%}
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# uv_leds_beacon_macro {--> #}
+{%- macro uv_leds_beacon_macro(parent_link, x1, x2, y1, y2, z, spawner_args) -%}
+
+  {% set spawner_keyword = 'enable-uv-leds-beacon' %}
+  {% set spawner_description = 'Add UV LED beacon to the top of the vehicle. Requires param "signal_id" to be set.' %}
+  {% set spawner_default_args = {'signal_id': none} %}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+
+    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    {%- if spawner_args[spawner_keyword]['signal_id'] is not none -%}
+
+      {# setup led signals {--> #}
+      {# -- leds configuration -- (id, signal_id, x, y, z, roll, pitch, yaw) #}
+      {%- set uv_leds_macro_parameters = [("b1", spawner_args[spawner_keyword]['signal_id'],  x1, y1, z, 0.0, math.radians(90), 0.0),
+                                        ("b2", spawner_args[spawner_keyword]['signal_id'],  x2, y2, z, 0.0, math.radians(90), math.radians(90)),
+                                        ("b3", spawner_args[spawner_keyword]['signal_id'], -x1, -y1, z, 0.0, math.radians(90), math.radians(180)),
+                                        ("b4", spawner_args[spawner_keyword]['signal_id'], -x2, -y2, z, 0.0, math.radians(90), math.radians(270))] -%}
+
+      {# <!--}--> #}
+
+      {% for id_, signal_id_, x_, y_, z_, roll_, pitch_, yaw_ in uv_leds_macro_parameters %}
+        <!-- Beacon LED {{ id_ }} {-->
+        {{ generic.uvled_macro(
+          parent_link = parent_link,
+          device_id = spawner_args['name'] + "_" + id_ | string(),
+          signal_id = signal_id_,
+          x = x_,
+          y = y_,
+          z = z_,
+          roll = roll_,
+          pitch = pitch_,
+          yaw = yaw_)
+        }}
+        <!--}-->
+      {% endfor %}
+
+    {%- endif -%}
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# uwb_range_macro {--> #}
+{%- macro uwb_range_macro(parent_link, x, y, z, roll, pitch, yaw, spawner_args) -%}
+
+  {% set spawner_keyword = 'enable-uwb-range' %}
+  {% set spawner_description = 'Add Qorvo DW1000 UWB transceiver. Requires param "signal_id" to be set.' %}
+  {% set spawner_default_args = {'signal_id': none, 'update_rate': 10} %}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+
+    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    {%- if spawner_args[spawner_keyword]['signal_id'] is not none -%}
+
+      <!-- Qorvo DW1000 UWB {-->
+      <link name="uwb_range_link">
+        <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+        {{ generic.zero_inertial_macro() }}
+        <sensor name="uwb_range_sensor" type="wireless_transmitter">
+          <update_rate>{{ spawner_args[spawner_keyword]['update_rate'] }}</update_rate>
+          <always_on>1</always_on>
+          <plugin name="uwb_range_plugin" filename="libuwb_range.so">
+            <uwb_id>{{ spawner_args[spawner_keyword]['signal_id'] }}</uwb_id>
+            <publish_topic>/{{ spawner_args['name'] }}/uwb_range/range</publish_topic>
+            <frame_name>{{ spawner_args['name'] }}/uwb</frame_name>
+            <sensitivity>-150</sensitivity>
+            <stddev>0.1</stddev>
+          </plugin>
+          <transceiver>
+            <frequency>6489.6</frequency>
+            <min_frequency>6240.0</min_frequency>
+            <max_frequency>6739.2</max_frequency>
+            <power>14.5</power>
+            <gain>2.5</gain>
+          </transceiver>
+        </sensor>
+      </link>
+      <joint name="uwb_range_joint" type="fixed">
+        <parent>{{ parent_link }}</parent>
+        <child>uwb_range_link</child>
+        <disableFixedJointLumping>true</disableFixedJointLumping>
+        <preserveFixedJoint>true</preserveFixedJoint>
+      </joint>
+      <!--}-->
 
     {%- endif -%}
 

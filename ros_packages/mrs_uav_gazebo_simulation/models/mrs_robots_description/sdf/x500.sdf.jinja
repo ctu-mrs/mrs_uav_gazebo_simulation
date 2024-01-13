@@ -113,9 +113,9 @@
 
   <model name="{{ name }}">
 
-    <!-- ================================================================== -->
-    <!-- ||                    bare body definitions                     || -->
-    <!-- ================================================================== -->
+  {# ================================================================== #}
+  {# ||                    bare body definitions                     || #}
+  {# ================================================================== #}
 
     <link name="{{ root }}">
 
@@ -717,9 +717,9 @@
     }}
     <!--}-->
 
-    <!-- ================================================================== -->
-    <!-- ||                compulsory sensor definitions                 || -->
-    <!-- ================================================================== -->
+    {# ================================================================== #}
+    {# ||                compulsory sensor definitions                 || #}
+    {# ================================================================== #}
 
     <!-- pixhawk {-->
     {%- set imu_topic = "/imu" -%}
@@ -809,9 +809,9 @@
 
     <!--}-->
 
-    <!-- ================================================================== -->
-    <!-- ||                  optional sensor definitions                 || -->
-    <!-- ================================================================== -->
+    {# ================================================================== #}
+    {# ||                  optional sensor definitions                 || #}
+    {# ================================================================== #}
 
     {# Ground truth {--> #}
     {{ components.ground_truth_macro(
@@ -826,7 +826,7 @@
     }}
     {# <!--}--> #}
 
-    <!-- ======================= rangefinder sensors ======================-->
+    {# ======================= rangefinder sensors ====================== #}
 
     {# Garmin down {--> #}
     {{ components.garmin_down_macro(
@@ -842,7 +842,7 @@
     }}
     {# <!--}--> #}
 
-    <!-- ========================== LIDAR sensors ========================= -->
+    {# ========================== LIDAR sensors ========================= #}
 
     {# Rplidar {--> #}
     {{ components.rplidar_macro(
@@ -874,7 +874,7 @@
     }}
     {# <!--}--> #}
 
-    <!-- ========================== camera sensors ========================= -->
+    {# ========================== camera sensors ======================== #}
 
     {# Realsense placements {--> #}
 
@@ -994,7 +994,7 @@
 
     {# <!--}--> #}
 
-    <!-- ========================== other sensors ========================= -->
+    {# ========================== other sensors ========================= #}
 
     {# UV leds {--> #}
     {{ components.uv_leds_macro(
@@ -1009,47 +1009,28 @@
     {# <!--}--> #}
 
     {# UV leds beacon {--> #}
-    {% if enable_uv_leds_beacon %}
-    <!-- UV led beacon {-->
-    {# -- leds configuration -- (id, signal_id, x, y, z, roll, pitch, yaw) #}
-    {%- set uv_leds_macro_parameters = [("b1", uvled_beacon_s,  0.01, 0.0,  0.125, 0.0, math.radians(90), 0.0),
-                                        ("b2", uvled_beacon_s,  0.0,  0.01, 0.125, 0.0, math.radians(90), math.radians(90)),
-                                        ("b3", uvled_beacon_s, -0.01, 0.0,  0.125, 0.0, math.radians(90), math.radians(180)),
-                                        ("b4", uvled_beacon_s,  0.0, -0.01, 0.125, 0.0, math.radians(90), math.radians(270))] -%}
-
-    {% for id_, signal_id_, x_, y_, z_, roll_, pitch_, yaw_ in uv_leds_macro_parameters %}
-      {{ components.uvled_macro(
-        parent_link = root,
-        device_id = namespace + "_" + id_ | string(),
-        signal_id = signal_id_,
-        x = x_,
-        y = y_,
-        z = z_,
-        roll = roll_,
-        pitch = pitch_,
-        yaw = yaw_)
-      }}
-    {% endfor %}
-    <!--}-->
-    {% endif %}
+    {{ components.uv_leds_beacon_macro(
+      parent_link = root,
+      x1 = 0.01,
+      x2 = 0.0,
+      y1 = 0.0,
+      y2 = 0.01,
+      z = 0.125,
+      spawner_args = spawner_args)
+    }}
     {# <!--}--> #}
 
     {# Qorvo UWB {--> #}
-    {% if enable_qorvo_dw1000 %}
-    <!-- Qorvo DW1000 {-->
-        {{ components.uwb_range_macro(
-            parent_link = root,
-            uwb_id = uwb_id,
-            uav_name = namespace,
-            x = 0.0,
-            y = 0.08,
-            z = -0.10,
-            roll = 0.0,
-            pitch = 0.0,
-            yaw = 0.0)
+    {{ components.uwb_range_macro(
+        parent_link = root,
+        x = 0.0,
+        y = 0.08,
+        z = -0.10,
+        roll = 0.0,
+        pitch = 0.0,
+        yaw = 0.0,
+        spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
   </model>
