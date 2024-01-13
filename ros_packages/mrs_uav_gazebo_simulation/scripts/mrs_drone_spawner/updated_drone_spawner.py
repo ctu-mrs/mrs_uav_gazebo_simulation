@@ -352,7 +352,7 @@ class MrsDroneSpawner:
         Renders a jinja template into a sdf, creates a formatted xml
         Input has to specify the template name in spawner_args["model"]
         :param spawner_args: a dict to be passed into the template as variables, format {component_name (string): args (list or dict)}
-        :return: content of the xml file as a string
+        :return: content of the xml file as a string or None
         '''
 
         params = {
@@ -444,15 +444,16 @@ class MrsDroneSpawner:
                 del input_dict[k]
                 break
 
-        if '--help' in substrings:
-            input_dict['help'] = True
-            return input_dict
 
         valid_ids = []
 
         for ID in input_dict['ids']:
             if not isinstance(ID, int):
-                rospy.logwarn(f'[MrsDroneSpawner]: Ignored ID {ID}: Not an integer')
+                if ID in self.jinja_templates.keys() and input_dict['model'] is None:
+                    rospy.loginfo(f'[MrsDroneSpawner]: Using {ID} as model template')
+                    input_dict['model'] = ID
+                else:
+                    rospy.logwarn(f'[MrsDroneSpawner]: Ignored ID {ID}: Not an integer')
                 continue
             if ID < 0 or ID > 255:
                 rospy.logwarn(f'[MrsDroneSpawner]: Ignored ID {ID}: Must be in range(0, 256)')
@@ -463,6 +464,10 @@ class MrsDroneSpawner:
             valid_ids.append(ID)
 
         input_dict['ids'].clear()
+
+        if '--help' in substrings:
+            input_dict['help'] = True
+            return input_dict
 
         if len(valid_ids) > 0:
             rospy.loginfo(f'[MrsDroneSpawner]: Valid robot IDs: {valid_ids}')
@@ -476,6 +481,8 @@ class MrsDroneSpawner:
                 input_dict['spawn_poses'] = self.get_spawn_poses_from_args(input_dict['pos'], input_dict['ids'])
             except (WrongNumberOfArguments, ValueError) as err:
                 rospy.logerr(f'[MrsDroneSpawner]: While parsing args for "--pos": {err}')
+                rospy.logwarn(f'[MrsDroneSpawner]: Assigning random spawn poses instead')
+                input_dict['spawn_poses'] = self.get_randomized_spawn_poses(input_dict['ids'])
             finally:
                 del input_dict['pos']
 
@@ -484,6 +491,8 @@ class MrsDroneSpawner:
                 input_dict['spawn_poses'] = self.get_spawn_poses_from_file(input_dict['pos_file'][0], input_dict['ids'])
             except (FileNotFoundError, SuffixError, FormattingError, WrongNumberOfArguments, ValueError) as err:
                 rospy.logerr(f'[MrsDroneSpawner]: While parsing args for "--pos_file": {err}')
+                rospy.logwarn(f'[MrsDroneSpawner]: Assigning random spawn poses instead')
+                input_dict['spawn_poses'] = self.get_randomized_spawn_poses(input_dict['ids'])
             finally:
                 del input_dict['pos_file']
 
@@ -643,9 +652,7 @@ class MrsDroneSpawner:
             return res
         # #}
 
-        print('#######################')
-        print(params_dict)
-        print('#######################')
+        rospy.loginfo(f'[MrsDroneSpawner]: Spawner params assigned "{params_dict}"')
 
         # #{ check gazebo running
         try:
@@ -1008,8 +1015,11 @@ class MrsDroneSpawner:
         name = robot_params['name']
         sdf_content = self.render(robot_params)
 
+        if sdf_content is None:
+            return False
+
         if self.save_sdf_files:
-            fd, filepath = tempfile.mkstemp(prefix='mrs_drone_spawner_', suffix='_' + str(robot_params['model']) + '_' + str(name) + '.sdf')
+            fd, filepath = tempfile.mkstemp(prefix='mrs_drone_spawner_' + datetime.datetime.now().strftime("%Y_%m_%d__%H_%M_%S_"), suffix='_' + str(robot_params['model']) + '_' + str(name) + '.sdf')
             with os.fdopen(fd, 'w') as output_file:
                 output_file.write(sdf_content)
                 rospy.loginfo(f'[MrsDroneSpawner]: Model for {name} written to {filepath}')
