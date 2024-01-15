@@ -2,7 +2,7 @@
 <sdf version="1.6">
 
   {%- import "component_snippets.sdf.jinja" as components -%}
-  {% import "generic_components.sdf.jinja" as generic %}
+  {%- import "generic_components.sdf.jinja" as generic -%}
 
   {# ================================================================== #}
   {# ||                    parameters definition                     || #}
@@ -19,13 +19,12 @@
   {%- set rotor_xy_offset = 0.1812 -%} {# [m] #}
   {%- set rotor_z_offset = 0.057 -%} {# [m] #}
 
-  {%- set use_battery_mount = true -%} {# [bool] #}
   {%- set root = "base_link" -%}
 
   {%- set enable_motor_crash = true -%}
-  {% if disable_motor_crash %}
+  {%- if disable_motor_crash -%}
     {%- set enable_motor_crash = false -%}
-  {% endif %}
+  {%- endif -%}
 
   {# <!--}--> #}
 
@@ -137,7 +136,7 @@
       <!-- Body visuals {-->
 
       <!-- Boards {-->
-      {{ components.visual_mesh_textured_macro(
+      {{ generic.visual_mesh_textured_macro(
         name = "top_board",
         mesh_file = top_board_mesh_file,
         mesh_scale = mesh_scale,
@@ -149,7 +148,7 @@
         yaw = math.radians(90))
       }}
 
-      {{ components.visual_mesh_textured_macro(
+      {{ generic.visual_mesh_textured_macro(
         name = "bottom_board",
         mesh_file = bottom_board_mesh_file,
         mesh_scale = mesh_scale,
@@ -163,23 +162,23 @@
       <!--}-->
 
       <!-- Arms and legs {-->
-      {% for id in range(0, 4) %}
+      {%- for id in range(0, 4) -%}
 
         {%- set affix = "front_right" -%}
         {%- set print_color = "Black" -%}
-        {% if id == 1 %}
+        {%- if id == 1 -%}
           {%- set affix = "front_left" -%}
-        {% endif %}
-        {% if id == 2 %}
+        {%- endif -%}
+        {%- if id == 2 -%}
           {%- set affix = "back_left" -%}
           {%- set print_color = "Red" -%}
-        {% endif %}
-        {% if id == 3 %}
+        {%- endif -%}
+        {%- if id == 3 -%}
           {%- set affix = "back_right" -%}
           {%- set print_color = "Red" -%}
-        {% endif %}
+        {%- endif -%}
 
-        {{ components.visual_mesh_textured_macro(
+        {{ generic.visual_mesh_textured_macro(
           name = "arm_carbon_" + affix,
           mesh_file = arm_carbon_mesh_file,
           mesh_scale = mesh_scale,
@@ -191,7 +190,7 @@
           yaw = id * 1.57079633)
         }}
 
-        {{ components.visual_mesh_mrs_material_macro(
+        {{ generic.visual_mesh_mrs_material_macro(
           name = "arm_plastic1_" + affix,
           mesh_file = arm_plastic1_mesh_file,
           mesh_scale = mesh_scale,
@@ -204,7 +203,7 @@
           yaw = id * 1.57079633)
         }}
 
-        {{ components.visual_mesh_mrs_material_macro(
+        {{ generic.visual_mesh_mrs_material_macro(
           name = "arm_plastic2_" + affix,
           mesh_file = arm_plastic2_mesh_file,
           mesh_scale = mesh_scale,
@@ -217,7 +216,7 @@
           yaw = id * 1.57079633)
         }}
 
-        {{ components.visual_mesh_macro(
+        {{ generic.visual_mesh_macro(
           name = "arm_3d_print_" + affix,
           mesh_file = arm_3d_print_mesh_file,
           mesh_scale = mesh_scale,
@@ -230,7 +229,7 @@
           yaw = id * 1.57079633)
         }}
 
-      {% endfor %}
+      {%- endfor -%}
 
       {{ components.leg_offset_macro(
         name = "leg_3d_print_front_right",
@@ -307,7 +306,7 @@
       <!--}-->
 
       <!-- intel nuc {-->
-      {{ components.visual_mesh_macro(
+      {{ generic.visual_mesh_macro(
         name = "nuc_board",
         mesh_file = nuc_board_mesh_file,
         mesh_scale = mesh_scale,
@@ -319,7 +318,7 @@
         pitch = 0,
         yaw = math.radians(90))
       }}
-      {{ components.visual_mesh_macro(
+      {{ generic.visual_mesh_macro(
         name = "nuc_cooler",
         mesh_file = nuc_cooler_mesh_file,
         mesh_scale = mesh_scale,
@@ -331,7 +330,7 @@
         pitch = 0,
         yaw = math.radians(90))
       }}
-      {{ components.visual_mesh_macro(
+      {{ generic.visual_mesh_macro(
         name = "nuc_hex_posts",
         mesh_file = nuc_hex_posts_mesh_file,
         mesh_scale = mesh_scale,
@@ -346,7 +345,7 @@
       <!--}-->
 
       <!-- pixhawk {-->
-      {{ components.visual_mesh_macro(
+      {{ generic.visual_mesh_macro(
         name = "pixhawk6c",
         mesh_file = pixhawk6c_mesh_file,
         mesh_scale = mesh_scale,
@@ -363,19 +362,19 @@
       <!-- motors {-->
       {%- set affix = "front_right" -%}
 
-      {% for id in range(0, 4) %}
+      {%- for id in range(0, 4) -%}
 
-        {% if id == 1 %}
+        {%- if id == 1 -%}
           {%- set affix = "front_left" -%}
-        {% endif %}
-        {% if id == 2 %}
+        {%- endif -%}
+        {%- if id == 2 -%}
           {%- set affix = "back_left" -%}
-        {% endif %}
-        {% if id == 3 %}
+        {%- endif -%}
+        {%- if id == 3 -%}
           {%- set affix = "back_right" -%}
-        {% endif %}
+        {%- endif -%}
 
-        {{ components.visual_mesh_macro(
+        {{ generic.visual_mesh_macro(
           name = "motor_bottom_" + affix,
           mesh_file = motor_bottom_mesh_file,
           mesh_scale = mesh_scale,
@@ -388,7 +387,7 @@
           yaw = id * 1.57079633)
         }}
 
-        {{ components.visual_mesh_macro(
+        {{ generic.visual_mesh_macro(
           name = "motor_middle_" + affix,
           mesh_file = motor_middle_mesh_file,
           mesh_scale = mesh_scale,
@@ -401,10 +400,72 @@
           yaw = id * 1.57079633)
         }}
 
-      {% endfor %}
+      {%- endfor -%}
       <!--}-->
 
-      {# component mounts and holders {--> #}
+      <!-- battery mount and battery {-->
+      {{ generic.visual_mesh_macro(
+        name = "battery_mount",
+        mesh_file = battery_mount_mesh_file,
+        mesh_scale = mesh_scale,
+        color = "Red",
+        x = 0,
+        y = 0,
+        z = 0.001,
+        roll = 0,
+        pitch = 0,
+        yaw = math.radians(90))
+      }}
+      {{ generic.visual_mesh_macro(
+        name = "battery",
+        mesh_file = battery_mesh_file,
+        mesh_scale = mesh_scale,
+        color = "Grey",
+        x = 0,
+        y = 0,
+        z = 0.001,
+        roll = 0,
+        pitch = 0,
+        yaw = math.radians(90))
+      }}
+      <!--}-->
+
+      {# GPS visuals {--> #}
+      {%- set gps_visuals -%}
+      <!-- gps mount {-->
+      {{ generic.visual_link_macro(
+        name = "gps_mount",
+        mesh_file = gps_mount_mesh_file,
+        mesh_scale = mesh_scale,
+        color = "Grey",
+        x = 0,
+        y = 0,
+        z = 0,
+        roll = 0,
+        pitch = 0,
+        yaw = math.radians(90),
+        parent_link = root)
+      }}
+      <!--}-->
+      <!-- gps antenna {-->
+      {{ generic.visual_link_macro(
+        name = "gps_module",
+        mesh_file = gps_module_mesh_file,
+        mesh_scale = mesh_scale,
+        color = "Black",
+        x = 0,
+        y = 0,
+        z = 0,
+        roll = 0,
+        pitch = 0,
+        yaw = math.radians(90),
+        parent_link = root)
+      }}
+      <!--}-->
+      {%- endset -%}
+      {# <!--}--> #}
+
+      {# component mounts and holders (these must be passed as args into components, or must be called) {--> #}
 
       {# garmin down mount {--> #}
       {%- set garmin_down_mount -%}
@@ -515,65 +576,6 @@
       {# <!--}--> #}
 
       {# <!--}--> #}
-
-      {# TODO: solve battery and GPS visuals #}
-      {% if use_battery_mount %}
-      <!-- battery mount and battery {-->
-      {{ components.visual_mesh_macro(
-        name = "battery_mount",
-        mesh_file = battery_mount_mesh_file,
-        mesh_scale = mesh_scale,
-        color = "Red",
-        x = 0,
-        y = 0,
-        z = 0.001,
-        roll = 0,
-        pitch = 0,
-        yaw = math.radians(90))
-      }}
-      {{ components.visual_mesh_macro(
-        name = "battery",
-        mesh_file = battery_mesh_file,
-        mesh_scale = mesh_scale,
-        color = "Grey",
-        x = 0,
-        y = 0,
-        z = 0.001,
-        roll = 0,
-        pitch = 0,
-        yaw = math.radians(90))
-      }}
-      <!--}-->
-      {% endif %}
-
-      {% if not enable_rplidar %}
-      <!-- gps mount and gps {-->
-      {{ components.visual_mesh_macro(
-        name = "gps_mount",
-        mesh_file = gps_mount_mesh_file,
-        mesh_scale = mesh_scale,
-        color = "Grey",
-        x = 0,
-        y = 0,
-        z = 0,
-        roll = 0,
-        pitch = 0,
-        yaw = math.radians(90))
-      }}
-      {{ components.visual_mesh_macro(
-        name = "gps_module",
-        mesh_file = gps_module_mesh_file,
-        mesh_scale = mesh_scale,
-        color = "Black",
-        x = 0,
-        y = 0,
-        z = 0,
-        roll = 0,
-        pitch = 0,
-        yaw = math.radians(90))
-      }}
-      <!--}-->
-      {% endif %}
 
       <!--}-->
 
@@ -844,8 +846,11 @@
 
     {# ========================== LIDAR sensors ========================= #}
 
+    {# NOTE: special handling of lidars - content of component macro stored in a variable #}
+    {# later we check the variable and add more visuals based on active components #}
+
     {# Rplidar {--> #}
-    {{ components.rplidar_macro(
+    {%- set rplidar = components.rplidar_macro(
       parent_link = root,
       x = 0.0,
       y = 0.0,
@@ -853,13 +858,14 @@
       roll = 0,
       pitch = 0,
       yaw = 0,
-      mount = lidar_mount,
+      mount = none,
       spawner_args = spawner_args)
-    }}
+    -%}
+    {{ rplidar }}
     {# <!--}--> #}
 
     {# Ouster {--> #}
-    {{ components.ouster_macro(
+    {%- set ouster = components.ouster_macro(
       parent_link = root,
       sensor_name = "os",
       x = 0.0,
@@ -868,18 +874,27 @@
       roll = 0,
       pitch = 0,
       yaw = 0,
-      mount = lidar_mount,
-      spawner_args = spawner_args
-      )
-    }}
+      mount = none,
+      spawner_args = spawner_args)
+    -%}
+    {{ ouster }}
     {# <!--}--> #}
+
+    {# do we have an active lidar? #}
+    {%- if rplidar | replace('\s', '') | length != 0 or ouster | replace('\s', '') | length != 0 -%}
+      {# add a mount for it #}
+      {{ lidar_mount }}
+    {%- else -%}
+      {# otherwise put a GPS antenna to the empty space #}
+      {{ gps_visuals }}
+    {%- endif -%}
 
     {# ========================== camera sensors ======================== #}
 
     {# Realsense placements {--> #}
 
     {# realsense front {--> #}
-    {{ components.realsense_front_macro(
+    {%- set realsense_front = components.realsense_front_macro(
       camera_name = "front_rgbd",
       camera_suffix="",
       parent_link = root,
@@ -889,13 +904,14 @@
       roll = 0,
       pitch = 0,
       yaw = 0,
-      mount = realsense_mount,
+      mount = none,
       spawner_args = spawner_args)
-    }}
+    -%}
+    {{ realsense_front }}
     {# <!--}--> #}
 
     {# realsense up {--> #}
-    {{ components.realsense_up_macro(
+    {%- set realsense_up = components.realsense_up_macro(
       camera_name = "up_rgbd",
       camera_suffix="",
       parent_link = root,
@@ -905,13 +921,14 @@
       roll = 0,
       pitch = -math.radians(90),
       yaw = 0,
-      mount = realsense_mount,
+      mount = none,
       spawner_args = spawner_args)
-    }}
+    -%}
+    {{ realsense_up }}
     {# <!--}--> #}
 
     {# realsense down {--> #}
-    {{ components.realsense_down_macro(
+    {%- set realsense_down = components.realsense_down_macro(
       camera_name = "down_rgbd",
       camera_suffix="",
       parent_link = root,
@@ -921,38 +938,49 @@
       roll = 0,
       pitch = math.radians(90),
       yaw = 0,
-      mount = realsense_mount,
+      mount = none,
       spawner_args = spawner_args)
-    }}
+    -%}
+    {{ realsense_down }}
     {# <!--}--> #}
+
+    {%- if realsense_front | replace('\s', '') | length != 0 or realsense_up | replace('\s', '') | length != 0 or realsense_down | replace('\s', '') | length != 0 -%}
+      {{ realsense_mount }}
+    {%- endif -%}
 
     {# <!--}--> #}
 
     {# Bluefox camera placements {--> #}
 
     {# bluefox (classic) {--> #}
-    {{ components.bluefox_camera_macro(
+    {%- set bluefox_camera = components.bluefox_camera_macro(
       camera_name = "bluefox_optflow",
       parent_link = root,
       x = 0.0,
       y = -0.0515,
       z = -0.038,
-      mount = bluefox_mount,
+      mount = none,
       spawner_args = spawner_args)
-    }}
+    -%}
+    {{ bluefox_camera }}
     {# <!--}--> #}
 
     {# bluefox reverse {--> #}
-    {{ components.bluefox_camera_reverse_macro(
+    {%- set bluefox_camera_reverse = components.bluefox_camera_reverse_macro(
       camera_name = "bluefox_optflow",
       parent_link = root,
       x = 0.0,
       y = -0.0515,
       z = -0.038,
-      mount = bluefox_mount,
+      mount = none,
       spawner_args = spawner_args)
-    }}
+    -%}
+    {{ bluefox_camera_reverse }}
     {# <!--}--> #}
+
+    {%- if bluefox_camera | replace('\s', '') | length != 0 or bluefox_camera_reverse | replace('\s', '') | length != 0 -%}
+      {{ bluefox_mount }}
+    {%- endif -%}
 
     {# <!--}--> #}
 

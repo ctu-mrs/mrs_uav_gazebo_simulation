@@ -1,8 +1,7 @@
 <?xml version="1.0"? encoding="utf-8">
 <sdf version="1.6">
 
-{% import "components_base.sdf.jinja" as components_base %}
-{% import "generic_components.sdf.jinja" as generic %}
+{%- import "generic_components.sdf.jinja" as generic -%}
 
 <!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
 <!-- !!    THIS DOCUMENT CONTAINS ONLY COMMON COMPONENTS MACRO AND    !! -->
@@ -54,25 +53,6 @@ limitations under the License.
 <!-- ||   generic macro definitions (visualization, collision ...)   || -->
 <!-- ================================================================== -->
 
-<!-- Visual colored box macro {-->
-{%- macro visual_colored_box_macro(name, size_x, size_y, size_z, color, x, y, z, roll, pitch, yaw) -%}
-<visual name="{{ name }}_visual">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  <geometry>
-    <box>
-      <size>{{ size_x }} {{ size_y }} {{ size_z }}</size>
-    </box>
-  </geometry>
-  <material>
-    <script>
-      <name>Gazebo/{{ color }}</name>
-      <uri>file://media/materials/scripts/gazebo.material</uri>
-    </script>
-  </material>
-</visual>
-{%- endmacro -%}
-<!--}-->
-
 <!-- Visual colored box with collision macro {-->
 {%- macro visual_colored_box_with_collision_macro(name, size_x, size_y, size_z, color, x, y, z, roll, pitch, yaw) -%}
 <visual name="{{ name }}_visual">
@@ -100,112 +80,6 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-<!-- Visual mesh macro {-->
-  {%- macro visual_mesh_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw) -%}
-<visual name="{{ name }}_visual">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  <geometry>
-    <mesh>
-      <uri>{{ mesh_file }}</uri>
-      <scale>{{ mesh_scale }}</scale>
-    </mesh>
-  </geometry>
-  <material>
-    <script>
-      <name>Gazebo/{{ color }}</name>
-      <uri>file://media/materials/scripts/gazebo.material</uri>
-    </script>
-  </material>
-</visual>
-{%- endmacro -%}
-<!--}-->
-
-<!-- Visual mesh mrs material macro {-->
-{%- macro visual_mesh_mrs_material_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw) -%}
-<visual name="{{ name }}_visual">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  <geometry>
-    <mesh>
-      <uri>{{ mesh_file }}</uri>
-      <scale>{{ mesh_scale }}</scale>
-    </mesh>
-  </geometry>
-  <material>
-    <script>
-      <name>MRS/{{ color }}</name>
-      <uri>model://mrs_robots_description/materials/mrs.material</uri>
-    </script>
-  </material>
-</visual>
-{%- endmacro -%}
-<!--}-->
-
-<!-- Visual mesh with collision macro {-->
-{%- macro visual_mesh_with_collision_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw) -%}
-<visual name="{{ name }}_visual">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  <geometry>
-    <mesh>
-      <uri>{{ mesh_file }}</uri>
-      <scale>{{ mesh_scale }}</scale>
-    </mesh>
-  </geometry>
-  <material>
-    <script>
-      <name>Gazebo/{{ color }}</name>
-      <uri>file://media/materials/scripts/gazebo.material</uri>
-    </script>
-  </material>
-</visual>
-<collision name="{{ name }}_collision">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  <geometry>
-    <mesh>
-      <uri>{{ mesh_file }}</uri>
-      <scale>{{ mesh_scale }}</scale>
-    </mesh>
-  </geometry>
-</collision>
-{%- endmacro -%}
-<!--}-->
-
-<!-- Visual mesh textured macro {-->
-{%- macro visual_mesh_textured_macro(name, mesh_file, mesh_scale, x, y, z, roll, pitch, yaw) -%}
-<visual name="{{ name }}_visual">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  <geometry>
-    <mesh>
-      <uri>{{ mesh_file }}</uri>
-      <scale>{{ mesh_scale }}</scale>
-    </mesh>
-  </geometry>
-</visual>
-{%- endmacro -%}
-<!--}-->
-
-<!-- Visual mesh textured with collision macro {-->
-{%- macro visual_mesh_textured_with_collision_macro(name, mesh_file, mesh_scale, x, y, z, roll, pitch, yaw) -%}
-<visual name="{{ name }}_visual">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  <geometry>
-    <mesh>
-      <uri>{{ mesh_file }}</uri>
-      <scale>{{ mesh_scale }}</scale>
-    </mesh>
-  </geometry>
-</visual>
-<collision name="{{ name }}_collision">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  <geometry>
-    <mesh>
-      <uri>{{ mesh_file }}</uri>
-      <scale>{{ mesh_scale }}</scale>
-    </mesh>
-  </geometry>
-</collision>
-{%- endmacro -%}
-<!--}-->
-
 <!-- Collision cylinder macro {-->
 {%- macro collision_cylinder_macro(name, collision_length, collision_radius, x, y, z, roll, pitch, yaw) -%}
 <collision name="{{ name }}_collision">
@@ -222,7 +96,7 @@ limitations under the License.
 
 <!-- Leg macro {-->
 {%- macro leg_macro(name, mesh_file, mesh_scale, color, parent, x, y, z, roll, pitch, yaw, collision_height, collision_radius) -%}
-{{ visual_mesh_macro(
+{{ generic.visual_mesh_macro(
   name = name,
   mesh_file = mesh_file,
   mesh_scale = mesh_scale,
@@ -259,7 +133,7 @@ limitations under the License.
 
 <!-- Leg macro with offset {-->
 {%- macro leg_offset_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw, collision_height, collision_radius, offset_x, offset_y, offset_z) -%}
-{{ visual_mesh_macro(
+{{ generic.visual_mesh_macro(
   name = name,
   mesh_file = mesh_file,
   mesh_scale = mesh_scale,
@@ -296,7 +170,7 @@ limitations under the License.
 
 <!-- Leg macro with collision offset {-->
 {%- macro leg_macro_collision_offset(name, mesh_file, mesh_scale, color, parent, x, y, z, roll, pitch, yaw, collision_height, collision_radius, collision_offset) -%}
-{{ visual_mesh_macro(
+{{generic.visual_mesh_macro(
   name = name,
   mesh_file = mesh_file,
   mesh_scale = mesh_scale,
@@ -750,7 +624,7 @@ limitations under the License.
 <link name="{{ camera_name }}_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
   {{ generic.zero_inertial_macro() }}
-  {{ visual_mesh_macro(
+  {{generic.visual_mesh_macro(
     name = "",
     mesh_file = mesh_file,
     mesh_scale = mesh_scale,
@@ -927,41 +801,6 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-<!-- Macro to add a UWB Range{-->
-{%- macro uwb_range_macro(namespace, parent_link, uwb_id, uav_name, x, y, z, roll, pitch, yaw) -%}
-<link name="uwb_range_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <sensor name="uwb_range_sensor" type="wireless_transmitter">
-    <update_rate>10</update_rate>
-    <always_on>1</always_on>
-    <plugin name="uwb_range_plugin" filename="libuwb_range.so">
-      <uwb_id>{{uwb_id}}</uwb_id>
-      <publish_topic>/{{ uav_name }}/uwb_range/range</publish_topic>
-      <frame_name>{{ uav_name }}/uwb</frame_name>
-      <sensitivity>-150</sensitivity>
-      <stddev>0.1</stddev>
-    </plugin>
-    <transceiver>
-      <frequency>6489.6</frequency>
-      <min_frequency>6240.0</min_frequency>
-      <max_frequency>6739.2</max_frequency>
-      <power>14.5</power>
-      <gain>2.5</gain>
-    </transceiver>
-  </sensor>
-</link>
-
-<joint name="uwb_range_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>uwb_range_link</child>
-  <disableFixedJointLumping>true</disableFixedJointLumping>
-  <preserveFixedJoint>true</preserveFixedJoint>
-</joint>
-{%- endmacro -%}
-<!--}-->
-
-
 <!-- ========================== LIDAR sensors ========================= -->
 
 <!-- Macro to add a Scanse Sweeper{-->
@@ -1067,25 +906,25 @@ limitations under the License.
 {%- set lidar_pitch = 0 -%}
 {%- set lidar_yaw = 0  -%}
 
-{% if enable_gpu_ray %}
+{%- if enable_gpu_ray -%}
   {%- set velodyne_plugin_filename ="libMrsGazeboCommonResources_3DLidarGpuPlugin.so" -%}
   {%- set sensor_type = "gpu_ray"  -%}
-{% else %}
+{%- else -%}
   {%- set velodyne_plugin_filename ="libMrsGazeboCommonResources_3DLidarPlugin.so" -%}
   {%- set sensor_type = "ray"  -%}
-{% endif %}
+{%- endif -%}
 
-{% if horizontal_samples == 'None' %}
+{%- if horizontal_samples == 'None' -%}
   {%- set samples = 3600 -%}
-{% else %}
+{%- else -%}
   {%- set samples = horizontal_samples | int -%}
-{% endif %}
+{%- endif -%}
 
-{% if rotation_freq == 'None' %}
+{%- if rotation_freq == 'None' -%}
   {%- set update_rate = 20 -%}
-{% else %}
+{%- else -%}
   {%- set update_rate = rotation_freq | int -%}
-{% endif %}
+{%- endif -%}
 
 <link name="velodyne_link">
   <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
@@ -1390,16 +1229,16 @@ limitations under the License.
   <visual name="visual">
     <pose>0 0 0 0 0 0</pose>
     <geometry>
-      {% if roll_link_mesh_file == '' %}
+      {%- if roll_link_mesh_file == '' -%}
       <box>
         <size>0.01 0.01 0.01</size>
       </box>
-      {% else %}
+      {%- else -%}
       <mesh>
         <uri>{{ roll_link_mesh_file }}</uri>
         <scale>{{ mesh_scale }}</scale>
       </mesh>
-      {% endif %}
+      {%- endif -%}
     </geometry>
     <material>
       <script>
@@ -1416,16 +1255,16 @@ limitations under the License.
   <visual name="visual">
     <pose>0 0 0 0 0 0</pose>
     <geometry>
-      {% if pitch_link_mesh_file == '' %}
+      {%- if pitch_link_mesh_file == '' -%}
       <box>
         <size>0.01 0.01 0.01</size>
       </box>
-      {% else %}
+      {%- else -%}
       <mesh>
         <uri>{{ pitch_link_mesh_file }}</uri>
         <scale>{{ mesh_scale }}</scale>
       </mesh>
-      {% endif %}
+      {%- endif -%}
     </geometry>
     <material>
       <script>
@@ -1667,7 +1506,7 @@ limitations under the License.
     </material>
   </visual>
 
-{% for id_, x_, y_, z_, roll_, pitch_, yaw_ in sensor_parameters %}
+{%- for id_, x_, y_, z_, roll_, pitch_, yaw_ in sensor_parameters -%}
   {{ teraranger_evo_macro(
     parent_link = parent_link,
     id = id_,
@@ -1682,7 +1521,7 @@ limitations under the License.
     pitch = pitch_,
     yaw = yaw_)
   }}
-{% endfor %}
+{%- endfor -%}
 </link>
 
 <joint name="teraranger_evo_tower_joint" type="fixed">
@@ -2179,7 +2018,7 @@ limitations under the License.
   )
 }}
 
-{% for id_ in range(1, number_of_chains) %}
+{%- for id_ in range(1, number_of_chains) -%}
   {{ single_chain_pendulum_macro(
     parent_link = "pendulum_chain_" + (id_ - 1)| string() + "_link",
     id = id_,
@@ -2191,7 +2030,7 @@ limitations under the License.
     joint_offset_z = -chain_length/2,
     )
   }}
-{% endfor %}
+{%- endfor -%}
 {%- endmacro -%}
 <!--}-->
 <!--}-->
@@ -2203,14 +2042,14 @@ limitations under the License.
 {# ground_truth_macro {--> #}
 {%- macro ground_truth_macro(parent_link, x, y, z, roll, pitch, yaw, spawner_args) -%}
 
-  {% set spawner_keyword = 'enable-ground-truth' %}
-  {% set spawner_description = 'Enable ROS topic with ground truth odometry published under model namespace' %}
-  {% set spawner_default_args = {'topic_name': 'ground_truth', 'frame_name': 'world', 'update_rate': 150} %}
+  {%- set spawner_keyword = 'enable-ground-truth' -%}
+  {%- set spawner_description = 'Enable ROS topic with ground truth odometry published under model namespace' -%}
+  {%- set spawner_default_args = {'topic_name': 'ground_truth', 'frame_name': 'world', 'update_rate': 150} -%}
 
-  {% set odometry_sensor_name = "ground_truth" %}
+  {%- set odometry_sensor_name = "ground_truth" -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
-    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     <!-- Ground truth {-->
     {{ generic.odometry_sensor_macro(
@@ -2237,12 +2076,12 @@ limitations under the License.
 {# garmin_down_macro {--> #}
 {%- macro garmin_down_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
 
-  {% set spawner_keyword = 'enable-rangefinder' %}
-  {% set spawner_description = 'Add a laser rangefinder (Garmin LIDAR-Lite v3) pointing down. Creates a Gazebo publisher for gazebo_mavlink_interface. ROS topic must be created by mavros. Do not set range outside <0.06 - 40.0> (unrealistic)' %}
-  {% set spawner_default_args = {'update_rate': 100, 'min_range': 0.1, 'max_range': 36.0, 'noise': 0.01} %}
+  {%- set spawner_keyword = 'enable-rangefinder' -%}
+  {%- set spawner_description = 'Add a laser rangefinder (Garmin LIDAR-Lite v3) pointing down. Creates a Gazebo publisher for gazebo_mavlink_interface. ROS topic must be created by mavros. Do not set range outside <0.06 - 40.0> (unrealistic)' -%}
+  {%- set spawner_default_args = {'update_rate': 100, 'min_range': 0.1, 'max_range': 36.0, 'noise': 0.01} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
-    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     {%- set sensor_name = "lidar0" -%}
 
@@ -2254,7 +2093,7 @@ limitations under the License.
 
       {{ generic.zero_inertial_macro() }}
 
-      {{ visual_mesh_macro(
+      {{generic.visual_mesh_macro(
         name = sensor_name,
         mesh_file = "model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl",
         mesh_scale = "0.001 0.001 0.001",
@@ -2311,12 +2150,12 @@ limitations under the License.
 {# rplidar_macro {--> #}
 {%- macro rplidar_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
 
-  {% set spawner_keyword = 'enable-rplidar' %}
-  {% set spawner_description = 'Add the RPlidar A3 laser scanner. Do not set range outside <0.10 - 15.0> (unrealistic)' %}
-  {% set spawner_default_args = {'horizontal_samples': 1600, 'update_rate': 20.0, 'min_range': 0.15, 'max_range': 14.0, 'noise': 0.01} %}
+  {%- set spawner_keyword = 'enable-rplidar' -%}
+  {%- set spawner_description = 'Add the RPlidar A3 laser scanner. Do not set range outside <0.10 - 15.0> (unrealistic)' -%}
+  {%- set spawner_default_args = {'horizontal_samples': 1600, 'update_rate': 20.0, 'min_range': 0.15, 'max_range': 14.0, 'noise': 0.01} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
-    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     {%- set sensor_name = "rplidar" -%}
 
@@ -2413,12 +2252,12 @@ limitations under the License.
 {# ouster_macro {--> #}
 {%- macro ouster_macro(parent_link, sensor_name, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
 
-  {% set spawner_keyword = 'enable-ouster' %}
-  {% set spawner_description = 'Add Ouster laser scanner to the vehicle. Select a model to automatically set number of lines, vertical FOV and range. Available models: OS0-32, OS0-64, OS0-128, OS1-16, OS1-32G1, OS1-32, OS1-64, OS1-128, OS2-32, OS2-64, OS2-128' %}
-  {% set spawner_default_args = {'model': 'OS1-16', 'horizontal_samples': 2048, 'update_rate': 10, 'noise': 0.03, 'use_gpu': false} %}
+  {%- set spawner_keyword = 'enable-ouster' -%}
+  {%- set spawner_description = 'Add Ouster laser scanner to the vehicle. Select a model to automatically set number of lines, vertical FOV and range. Available models: OS0-32, OS0-64, OS0-128, OS1-16, OS1-32G1, OS1-32, OS1-64, OS1-128, OS2-32, OS2-64, OS2-128' -%}
+  {%- set spawner_default_args = {'model': 'OS1-16', 'horizontal_samples': 2048, 'update_rate': 10, 'noise': 0.03, 'use_gpu': false} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
-    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     {# model selection {--> #}
     {%- set ouster_model = spawner_args[spawner_keyword]['model'] -%}
@@ -2426,84 +2265,84 @@ limitations under the License.
     {# OS0 {--> #}
 
     {# OS0-32 #}
-    {% if ouster_model == 'OS0-32' %}
+    {%- if ouster_model == 'OS0-32' -%}
       {%- set lasers = 32 -%}
       {%- set vfov_angle = 90 -%}
       {%- set range = 55 -%}
-    {% endif %}
+    {%- endif -%}
 
     {# OS0-64 #}
-    {% if ouster_model == 'OS0-64' %}
+    {%- if ouster_model == 'OS0-64' -%}
       {%- set lasers = 64 -%}
       {%- set vfov_angle = 90 -%}
       {%- set range = 55 -%}
-    {% endif %}
+    {%- endif -%}
 
     {# OS0-128 #}
-    {% if ouster_model == 'OS0-128' %}
+    {%- if ouster_model == 'OS0-128' -%}
       {%- set lasers = 128 -%}
       {%- set vfov_angle = 90 -%}
       {%- set range = 55 -%}
-    {% endif %}
+    {%- endif -%}
 
     {# <!--}--> #}
 
     {# OS1 Generation 1 {--> #}
     {# <!-- OS1-16 Generation 1 --> #}
-    {% if ouster_model == 'OS1-16' %}
+    {%- if ouster_model == 'OS1-16' -%}
       {%- set lasers = 16 -%}
       {%- set vfov_angle = 33.2 -%}
       {%- set range = 120 -%}
-    {% endif %}
+    {%- endif -%}
     {# <!--}--> #}
 
     {# OS1 Generation 2 {--> #}
 
     {# OS1-32 Generation 2 #}
-    {% if ouster_model == 'OS1-32' %}
+    {%- if ouster_model == 'OS1-32' -%}
       {%- set lasers = 32 -%}
       {%- set vfov_angle = 45 -%}
       {%- set range = 120 -%}
-    {% endif %}
+    {%- endif -%}
 
     {# OS1-64 Generation 2 #}
-    {% if ouster_model == 'OS1-64' %}
+    {%- if ouster_model == 'OS1-64' -%}
       {%- set lasers = 64 -%}
       {%- set vfov_angle = 45 -%}
       {%- set range = 120 -%}
-    {% endif %}
+    {%- endif -%}
 
     {# OS1-128 Generation 2 #}
-    {% if ouster_model == 'OS1-128' %}
+    {%- if ouster_model == 'OS1-128' -%}
       {%- set lasers = 128 -%}
       {%- set vfov_angle = 45 -%}
       {%- set range = 120 -%}
-    {% endif %}
+    {%- endif -%}
 
     {# <!--}--> #}
 
     {# OS2 {--> #}
 
     {# OS2-32 #}
-    {% if ouster_model == 'OS2-32' %}
+    {%- if ouster_model == 'OS2-32' -%}
       {%- set lasers = 32 -%}
       {%- set vfov_angle = 22.5 -%}
       {%- set range = 240 -%}
-    {% endif %}
+    {%- endif -%}
 
     {# OS2-64 #}
-    {% if ouster_model == 'OS2-64' %}
+    {%- if ouster_model == 'OS2-64' -%}
       {%- set lasers = 64 -%}
       {%- set vfov_angle = 22.5 -%}
       {%- set range = 240 -%}
-    {% endif %}
+    {%- endif -%}
 
     {# OS2-128 #}
-    {% if ouster_model == 'OS2-128' %}
+    {%- if ouster_model == 'OS2-128' -%}
       {%- set lasers = 128 -%}
       {%- set vfov_angle = 22.5 -%}
       {%- set range = 240 -%}
-    {% endif %}
+    {%- endif -%}
 
     {# <!--}--> #}
 
@@ -2544,13 +2383,13 @@ limitations under the License.
     {%- set imu_pitch = 0 -%}
     {%- set imu_yaw = 0 -%}
 
-    {% if spawner_args[spawner_keyword]['use_gpu'] %}
+    {%- if spawner_args[spawner_keyword]['use_gpu'] -%}
       {%- set ouster_plugin_filename ="libMrsGazeboCommonResources_3DLidarGpuPlugin.so" -%}
       {%- set sensor_type = "gpu_ray"  -%}
-    {% else %}
+    {%- else -%}
       {%- set ouster_plugin_filename ="libMrsGazeboCommonResources_3DLidarPlugin.so" -%}
       {%- set sensor_type = "ray"  -%}
-    {% endif %}
+    {%- endif -%}
 
     {# <!--}--> #}
 
@@ -2694,12 +2533,12 @@ limitations under the License.
 {# realsense_front_macro {--> #}
 {%- macro realsense_front_macro(camera_name, camera_suffix, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
 
-  {% set spawner_keyword = 'enable-realsense-front' %}
-  {% set spawner_description = 'Add Intel Realsense D435 depth camera to the vehicle [1280x720 @ 30hz], pointed forward placed on the front holder between the legs' %}
-  {% set spawner_default_args = {'realistic': False, 'update_rate': 30} %}
+  {%- set spawner_keyword = 'enable-realsense-front' -%}
+  {%- set spawner_description = 'Add Intel Realsense D435 depth camera to the vehicle [1280x720 @ 30hz], pointed forward placed on the front holder between the legs' -%}
+  {%- set spawner_default_args = {'realistic': False, 'update_rate': 30} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
-    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     <!-- Realsense front {-->
     {{ generic.realsense_d435_macro(
@@ -2731,12 +2570,12 @@ limitations under the License.
 {# realsense_up_macro {--> #}
 {%- macro realsense_up_macro(camera_name, camera_suffix, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
 
-  {% set spawner_keyword = 'enable-realsense-up' %}
-  {% set spawner_description = 'Add Intel Realsense D435 depth camera to the vehicle [1280x720 @ 30hz], pointed upwards' %}
-  {% set spawner_default_args = {'realistic': False, 'update_rate': 30} %}
+  {%- set spawner_keyword = 'enable-realsense-up' -%}
+  {%- set spawner_description = 'Add Intel Realsense D435 depth camera to the vehicle [1280x720 @ 30hz], pointed upwards' -%}
+  {%- set spawner_default_args = {'realistic': False, 'update_rate': 30} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
-    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     <!-- Realsense up {-->
     {{ generic.realsense_d435_macro(
@@ -2768,12 +2607,12 @@ limitations under the License.
 {# realsense_down_macro {--> #}
 {%- macro realsense_down_macro(camera_name, camera_suffix, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
 
-  {% set spawner_keyword = 'enable-realsense-down' %}
-  {% set spawner_description = 'Add Intel Realsense D435 depth camera to the vehicle [1280x720 @ 30hz], pointed down' %}
-  {% set spawner_default_args = {'realistic': False, 'update_rate': 30} %}
+  {%- set spawner_keyword = 'enable-realsense-down' -%}
+  {%- set spawner_description = 'Add Intel Realsense D435 depth camera to the vehicle [1280x720 @ 30hz], pointed down' -%}
+  {%- set spawner_default_args = {'realistic': False, 'update_rate': 30} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
-    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     <!-- Realsense down {-->
     {{ generic.realsense_d435_macro(
@@ -2805,12 +2644,12 @@ limitations under the License.
 {# bluefox_camera_macro {--> #}
 {%- macro bluefox_camera_macro(camera_name, parent_link, x, y, z, mount, spawner_args) -%}
 
-  {% set spawner_keyword = 'enable-bluefox-camera' %}
-  {% set spawner_description = 'Add bluefox camera to the vehicle [752x480 @ 50hz], pointing down' %}
-  {% set spawner_default_args = {'update_rate': 100, 'noise': 0.0} %}
+  {%- set spawner_keyword = 'enable-bluefox-camera' -%}
+  {%- set spawner_description = 'Add bluefox camera to the vehicle [752x480 @ 50hz], pointing down' -%}
+  {%- set spawner_default_args = {'update_rate': 100, 'noise': 0.0} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
-    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     <!-- bluefox camera {-->
     {{ generic.camera_macro(
@@ -2857,12 +2696,12 @@ limitations under the License.
 {# bluefox_camera_reverse_macro {--> #}
 {%- macro bluefox_camera_reverse_macro(camera_name, parent_link, x, y, z, mount, spawner_args) -%}
 
-  {% set spawner_keyword = 'enable-bluefox-camera-reverse' %}
-  {% set spawner_description = 'Add bluefox camera to the vehicle [752x480 @ 50hz], pointing down but image is rotated by 180 deg' %}
-  {% set spawner_default_args = {'update_rate': 100, 'noise': 0.0} %}
+  {%- set spawner_keyword = 'enable-bluefox-camera-reverse' -%}
+  {%- set spawner_description = 'Add bluefox camera to the vehicle [752x480 @ 50hz], pointing down but image is rotated by 180 deg' -%}
+  {%- set spawner_default_args = {'update_rate': 100, 'noise': 0.0} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
-    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     <!-- bluefox camera reverse {-->
     {{ generic.camera_macro(
@@ -2909,12 +2748,12 @@ limitations under the License.
 {# dual_uv_cameras_macro {--> #}
 {%- macro dual_uv_cameras_macro(parent_link, x1, y1, z1, roll1, pitch1, yaw1, x2, y2, z2, roll2, pitch2, yaw2, mount, spawner_args) -%}
 
-  {% set spawner_keyword = 'enable-dual-uv-cameras' %}
-  {% set spawner_description = 'Add right and left UV cameras on the vehicle. Requires param "calib_file" to be set' %}
-  {% set spawner_default_args = {'occlusions': False, 'calib_file': none, 'update_rate': 60} %}
+  {%- set spawner_keyword = 'enable-dual-uv-cameras' -%}
+  {%- set spawner_description = 'Add right and left UV cameras on the vehicle. Requires param "calib_file" to be set' -%}
+  {%- set spawner_default_args = {'occlusions': False, 'calib_file': none, 'update_rate': 60} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
-    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     {%- if spawner_args[spawner_keyword]['calib_file'] is not none -%}
       <!-- Dual UV cameras {-->
@@ -2962,12 +2801,12 @@ limitations under the License.
 {# back_uv_camera_macro {--> #}
 {%- macro back_uv_camera_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
 
-  {% set spawner_keyword = 'enable-back-uv-camera' %}
-  {% set spawner_description = 'Add a back UV camera on the vehicle. Requires param "calib_file" to be set' %}
-  {% set spawner_default_args = {'occlusions': False, 'calib_file': none, 'update_rate': 60} %}
+  {%- set spawner_keyword = 'enable-back-uv-camera' -%}
+  {%- set spawner_description = 'Add a back UV camera on the vehicle. Requires param "calib_file" to be set' -%}
+  {%- set spawner_default_args = {'occlusions': False, 'calib_file': none, 'update_rate': 60} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
-    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     <!-- Back UV camera {-->
     {{ generic.uvcam_macro(
@@ -2998,28 +2837,28 @@ limitations under the License.
 {# uv_leds_macro {--> #}
 {%- macro uv_leds_macro(parent_link, x1, x2, y1, y2, z, spawner_args) -%}
 
-  {% set spawner_keyword = 'enable-uv-leds' %}
-  {% set spawner_description = 'Add UV LEDs to the vehicle. Requires param "signal_id" to be set. Legacy params "left_id" and "right_id" may replace "signal_id" (for backwards compatibility)' %}
-  {% set spawner_default_args = {'signal_id': none, 'left_id': none, 'right_id': none} %}
+  {%- set spawner_keyword = 'enable-uv-leds' -%}
+  {%- set spawner_description = 'Add UV LEDs to the vehicle. Requires param "signal_id" to be set. Legacy params "left_id" and "right_id" may replace "signal_id" (for backwards compatibility)' -%}
+  {%- set spawner_default_args = {'signal_id': none, 'left_id': none, 'right_id': none} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
 
-    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     {# setup led signals {--> #}
     {%- if spawner_args[spawner_keyword]['signal_id'] is not none and spawner_args[spawner_keyword]['signal_id'] | length > 3 -%}
 
-      {% set led1 = spawner_args[spawner_keyword]['signal_id'][0] %}
-      {% set led2 = spawner_args[spawner_keyword]['signal_id'][1] %}
-      {% set led4 = spawner_args[spawner_keyword]['signal_id'][3] %}
-      {% set led3 = spawner_args[spawner_keyword]['signal_id'][2] %}
+      {%- set led1 = spawner_args[spawner_keyword]['signal_id'][0] -%}
+      {%- set led2 = spawner_args[spawner_keyword]['signal_id'][1] -%}
+      {%- set led4 = spawner_args[spawner_keyword]['signal_id'][3] -%}
+      {%- set led3 = spawner_args[spawner_keyword]['signal_id'][2] -%}
 
     {%- elif spawner_args[spawner_keyword]['left_id'] is not none and spawner_args[spawner_keyword]['right_id'] is not none -%}
 
-      {% set led1 = spawner_args[spawner_keyword]['left_id'] %}
-      {% set led2 = spawner_args[spawner_keyword]['right_id'] %}
-      {% set led3 = spawner_args[spawner_keyword]['left_id'] %}
-      {% set led4 = spawner_args[spawner_keyword]['right_id'] %}
+      {%- set led1 = spawner_args[spawner_keyword]['left_id'] -%}
+      {%- set led2 = spawner_args[spawner_keyword]['right_id'] -%}
+      {%- set led3 = spawner_args[spawner_keyword]['left_id'] -%}
+      {%- set led4 = spawner_args[spawner_keyword]['right_id'] -%}
 
     {%- endif -%}
     {# <!--}--> #}
@@ -3036,7 +2875,7 @@ limitations under the License.
                                           (7, led4, -x1, -y1, z, 0.0, math.radians(90), -math.radians(180)),
                                           (8, led4, -x2, -y2, z, 0.0, math.radians(90), -math.radians(90))] -%}
 
-      {% for id_, signal_id_, x_, y_, z_, roll_, pitch_, yaw_ in uv_leds_macro_parameters %}
+      {%- for id_, signal_id_, x_, y_, z_, roll_, pitch_, yaw_ in uv_leds_macro_parameters -%}
         <!-- LED {{ id_ }} {-->
         {{ generic.uvled_macro(
           parent_link = parent_link,
@@ -3050,7 +2889,7 @@ limitations under the License.
           yaw = yaw_)
         }}
         <!--}-->
-      {% endfor %}
+      {%- endfor -%}
 
     {%- endif -%}
 
@@ -3061,13 +2900,13 @@ limitations under the License.
 {# uv_leds_beacon_macro {--> #}
 {%- macro uv_leds_beacon_macro(parent_link, x1, x2, y1, y2, z, spawner_args) -%}
 
-  {% set spawner_keyword = 'enable-uv-leds-beacon' %}
-  {% set spawner_description = 'Add UV LED beacon to the top of the vehicle. Requires param "signal_id" to be set.' %}
-  {% set spawner_default_args = {'signal_id': none} %}
+  {%- set spawner_keyword = 'enable-uv-leds-beacon' -%}
+  {%- set spawner_description = 'Add UV LED beacon to the top of the vehicle. Requires param "signal_id" to be set.' -%}
+  {%- set spawner_default_args = {'signal_id': none} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
 
-    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     {%- if spawner_args[spawner_keyword]['signal_id'] is not none -%}
 
@@ -3080,7 +2919,7 @@ limitations under the License.
 
       {# <!--}--> #}
 
-      {% for id_, signal_id_, x_, y_, z_, roll_, pitch_, yaw_ in uv_leds_macro_parameters %}
+      {%- for id_, signal_id_, x_, y_, z_, roll_, pitch_, yaw_ in uv_leds_macro_parameters -%}
         <!-- Beacon LED {{ id_ }} {-->
         {{ generic.uvled_macro(
           parent_link = parent_link,
@@ -3094,7 +2933,7 @@ limitations under the License.
           yaw = yaw_)
         }}
         <!--}-->
-      {% endfor %}
+      {%- endfor -%}
 
     {%- endif -%}
 
@@ -3105,13 +2944,13 @@ limitations under the License.
 {# uwb_range_macro {--> #}
 {%- macro uwb_range_macro(parent_link, x, y, z, roll, pitch, yaw, spawner_args) -%}
 
-  {% set spawner_keyword = 'enable-uwb-range' %}
-  {% set spawner_description = 'Add Qorvo DW1000 UWB transceiver. Requires param "signal_id" to be set.' %}
-  {% set spawner_default_args = {'signal_id': none, 'update_rate': 10} %}
+  {%- set spawner_keyword = 'enable-uwb-range' -%}
+  {%- set spawner_description = 'Add Qorvo DW1000 UWB transceiver. Requires param "signal_id" to be set.' -%}
+  {%- set spawner_default_args = {'signal_id': none, 'update_rate': 10} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
 
-    {{ components_base.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     {%- if spawner_args[spawner_keyword]['signal_id'] is not none -%}
 

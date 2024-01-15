@@ -1,6 +1,33 @@
 <?xml version="1.0"? encoding="utf-8">
 <sdf version="1.6">
 
+{# handle_spawner_args {--> #}
+{%- macro handle_spawner_args(keyword, default_args, args) -%}
+
+  {%- if default_args is defined -%}
+
+    {%- if args[keyword] is not defined or args[keyword] is none -%}
+      {%- set _ = args.update({keyword: default_args}) -%}
+
+    {%- elif args[keyword] is iterable -%}
+
+      {%- if args[keyword] is mapping -%}
+        {%- set tmp_args = dict() -%}
+        {%- set _ = tmp_args.update(default_args) -%}
+        {%- for key, value in args[keyword].items() -%}
+          {%- set _ = tmp_args.update({key: value}) -%}
+        {%- endfor -%}
+        {%- set _ = args.update({keyword: tmp_args}) -%}
+
+      {%- elif args[keyword] is not string and args[keyword] | length != default_args | length -%}
+        {%- set _ = args.update({keyword: default_args}) -%}
+      {%- endif -%}
+
+    {%- endif -%}
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
 {# zero_inertial_macro {--> #}
 {# macro to add the lowest mass and intertia that gazebo allows #}
 {%- macro zero_inertial_macro() -%}
@@ -17,6 +44,8 @@
   </inertial>
 {%- endmacro -%}
 {# <!--}--> #}
+
+    <!-- ========================== visual blocks ========================= -->
 
 {# visual_mesh_macro {--> #}
 {%- macro visual_mesh_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw) -%}
@@ -38,6 +67,40 @@
 {%- endmacro -%}
 {# <!--}--> #}
 
+{# visual_mesh_textured_macro {--> #}
+{%- macro visual_mesh_textured_macro(name, mesh_file, mesh_scale, x, y, z, roll, pitch, yaw) -%}
+<visual name="{{ name }}_visual">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <mesh>
+      <uri>{{ mesh_file }}</uri>
+      <scale>{{ mesh_scale }}</scale>
+    </mesh>
+  </geometry>
+</visual>
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# visual_mesh_mrs_material_macro {--> #}
+{%- macro visual_mesh_mrs_material_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw) -%}
+  <visual name="{{ name }}_visual">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    <geometry>
+      <mesh>
+        <uri>{{ mesh_file }}</uri>
+        <scale>{{ mesh_scale }}</scale>
+      </mesh>
+    </geometry>
+    <material>
+      <script>
+        <name>MRS/{{ color }}</name>
+        <uri>model://mrs_robots_description/materials/mrs.material</uri>
+      </script>
+    </material>
+  </visual>
+{%- endmacro -%}
+{# <!--}--> #}
+
 {# visual_link_macro {--> #}
 {%- macro visual_link_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw, parent_link) -%}
   <link name="{{ name }}_link">
@@ -52,6 +115,57 @@
   </joint>
 {%- endmacro -%}
 {# <!--}--> #}
+
+{# visual_mesh_with_collision_macro {--> #}
+{%- macro visual_mesh_with_collision_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw) -%}
+  {{ visual_mesh_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw) }}
+  <collision name="{{ name }}_collision">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    <geometry>
+      <mesh>
+        <uri>{{ mesh_file }}</uri>
+        <scale>{{ mesh_scale }}</scale>
+      </mesh>
+    </geometry>
+  </collision>
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# visual_mesh_textured_with_collision_macro {--> #}
+{%- macro visual_mesh_textured_with_collision_macro(name, mesh_file, mesh_scale, x, y, z, roll, pitch, yaw) -%}
+  {{ visual_mesh_textured_macro(name, mesh_file, mesh_scale, x, y, z, roll, pitch, yaw) }}
+  <collision name="{{ name }}_collision">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    <geometry>
+      <mesh>
+        <uri>{{ mesh_file }}</uri>
+        <scale>{{ mesh_scale }}</scale>
+      </mesh>
+    </geometry>
+  </collision>
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# visual_colored_box_macro {--> #}
+{%- macro visual_colored_box_macro(name, size_x, size_y, size_z, color, x, y, z, roll, pitch, yaw) -%}
+<visual name="{{ name }}_visual">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <box>
+      <size>{{ size_x }} {{ size_y }} {{ size_z }}</size>
+    </box>
+  </geometry>
+  <material>
+    <script>
+      <name>Gazebo/{{ color }}</name>
+      <uri>file://media/materials/scripts/gazebo.material</uri>
+    </script>
+  </material>
+</visual>
+{%- endmacro -%}
+{# <!--}--> #}
+
+    <!-- =========================== base sensors ========================== -->
 
 {# odometry_sensor_macro {--> #}
 {%- macro odometry_sensor_macro(odometry_sensor_name, parent_link, topic_name, noise, frame_name, update_rate, x, y, z, roll, pitch, yaw) -%}
@@ -136,6 +250,8 @@
   </sensor>
 {%- endmacro -%}
 {# <!--}--> #}
+
+    <!-- ========================== gazebo plugins ========================= -->
 
 {# gazebo_gps_macro {--> #}
 {%- macro gazebo_gps_macro(gps_name, parent_link, update_rate, gps_noise, gps_xy_random_walk, gps_z_random_walk, gps_xy_noise_density, gps_z_noise_density, gps_vxy_noise_density, gps_vz_noise_density, x, y, z, roll, pitch, yaw) -%}
