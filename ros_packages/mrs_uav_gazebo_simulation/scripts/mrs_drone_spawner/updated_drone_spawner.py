@@ -400,6 +400,9 @@ class MrsDroneSpawner:
         :param input_str: string containing all args in the format specified above
         :return: a dict in format {keyword: component_args}, always contains keys "help", "model", "ids", "names", "spawn_poses"
         NOTE: arguments of a component/keyword will always be parsed as a list/dict, even for a single value
+
+        Raises:
+        AssertionError in case of unexpected data in mandatory values under keys "model", "ids", "names", "spawn_poses"
         '''
 
         input_dict = {
@@ -407,7 +410,7 @@ class MrsDroneSpawner:
             'model': None,
             'ids': [],
             'names': [],
-            'spawn_poses': [],
+            'spawn_poses': {},
         }
 
         # parse out the keywords starting with '--'
@@ -506,6 +509,11 @@ class MrsDroneSpawner:
         else:
             for ID in input_dict['ids']:
                 input_dict['names'].append(str(self.default_robot_name) + str(ID))
+
+        assert isinstance(input_dict['ids'], list) and len(input_dict['ids']) > 0, 'No vehicle ID assigned'
+        assert input_dict['model'] is not None, 'Model not specified'
+        assert isinstance(input_dict['names'], list) and len(input_dict['names']) == len(input_dict['ids']), f'Invalid vehicle names {input_dict["names"]}'
+        assert isinstance(input_dict['spawn_poses'], dict) and len(input_dict['spawn_poses'].keys()) == len(input_dict['ids']), f'Invalid spawn poses {input_dict["spawn_poses"]}'
 
         return input_dict
     # #}
@@ -632,11 +640,13 @@ class MrsDroneSpawner:
 
         # #{ input parsing
         params_dict = None
+        already_assigned_ids = copy.deepcopy(self.assigned_ids) # backup in case of mid-parse failure
         try:
             params_dict = self.parse_user_input(req.value)
         except Exception as e:
             rospy.logwarn(f'[MrsDroneSpawner]: While parsing user input: {e}')
             res.message = str(e.args[0])
+            self.assigned_ids = already_assigned_ids
             return res
         # #}
 
