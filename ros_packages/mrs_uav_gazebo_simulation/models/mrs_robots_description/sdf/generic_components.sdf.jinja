@@ -45,6 +45,91 @@
 {%- endmacro -%}
 {# <!--}--> #}
 
+{# multirotor_physics_macro {--> #}
+{%- macro multirotor_physics_macro(mass, body_radius, body_height, rotor_velocity_slowdown_sim, ixx, ixy, ixz, iyy, iyz, izz) -%}
+<inertial>
+  <mass>{{ mass }}</mass>
+  <inertia>
+    <ixx>{{ ixx }}</ixx>
+    <ixy>{{ ixy }}</ixy>
+    <ixz>{{ ixz }}</ixz>
+    <iyy>{{ iyy }}</iyy>
+    <iyz>{{ iyz }}</iyz>
+    <izz>{{ izz }}</izz>
+  </inertia>
+</inertial>
+<collision name="base_link_collision">
+  <pose>
+    <x>0</x>
+    <y>0</y>
+    <z>{{ - body_height / 2 }}</z>
+    <roll>0</roll>
+    <pitch>0</pitch>
+    <yaw>0</yaw>
+  </pose>
+  <geometry>
+    <cylinder>
+      <length>{{ body_height }}</length>
+      <radius>{{ body_radius }}</radius>
+    </cylinder>
+  </geometry>
+  <surface>
+    <contact>
+      <ode>
+        <min_depth>0.001</min_depth>
+        <max_vel>0.0</max_vel>
+      </ode>
+    </contact>
+    <friction>
+      <ode/>
+    </friction>
+  </surface>
+</collision>
+
+<plugin filename="libgazebo_multirotor_base_plugin.so" name="multirotor_base_plugin">
+  <robotNamespace/>
+  <linkName>base_link</linkName>
+  <rotorVelocitySlowdownSim>{{ rotor_velocity_slowdown_sim }}</rotorVelocitySlowdownSim>
+</plugin>
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# collision_cylinder_macro {--> #}
+{%- macro collision_cylinder_macro(name, collision_length, collision_radius, x, y, z, roll, pitch, yaw) -%}
+<collision name="{{ name }}_collision">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <geometry>
+    <cylinder>
+      <length>{{ collision_length }}</length>
+      <radius>{{ collision_radius }}</radius>
+    </cylinder>
+  </geometry>
+  <surface>
+    <ode>
+      <min_depth>0.001</min_depth>
+      <max_vel>0.0</max_vel>
+    </ode>
+    <friction>
+      <ode/>
+    </friction>
+  </surface>
+</collision>
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# cylinder_inertia {--> #}
+{%- macro cylinder_inertia(m, r, h) -%}
+<inertia>
+  <ixx>{{ m * ( 3 * r * r + h * h ) / 12 }}</ixx>
+  <ixy>0</ixy>
+  <ixz>0</ixz>
+  <iyy>{{ m * ( 3 * r * r + h * h ) / 12 }}</iyy>
+  <iyz>0</iyz>
+  <izz>{{ m * r * r / 2 }}</izz>
+</inertia>
+{%- endmacro -%}
+{# <!--}--> #}
+
     <!-- ========================== visual blocks ========================= -->
 
 {# visual_mesh_macro {--> #}
@@ -162,6 +247,320 @@
     </script>
   </material>
 </visual>
+{%- endmacro -%}
+{# <!--}--> #}
+
+    <!-- ============================ drone legs =========================== -->
+
+{# leg_macro {--> #}
+{%- macro leg_macro(name, mesh_file, mesh_scale, color, parent, x, y, z, roll, pitch, yaw, collision_height, collision_radius) -%}
+  {{ visual_mesh_macro(
+    name = name,
+    mesh_file = mesh_file,
+    mesh_scale = mesh_scale,
+    color = color,
+    x = x,
+    y = y,
+    z = z,
+    roll = roll,
+    pitch = pitch,
+    yaw = yaw)
+  }}
+  {{ collision_cylinder_macro(
+    name = name,
+    collision_length = collision_height,
+    collision_radius = collision_radius,
+    x = x,
+    y = y,
+    z = z,
+    roll = roll,
+    pitch = pitch,
+    yaw = yaw)
+  }}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# leg_collision_offset_macro {--> #}
+{%- macro leg_collision_offset_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw, collision_height, collision_radius, offset_x, offset_y, offset_z) -%}
+  {{ visual_mesh_macro(
+    name = name,
+    mesh_file = mesh_file,
+    mesh_scale = mesh_scale,
+    color = color,
+    x = x,
+    y = y,
+    z = z,
+    roll = roll,
+    pitch = pitch,
+    yaw = yaw)
+  }}
+  {{ collision_cylinder_macro(
+    name = name,
+    collision_length = collision_height,
+    collision_radius = collision_radius,
+    x = x + offset_x,
+    y = y + offset_y,
+    z = z + offset_z,
+    roll = roll,
+    pitch = pitch,
+    yaw = yaw)
+  }}
+{%- endmacro -%}
+{# <!--}--> #}
+
+    <!-- ========================= drone propellers ======================== -->
+
+{# motor_plugins_macro {--> #}
+{%- macro motor_plugins_macro(motor_number, direction, time_constant_up, time_constant_down, max_rot_velocity, motor_constant, moment_constant, rotor_drag_coefficient, rolling_moment_coefficient, rotor_velocity_slowdown_sim, enable_motor_crash) -%}
+  <plugin name="motor{{ motor_number }}_plugin" filename="libgazebo_motor_model.so">
+    <robotNamespace/>
+    <jointName>prop_{{ motor_number }}_joint</jointName>
+    <linkName>prop_{{ motor_number }}_link</linkName>
+    <turningDirection>{{ direction }}</turningDirection>
+    <timeConstantUp>{{ time_constant_up }}</timeConstantUp>
+    <timeConstantDown>{{ time_constant_down }}</timeConstantDown>
+    <maxRotVelocity>{{ max_rot_velocity }}</maxRotVelocity>
+    <motorConstant>{{ motor_constant }}</motorConstant>
+    <momentConstant>{{ moment_constant }}</momentConstant>
+    <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
+    <motorNumber>{{ motor_number }}</motorNumber>
+    <rotorDragCoefficient>{{ rotor_drag_coefficient }}</rotorDragCoefficient>
+    <rollingMomentCoefficient>{{ rolling_moment_coefficient }}</rollingMomentCoefficient>
+    <motorSpeedPubTopic>/motor_speed/{{ motor_number }}</motorSpeedPubTopic>
+    <rotorVelocitySlowdownSim>{{ rotor_velocity_slowdown_sim }}</rotorVelocitySlowdownSim>
+    <enableMotorCrash>{{ enable_motor_crash }}</enableMotorCrash>
+  </plugin>
+
+  <plugin name="motor{{ motor_number }}_speed_republisher_plugin" filename="libMrsGazeboCommonResources_MotorSpeedRepublisherPlugin.so">
+    <robotNamespace/>
+    <motorSpeedTopic>/motor_speed/{{ motor_number }}</motorSpeedTopic>
+  </plugin>
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# mrs_motor_plugins_macro {--> #}
+{%- macro motor_plugins_macro(motor_number, direction, time_constant_up, time_constant_down, max_rot_velocity, motor_constant, moment_constant, rotor_drag_coefficient, rolling_moment_coefficient, rotor_velocity_slowdown_sim, enable_motor_crash) -%}
+  <plugin name="motor{{ motor_number }}_plugin" filename="libgazebo_motor_model.so">
+    <robotNamespace/>
+    <jointName>prop_{{ motor_number }}_joint</jointName>
+    <linkName>prop_{{ motor_number }}_link</linkName>
+    <turningDirection>{{ direction }}</turningDirection>
+    <timeConstantUp>{{ time_constant_up }}</timeConstantUp>
+    <timeConstantDown>{{ time_constant_down }}</timeConstantDown>
+    <maxRotVelocity>{{ max_rot_velocity }}</maxRotVelocity>
+    <motorConstant>{{ motor_constant }}</motorConstant>
+    <momentConstant>{{ moment_constant }}</momentConstant>
+    <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
+    <motorNumber>{{ motor_number }}</motorNumber>
+    <rotorDragCoefficient>{{ rotor_drag_coefficient }}</rotorDragCoefficient>
+    <rollingMomentCoefficient>{{ rolling_moment_coefficient }}</rollingMomentCoefficient>
+    <motorSpeedPubTopic>/motor_speed/{{ motor_number }}</motorSpeedPubTopic>
+    <rotorVelocitySlowdownSim>{{ rotor_velocity_slowdown_sim }}</rotorVelocitySlowdownSim>
+    <enableMotorCrash>{{ enable_motor_crash }}</enableMotorCrash>
+  </plugin>
+
+  <plugin name="motor{{ motor_number }}_speed_republisher_plugin" filename="libMrsGazeboCommonResources_MotorSpeedRepublisherPlugin.so">
+    <robotNamespace/>
+    <motorSpeedTopic>/motor_speed/{{ motor_number }}</motorSpeedTopic>
+  </plugin>
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# prop_macro {--> #}
+{%- macro prop_macro(direction, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, time_constant_up, time_constant_down, max_rot_velocity, motor_number, rotor_drag_coefficient, rolling_moment_coefficient, enable_motor_crash, color, mesh_file, mesh_scale, x, y, z, roll, pitch, yaw, ixx, ixy, ixz, iyy, iyz, izz) -%}
+  <link name="prop_{{ motor_number }}_link">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    <inertial>
+      <mass>{{ mass }}</mass>
+      <inertia>
+        <ixx>{{ ixx }}</ixx>
+        <ixy>{{ ixy }}</ixy>
+        <ixz>{{ ixz }}</ixz>
+        <iyy>{{ iyy }}</iyy>
+        <iyz>{{ iyz }}</iyz>
+        <izz>{{ izz }}</izz>
+      </inertia>
+    </inertial>
+    {{ visual_mesh_macro("prop_{{ motor_number }}", mesh_file, mesh_scale, color, 0, 0, 0, 0, 0, 0) }}
+    {{ collision_cylinder_macro(
+      name = "prop_{{ motor_number }}_link",
+      collision_length = 2 * radius,
+      collision_radius = 0.01,
+      x = 0,
+      y = 0,
+      z = 0,
+      roll = 0,
+      pitch = math.radians(90),
+      yaw = 0)
+    }}
+  </link>
+  {{ motor_plugins_macro(motor_number, direction, time_constant_up, time_constant_down, max_rot_velocity, motor_constant, moment_constant, rotor_drag_coefficient, rolling_moment_coefficient, rotor_velocity_slowdown_sim, enable_motor_crash) }}
+  <joint name="prop_{{ motor_number }}_joint" type="revolute">
+    <parent>{{ parent }}</parent>
+    <child>prop_{{ motor_number }}_link</child>
+    <axis>
+      <xyz>0 0 1</xyz>
+      <limit>
+        <lower>-1e+16</lower>
+        <upper>1e+16</upper>
+      </limit>
+      <dynamics>
+        <spring_reference>0</spring_reference>
+        <spring_stiffness>0</spring_stiffness>
+      </dynamics>
+      <use_parent_model_frame>1</use_parent_model_frame>
+    </axis>
+  </joint>
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# prop_macro_2_meshes {--> #}
+{%- macro prop_macro_2_meshes(direction, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, time_constant_up, time_constant_down, max_rot_velocity, motor_number, rotor_drag_coefficient, rolling_moment_coefficient, enable_motor_crash, color, mesh_file_1, mesh_file_2, meshes_z_offset,  mesh_scale, x, y, z, roll, pitch, yaw, ixx, ixy, ixz, iyy, iyz, izz) -%}
+  <link name="prop_{{ motor_number }}_link">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    <inertial>
+      <mass>{{ mass }}</mass>
+      <inertia>
+        <ixx>{{ ixx }}</ixx>
+        <ixy>{{ ixy }}</ixy>
+        <ixz>{{ ixz }}</ixz>
+        <iyy>{{ iyy }}</iyy>
+        <iyz>{{ iyz }}</iyz>
+        <izz>{{ izz }}</izz>
+      </inertia>
+    </inertial>
+    {{ visual_mesh_textured_macro("prop_{{ motor_number }}_first", mesh_file_1, mesh_scale, 0, 0, 0, 0, 0, 0) }}
+    {{ visual_mesh_macro("prop_{{ motor_number }}_second", mesh_file_2, mesh_scale, color, 0, 0, meshes_z_offset, 0, 0, 0) }}
+    {{ collision_cylinder_macro(
+      name = "prop_{{ motor_number }}_link",
+      collision_length = 2 * radius,
+      collision_radius = 0.01,
+      x = 0,
+      y = 0,
+      z = 0,
+      roll = 0,
+      pitch = math.radians(90),
+      yaw = 0)
+    }}
+  </link>
+  {{ motor_plugins_macro(motor_number, direction, time_constant_up, time_constant_down, max_rot_velocity, motor_constant, moment_constant, rotor_drag_coefficient, rolling_moment_coefficient, rotor_velocity_slowdown_sim, enable_motor_crash) }}
+  <joint name="prop_{{ motor_number }}_joint" type="revolute">
+    <parent>{{ parent }}</parent>
+    <child>prop_{{ motor_number }}_link</child>
+    <axis>
+      <xyz>0 0 1</xyz>
+      <limit>
+        <lower>-1e+16</lower>
+        <upper>1e+16</upper>
+      </limit>
+      <dynamics>
+        <spring_reference>0</spring_reference>
+        <spring_stiffness>0</spring_stiffness>
+      </dynamics>
+      <use_parent_model_frame>1</use_parent_model_frame>
+    </axis>
+  </joint>
+{%- endmacro -%}
+<!--}-->
+
+{# TODO: MAYBE UNUSED #}
+{# prop_macro_2_meshes_mrs_motor_model {--> #}
+{%- macro prop_macro_2_meshes_mrs_motor_model(direction, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, time_constant_up, time_constant_down, max_rot_velocity, motor_number, rotor_drag_coefficient, rolling_moment_coefficient, enable_motor_crash, color, mesh_file_1, mesh_file_2, meshes_z_offset,  mesh_scale, x, y, z, roll, pitch, yaw, ixx, ixy, ixz, iyy, iyz, izz) -%}
+<link name="prop_{{ motor_number }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  <inertial>
+    <mass>{{ mass }}</mass>
+    <inertia>
+      <ixx>{{ ixx }}</ixx>
+      <ixy>{{ ixy }}</ixy>
+      <ixz>{{ ixz }}</ixz>
+      <iyy>{{ iyy }}</iyy>
+      <iyz>{{ iyz }}</iyz>
+      <izz>{{ izz }}</izz>
+    </inertia>
+  </inertial>
+  <visual name="visual_1">
+    <geometry>
+      <mesh>
+        <uri>{{ mesh_file_1 }}</uri>
+        <scale>{{ mesh_scale }}</scale>
+      </mesh>
+    </geometry>
+  </visual>
+  <visual name="visual_2">
+    <pose>{{ 0 }} {{ 0 }} {{ meshes_z_offset }} {{ 0 }} {{ 0 }} {{ 0 }}</pose>
+    <geometry>
+      <mesh>
+        <uri>{{ mesh_file_2 }}</uri>
+        <scale>{{ mesh_scale }}</scale>
+      </mesh>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/{{ color }}</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+  <collision name="prop_{{ motor_number }}_link_collision">
+    <pose>0 0 0 0 {{ math.radians(90) }} 0</pose>
+    <geometry>
+      <cylinder>
+        <length>{{ 2*radius }}</length>
+        <radius>0.01</radius>
+      </cylinder>
+    </geometry>
+    <surface>
+      <contact>
+        <ode/>
+      </contact>
+      <friction>
+        <ode/>
+      </friction>
+    </surface>
+  </collision>
+</link>
+
+<plugin name="motor{{ motor_number }}_plugin" filename="libMrsGazeboCommonResources_MotorPropModelPlugin.so">
+  <robotNamespace/>
+  <jointName>prop_{{ motor_number }}_joint</jointName>
+  <linkName>prop_{{ motor_number }}_link</linkName>
+  <turningDirection>{{ direction }}</turningDirection>
+  <timeConstantUp>{{ time_constant_up }}</timeConstantUp>
+  <timeConstantDown>{{ time_constant_down }}</timeConstantDown>
+  <maxRotVelocity>{{ max_rot_velocity }}</maxRotVelocity>
+  <motorConstant>{{ motor_constant }}</motorConstant>
+  <momentConstant>{{ moment_constant }}</momentConstant>
+  <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
+  <motorNumber>{{ motor_number }}</motorNumber>
+  <rotorDragCoefficient>{{ rotor_drag_coefficient }}</rotorDragCoefficient>
+  <rollingMomentCoefficient>{{ rolling_moment_coefficient }}</rollingMomentCoefficient>
+  <motorSpeedPubTopic>/motor_speed/{{ motor_number }}</motorSpeedPubTopic>
+  <rotorVelocitySlowdownSim>{{ rotor_velocity_slowdown_sim }}</rotorVelocitySlowdownSim>
+  <enableMotorCrash>{{ enable_motor_crash }}</enableMotorCrash>
+</plugin>
+
+<plugin name="motor{{ motor_number }}_speed_republisher_plugin" filename="libMrsGazeboCommonResources_MotorSpeedRepublisherPlugin.so">
+  <robotNamespace/>
+  <motorSpeedTopic>/motor_speed/{{ motor_number }}</motorSpeedTopic>
+</plugin>
+
+<joint name="prop_{{ motor_number }}_joint" type="revolute">
+  <parent>{{ parent }}</parent>
+  <child>prop_{{ motor_number }}_link</child>
+  <axis>
+    <xyz>0 0 1</xyz>
+    <limit>
+      <lower>-1e+16</lower>
+      <upper>1e+16</upper>
+    </limit>
+    <dynamics>
+      <spring_reference>0</spring_reference>
+      <spring_stiffness>0</spring_stiffness>
+    </dynamics>
+    <use_parent_model_frame>1</use_parent_model_frame>
+  </axis>
+</joint>
 {%- endmacro -%}
 {# <!--}--> #}
 
