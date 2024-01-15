@@ -4,8 +4,9 @@
 {%- import "generic_components.sdf.jinja" as generic -%}
 
 <!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
-<!-- !!    THIS DOCUMENT CONTAINS ONLY COMMON COMPONENTS MACRO AND    !! -->
-<!-- !!  PARAMETERS DEFINITIONS. IT SHOULD NOT CONTAIN ANY ARGUMENTS. !! -->
+<!-- !! THIS DOCUMENT CONTAINS ONLY COMPLEX COMPONENT MACROS DESIGNED !! -->
+<!-- !!   FOR USE WITH THE MRS DRONE SPAWNER AND USE THE SPAWNER API  !! -->
+<!-- !! GENERIC SENSORS, VISUAL BLOCKS, PLUGINS ETC BELONG TO GENERIC !! -->
 <!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
 
 <!-- License {-->
@@ -33,201 +34,12 @@ limitations under the License.
 <!--}-->
 
 <!-- ================================================================== -->
-<!-- ||   generic macro definitions (visualization, collision ...)   || -->
-<!-- ================================================================== -->
-
-<!-- Visual colored box with collision macro {-->
-{%- macro visual_colored_box_with_collision_macro(name, size_x, size_y, size_z, color, x, y, z, roll, pitch, yaw) -%}
-<visual name="{{ name }}_visual">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  <geometry>
-    <box>
-      <size>{{ size_x }} {{ size_y }} {{ size_z }}</size>
-    </box>
-  </geometry>
-  <material>
-    <script>
-      <name>Gazebo/{{ color }}</name>
-      <uri>file://media/materials/scripts/gazebo.material</uri>
-    </script>
-  </material>
-</visual>
-<collision name="{{ name }}_collision">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  <geometry>
-    <box>
-      <size>{{ size_x }} {{ size_y }} {{ size_z }}</size>
-    </box>
-  </geometry>
-</collision>
-{%- endmacro -%}
-<!--}-->
-
-<!-- Fluid resistance macro {-->
-{%- macro fluid_resistance_plugin_macro(verbose, model_mass, parent_link, update_rate, uav_body_resistance_x, uav_body_resistance_y, uav_body_resistance_z) -%}
-<plugin name="fluid_resistance_plugin" filename="libMrsGazeboCommonResources_FluidResistancePlugin.so">
-  <robotNamespace/>
-  <model_mass>{{ model_mass }}</model_mass>
-  <FluidResistanceTopicName>/fluid_resistance</FluidResistanceTopicName>
-  <NameLinkToApplyResistance>{{ parent_link }}</NameLinkToApplyResistance>
-  <rate>{{ update_rate }}</rate>
-  <res_x>{{ uav_body_resistance_x }}</res_x>
-  <res_y>{{ uav_body_resistance_y }}</res_y>
-  <res_z>{{ uav_body_resistance_z }}</res_z>
-  <verbose>{{ verbose }}</verbose>
-</plugin>
-{%- endmacro -%}
-<!--}-->
-
-  <!-- ================================================================== -->
-  <!-- ||  generic sensor plugin definitions (camera, rangefinder ...) || -->
-  <!-- ================================================================== -->
-
-  <!--  {-->
-
-<!-- Macro to add imu with configurable rate {-->
-{%- macro custom_imu_macro(sensor_name, parent_link, update_rate, topic_name, frame_name, noise_mean, x, y, z, roll, pitch, yaw) -%}
-<link name="{{ sensor_name }}_link">
-  <pose relative_to = "{{ parent_link }}">{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <sensor name="{{ sensor_name }}_sensor" type="imu">
-    <gravity>true</gravity>
-    <always_on>true</always_on>
-    <update_rate>{{ update_rate }}</update_rate>
-    <visualize>false</visualize>
-    <topic>__default_topic__</topic>
-    <plugin name="{{ sensor_name }}_plugin" filename="libgazebo_ros_imu_sensor.so">
-      <robotNamespace></robotNamespace>
-      <topicName>{{ topic_name }}</topicName>
-      <updateRateHZ>{{ update_rate }}</updateRateHZ>
-      <gaussianNoise>{{ noise_mean }}</gaussianNoise>
-      <xyzOffset>0 0 0</xyzOffset>
-      <rpyOffset>0 0 0</rpyOffset>
-      <frameName>{{ frame_name }}</frameName>
-    </plugin>
-  </sensor>
-</link>
-
-<joint name="{{ sensor_name }}_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>{{ sensor_name }}_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
-
-<!-- Macro to add the wind_plugin{-->
-{%- macro wind_plugin_macro(xyz_offset, wind_direction, wind_force_mean, wind_gust_direction, wind_gust_duration, wind_gust_start, wind_gust_force_mean) -%}
-<plugin filename="libgazebo_wind_plugin.so" name="wind_plugin">
-  <frameId>base_link</frameId>
-  <linkName>base_link</linkName>
-  <robotNamespace/>
-  <xyzOffset>{{ xyz_offset }}</xyzOffset> <!-- [m] [m] [m] -->
-  <windDirection>{{ wind_direction }}</windDirection>
-  <windForceMean>{{ wind_force_mean }}</windForceMean> <!-- [N] -->
-  <windGustDirection>{{ wind_gust_direction }}</windGustDirection>
-  <windGustDuration>{{ wind_gust_duration }}</windGustDuration> <!-- [s] -->
-  <windGustStart>{{ wind_gust_start }}</windGustStart> <!-- [s] -->
-  <windGustForceMean>{{ wind_gust_force_mean }}</windGustForceMean> <!-- [N] -->
-</plugin>
-{%- endmacro -%}
-<!--}-->
-
-
-<!-- Macro to add the fisheye_camera_plugin {-->
-{%- macro fisheye_macro(parent_link, camera_name, topic_ns_prefix, camera_frame_name, sensor_base_frame_name, frame_rate, parent_frame_name, horizontal_fov, image_width, image_height, min_distance, max_distance, lens_type, lens_c1, lens_c2, lens_f, lens_fun, lens_scale, lens_cutoff_angle, lens_texture_size, noise_mean, noise_stddev, mesh_file, mesh_scale, color, visual_x, visual_y, visual_z, visual_roll, visual_pitch, visual_yaw, x, y, z, roll, pitch, yaw) -%}
-{# -- topics -- #}
-{%- set topic_image = topic_ns_prefix + "image_raw" -%}
-{%- set topic_camera_ifo = topic_ns_prefix + "camera_info" -%}
-
-<link name="{{ camera_name }}_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  {{generic.visual_mesh_macro(
-    name = "",
-    mesh_file = mesh_file,
-    mesh_scale = mesh_scale,
-    color = color,
-    x = visual_x,
-    y = visual_y,
-    z = visual_z,
-    roll = visual_roll,
-    pitch = visual_pitch,
-    yaw = visual_yaw)
-  }}
-  <sensor name="{{ camera_name }}_sensor" type="wideanglecamera">
-    <update_rate>{{ frame_rate }}</update_rate>
-    <camera>
-      <horizontal_fov>{{ horizontal_fov }}</horizontal_fov>
-      <image>
-        <width>{{ image_width }}</width>
-        <height>{{ image_height }}</height>
-      </image>
-      <clip>
-        <near>{{ min_distance }}</near>
-        <far>{{ max_distance }}</far>
-      </clip>
-      <noise>
-        <type>gaussian</type>
-        <!-- Noise is sampled independently per pixel on each frame.
-        That pixel's noise value is added to each of its color
-        channels, which at that point lie in the range [0,1]. -->
-        <mean>{{ noise_mean }}</mean>
-        <stddev>{{ noise_stddev }}</stddev>
-      </noise>
-      <lens>
-        <type>{{ lens_type }}</type>
-        <custom_function>
-          <c1>{{ lens_c1 }}</c1>
-          <c2>{{ lens_c2 }}</c2>
-          <f>{{ lens_f }}</f>
-          <fun>{{ lens_fun }}</fun>
-        </custom_function>
-        <scale_to_hfov>{{ lens_scale }}</scale_to_hfov>
-        <cutoff_angle>{{ lens_cutoff_angle }}</cutoff_angle>
-        <env_texture_size>{{ lens_texture_size }}</env_texture_size>
-      </lens>
-    </camera>
-    <plugin name="{{ camera_name }}_plugin" filename="libMrsGazeboCommonResources_CameraPlugin.so">
-      <alwaysOn>true</alwaysOn>
-      <updateRate>{{ frame_rate }}</updateRate>
-      <cameraName>{{ camera_name }}</cameraName>
-      <imageTopicName>{{ topic_image }}</imageTopicName>
-      <cameraInfoTopicName>{{ topic_camera_ifo }}</cameraInfoTopicName>
-      <frameName>/{{ camera_frame_name }}</frameName>
-      <hackBaseline>0.0</hackBaseline>
-      <distortionK1>0.0</distortionK1>
-      <distortionK2>0.0</distortionK2>
-      <distortionK3>0.0</distortionK3>
-      <distortionT1>0.0</distortionT1>
-      <distortionT2>0.0</distortionT2>
-      <parentFrameName>{{ parent_frame_name }}</parentFrameName>
-      <sensorBaseFrameName>{{ sensor_base_frame_name }}</sensorBaseFrameName>
-      <x>{{ x }}</x>
-      <y>{{ y }}</y>
-      <z>{{ z }}</z>
-      <roll>{{ roll }}</roll>
-      <pitch>{{ pitch }}</pitch>
-      <yaw>{{ yaw }}</yaw>
-    </plugin>
-  </sensor>
-</link>
-
-<joint name="{{ camera_name }}_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>{{ camera_name }}_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
-
-<!--}-->
-
-<!-- ================================================================== -->
 <!-- ||                      sensor definitions                      || -->
 <!-- ================================================================== -->
 
 <!-- ======================= rangefinder sensors ======================-->
 
-
+{# TODO: make a component out of this #}
 <!-- Macro to add a Teraranger One {-->
 {%- macro teraranger_macro(namespace, parent_link, x, y, z, roll, pitch, yaw) -%}
 <link name="teraranger_link">
@@ -246,7 +58,7 @@ limitations under the License.
       </script>
     </material>
   </visual>
-  {{ rangefinder_sensor_macro(
+  {{ generic.rangefinder_sensor_macro(
     name = "teraranger",
     parent_frame_name = namespace + "/fcu",
     rangefinder_frame_name = namespace + "/teraranger",
@@ -273,6 +85,7 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a URM37 ultrasound {-->
 {%- macro ultrasonic_sensor_macro(namespace, parent_link, suffix, x, y, z, roll, pitch, yaw) -%}
 <link name="ultrasound{{ suffix }}_link">
@@ -292,7 +105,7 @@ limitations under the License.
       </script>
     </material>
   </visual>
-  {{ rangefinder_sensor_macro(
+  {{ generic.rangefinder_sensor_macro(
     name = "ultrasound" + suffix,
     parent_frame_name = namespace + "/fcu",
     rangefinder_frame_name = namespace + "/ultrasound" + suffix,
@@ -321,6 +134,7 @@ limitations under the License.
 
 <!-- ========================== LIDAR sensors ========================= -->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a Scanse Sweeper{-->
 {%- macro scanse_sweep_macro(namespace, parent_link, x, y, z, roll, pitch, yaw) -%}
 <link name="sweeper_link">
@@ -399,6 +213,7 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a Velodyne Lidar {-->
 {%- macro velodyne_macro(namespace, parent_link, sensor_name, rotation_freq, lasers, max_range, noise, vfov_angle, enable_gpu_ray, horizontal_samples, x, y, z, roll, pitch, yaw) -%}
 
@@ -553,9 +368,10 @@ limitations under the License.
 
 <!-- ========================= camera sensors ========================= -->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a Basler Dart camera {-->
 {%- macro basler_camera_macro(namespace, camera_name, parent_link, frame_rate, hfov, noise, x, y, z, roll, pitch, yaw) -%}
-{{ camera_macro(
+{{ generic.camera_macro(
   parent_link = parent_link,
   camera_name = camera_name,
   parent_frame_name = namespace + "/fcu",
@@ -588,8 +404,9 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a Fisheye camera {-->
-{%- macro fisheye_camera_macro(namespace, camera_name, topic_ns_prefix, parent_link, frame_rate, noise, x, y, z, roll, pitch, yaw) -%}
+{%- macro fisheye_bluefox_camera_macro(namespace, camera_name, topic_ns_prefix, parent_link, frame_rate, noise, x, y, z, roll, pitch, yaw) -%}
 {{ fisheye_macro(
   camera_name = camera_name,
   topic_ns_prefix = topic_ns_prefix,
@@ -632,9 +449,10 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a Mobius camera {-->
 {%- macro mobius_camera_macro(namespace, camera_name, parent_link, frame_rate, x, y, z, roll, pitch, yaw) -%}
-{{ camera_macro(
+{{ generic.camera_macro(
   parent_link = parent_link,
   camera_name = camera_name,
   parent_frame_name = namespace + "/fcu",
@@ -667,6 +485,7 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a thermal camera {-->
 {%- macro thermal_camera_macro(camera_name, camera_topic_name, parent_frame_name, camera_frame_name, sensor_base_frame_name, parent_link, frame_rate, hfov, image_width, image_height, x, y, z, roll, pitch, yaw) -%}
 <link name="{{ camera_name }}_link">
@@ -738,6 +557,7 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a camera mounted on virtual servo {-->
 {%- macro servo_camera_macro(parent, offset_pitch_link_x, offset_pitch_link_y, offset_pitch_link_z, offset_pitch_link_yaw, offset_pitch_link_roll, offset_pitch_link_pitch, offset_roll_link_x, offset_roll_link_y, offset_roll_link_z, offset_roll_link_yaw, offset_roll_link_roll, offset_roll_link_pitch, tilt_update_rate, max_pitch, min_pitch, max_pitch_rate, max_roll, min_roll, max_roll_rate, compensate_tilt_roll, compensate_tilt_pitch, parent_frame_name, sensor_base_frame_name, camera_frame_name, camera_update_rate, horizontal_fov, img_width, img_height, roll_link_mesh_file, pitch_link_mesh_file, mesh_scale) -%}
 
@@ -894,6 +714,7 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a fisheye camera with integrated imu {-->
 {%- macro vio_macro(namespace, sensor_name, parent_link, frame_rate, noise, imu_rate, imu_noise_mean, x, y, z, roll, pitch, yaw) -%}
 {{ fisheye_camera_macro(
@@ -911,7 +732,7 @@ limitations under the License.
   yaw = yaw)
 }}
 
-{{ custom_imu_macro(
+{{ generic.imu_sensor_macro(
   sensor_name = sensor_name + "_imu",
   parent_link = sensor_name + "_link",
   update_rate = imu_rate,
@@ -932,6 +753,7 @@ limitations under the License.
 
 <!-- Macro to add a Teraranger Tower Evo {-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a single Teraranger Evo {-->
 {%- macro teraranger_evo_macro(parent_link, id, visualize, frame_name, parent_frame_name, gaussian_noise, x, y, z, roll, pitch, yaw) -%}
 <visual name="teraranger_evo_{{ id }}_visual">
@@ -993,6 +815,7 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a Teraranger Tower base hub {-->
 {%- macro teraranger_evo_tower_macro(parent_link, visualize, frame_name, parent_frame_name, gaussian_noise, x, y, z, roll, pitch, yaw) -%}
 {# -- parameters of sensors -- (id, x, y, z, roll, pitch, yaw) #}
@@ -1050,6 +873,7 @@ limitations under the License.
 <!--}-->
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a gps satelite blocking sensor {-->
 {%- macro gps_satelites_blocking_macro(parent_link) -%}
 {# not supported in the current version #}
@@ -1094,6 +918,7 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a magnetic gripper {-->
 {%- macro magnet_gripper_visualization_macro(parent_link, x, y, z, roll, pitch, yaw) -%}
 <link name="magnet_gripper_visualization_link">
@@ -1172,6 +997,7 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a Timepix detector {-->
 {%- macro timepix_macro(parent_link, name,  x, y, z, roll, pitch, yaw) -%}
 <link name="{{ name }}_link">
@@ -1206,6 +1032,7 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a Timepix3 event camera {-->
 {%- macro timepix3_macro(parent_link, name, material, thickness, max_message_window, sensor_suffix, x, y, z, roll, pitch, yaw) -%}
 <link name="{{ name }}_link">
@@ -1241,6 +1068,7 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a water gun {-->
 {%- macro water_gun_macro(parent_link, muzzle_velocity, particle_capacity, spread, spawning_reservoir, nozzle_offset_x, nozzle_offset_y, nozzle_offset_z, x, y, z, roll, pitch, yaw) -%}
 <link name="water_gun_link">
@@ -1294,6 +1122,7 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a light {-->
 {%- macro light_macro(parent_link, update_rate, max_pitch_rate, initial_on, compensate_tilt, x, y, z, roll, pitch, yaw) -%}
 <link name="light_macro_link">
@@ -1349,6 +1178,7 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a safety_led {-->
 {%- macro safety_led_macro(parent_link, failure_duration_threshold, x, y, z, roll, pitch, yaw) -%}
 <link name="safety_led_link">
@@ -1375,11 +1205,11 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-
 <!-- ================================================================== -->
 <!-- ||         other equipment definitions (holders, boxes ...)     || -->
 <!-- ================================================================== -->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a parachute {-->
 {%- macro parachute_macro(parent_link, x, y, z, roll, pitch, yaw) -%}
 <link name="parachute_link">
@@ -1418,6 +1248,7 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a whycon box {-->
 {%- macro whycon_box_macro(parent_link, mesh_scale, x, y, z, roll, pitch, yaw) -%}
 <link name="whycon_box_link">
@@ -1441,16 +1272,17 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a pendulum {-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a single chain in the pendulum {-->
 {%- macro single_chain_pendulum_macro(parent_link, id, chain_mass, chain_radius, chain_length, joint_offset_x, joint_offset_y, joint_offset_z) -%}
 <link name="pendulum_chain_{{ id }}_link">
   <pose relative_to = "pendulum_chain_{{ id }}_joint"> 0 0 {{ -chain_length/2 }} 0 0 0</pose>
   <inertial>
     <mass>{{ chain_mass }}</mass>
-    {{
-      cylinder_inertia(
+    {{ generic.cylinder_inertia(
         m = chain_mass,
         r = chain_radius,
         h = chain_length)
@@ -1522,6 +1354,7 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# TODO: make a component out of this #}
 <!-- Macro to add a pendulum {-->
 {%- macro pendulum_macro(parent_link, number_of_chains, chain_length, chain_radius, chain_mass, x, y, z) -%}
 {{ single_chain_pendulum_macro(
@@ -1553,9 +1386,9 @@ limitations under the License.
 <!--}-->
 <!--}-->
 
-<!-- ================================================================== -->
-<!-- ||                   Components using spawner API               || -->
-<!-- ================================================================== -->
+{# ================================================================== #}
+{# ||                   Components using spawner API               || #}
+{# ================================================================== #}
 
 {# ground_truth_macro {--> #}
 {%- macro ground_truth_macro(parent_link, x, y, z, roll, pitch, yaw, spawner_args) -%}

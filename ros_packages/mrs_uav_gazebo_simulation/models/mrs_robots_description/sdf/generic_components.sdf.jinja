@@ -1,6 +1,38 @@
 <?xml version="1.0"? encoding="utf-8">
 <sdf version="1.6">
 
+<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+<!-- !!  THIS DOCUMENT CONTAINS ONLY BASIC BUILDING BLOCKS, PLUGINS,  !! -->
+<!-- !!   AND GENERIC SENSORS DEFINITIONS. DO NOT DEFINE ARGUMENTS    !! -->
+<!-- !! OR COMPLEX COMPONENTS THAT ARE USED BY THE MRS DRONE SPAWNER  !! -->
+<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+
+<!-- License {-->
+<!--
+Copyright 2015 Fadri Furrer, ASL, ETH Zurich, Switzerland
+Copyright 2015 Michael Burri, ASL, ETH Zurich, Switzerland
+Copyright 2015 Mina Kamel, ASL, ETH Zurich, Switzerland
+Copyright 2015 Janosch Nikolic, ASL, ETH Zurich, Switzerland
+Copyright 2015 Markus Achtelik, ASL, ETH Zurich, Switzerland
+Copyright 2022 Vojtech Spurny, MRS, CTU Prague, Czech Republic
+Copyright 2024 Petr Stibinger, MRS, CTU Prague, Czech Republic
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<!--}-->
+
+    <!-- ========================== general blocks ========================= -->
+
 {# handle_spawner_args {--> #}
 {%- macro handle_spawner_args(keyword, default_args, args) -%}
 
@@ -47,86 +79,86 @@
 
 {# multirotor_physics_macro {--> #}
 {%- macro multirotor_physics_macro(mass, body_radius, body_height, rotor_velocity_slowdown_sim, ixx, ixy, ixz, iyy, iyz, izz) -%}
-<inertial>
-  <mass>{{ mass }}</mass>
-  <inertia>
-    <ixx>{{ ixx }}</ixx>
-    <ixy>{{ ixy }}</ixy>
-    <ixz>{{ ixz }}</ixz>
-    <iyy>{{ iyy }}</iyy>
-    <iyz>{{ iyz }}</iyz>
-    <izz>{{ izz }}</izz>
-  </inertia>
-</inertial>
-<collision name="base_link_collision">
-  <pose>
-    <x>0</x>
-    <y>0</y>
-    <z>{{ - body_height / 2 }}</z>
-    <roll>0</roll>
-    <pitch>0</pitch>
-    <yaw>0</yaw>
-  </pose>
-  <geometry>
-    <cylinder>
-      <length>{{ body_height }}</length>
-      <radius>{{ body_radius }}</radius>
-    </cylinder>
-  </geometry>
-  <surface>
-    <contact>
-      <ode>
-        <min_depth>0.001</min_depth>
-        <max_vel>0.0</max_vel>
-      </ode>
-    </contact>
-    <friction>
-      <ode/>
-    </friction>
-  </surface>
-</collision>
+  <inertial>
+    <mass>{{ mass }}</mass>
+    <inertia>
+      <ixx>{{ ixx }}</ixx>
+      <ixy>{{ ixy }}</ixy>
+      <ixz>{{ ixz }}</ixz>
+      <iyy>{{ iyy }}</iyy>
+      <iyz>{{ iyz }}</iyz>
+      <izz>{{ izz }}</izz>
+    </inertia>
+  </inertial>
+  <collision name="base_link_collision">
+    <pose>
+      <x>0</x>
+      <y>0</y>
+      <z>{{ - body_height / 2 }}</z>
+      <roll>0</roll>
+      <pitch>0</pitch>
+      <yaw>0</yaw>
+    </pose>
+    <geometry>
+      <cylinder>
+        <length>{{ body_height }}</length>
+        <radius>{{ body_radius }}</radius>
+      </cylinder>
+    </geometry>
+    <surface>
+      <contact>
+        <ode>
+          <min_depth>0.001</min_depth>
+          <max_vel>0.0</max_vel>
+        </ode>
+      </contact>
+      <friction>
+        <ode/>
+      </friction>
+    </surface>
+  </collision>
 
-<plugin filename="libgazebo_multirotor_base_plugin.so" name="multirotor_base_plugin">
-  <robotNamespace/>
-  <linkName>base_link</linkName>
-  <rotorVelocitySlowdownSim>{{ rotor_velocity_slowdown_sim }}</rotorVelocitySlowdownSim>
-</plugin>
+  <plugin filename="libgazebo_multirotor_base_plugin.so" name="multirotor_base_plugin">
+    <robotNamespace/>
+    <linkName>base_link</linkName>
+    <rotorVelocitySlowdownSim>{{ rotor_velocity_slowdown_sim }}</rotorVelocitySlowdownSim>
+  </plugin>
 {%- endmacro -%}
 {# <!--}--> #}
 
 {# collision_cylinder_macro {--> #}
 {%- macro collision_cylinder_macro(name, collision_length, collision_radius, x, y, z, roll, pitch, yaw) -%}
-<collision name="{{ name }}_collision">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  <geometry>
-    <cylinder>
-      <length>{{ collision_length }}</length>
-      <radius>{{ collision_radius }}</radius>
-    </cylinder>
-  </geometry>
-  <surface>
-    <ode>
-      <min_depth>0.001</min_depth>
-      <max_vel>0.0</max_vel>
-    </ode>
-    <friction>
-      <ode/>
-    </friction>
-  </surface>
-</collision>
+  <collision name="{{ name }}_collision">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    <geometry>
+      <cylinder>
+        <length>{{ collision_length }}</length>
+        <radius>{{ collision_radius }}</radius>
+      </cylinder>
+    </geometry>
+    <surface>
+      <ode>
+        <min_depth>0.001</min_depth>
+        <max_vel>0.0</max_vel>
+      </ode>
+      <friction>
+        <ode/>
+      </friction>
+    </surface>
+  </collision>
 {%- endmacro -%}
 {# <!--}--> #}
 
 {# cylinder_inertia {--> #}
 {%- macro cylinder_inertia(m, r, h) -%}
-<inertia>
-  <ixx>{{ m * ( 3 * r * r + h * h ) / 12 }}</ixx>
-  <ixy>0</ixy>
-  <ixz>0</ixz>
-  <iyy>{{ m * ( 3 * r * r + h * h ) / 12 }}</iyy>
-  <iyz>0</iyz>
-  <izz>{{ m * r * r / 2 }}</izz>
-</inertia>
+  <inertia>
+    <ixx>{{ m * ( 3 * r * r + h * h ) / 12 }}</ixx>
+    <ixy>0</ixy>
+    <ixz>0</ixz>
+    <iyy>{{ m * ( 3 * r * r + h * h ) / 12 }}</iyy>
+    <iyz>0</iyz>
+    <izz>{{ m * r * r / 2 }}</izz>
+  </inertia>
 {%- endmacro -%}
 {# <!--}--> #}
 
@@ -250,6 +282,20 @@
 {%- endmacro -%}
 {# <!--}--> #}
 
+{# visual_colored_box_with_collision_macro {--> #}
+{%- macro visual_colored_box_with_collision_macro(name, size_x, size_y, size_z, color, x, y, z, roll, pitch, yaw) -%}
+  {{ visual_colored_box_macro(name, size_x, size_y, size_z, color, x, y, z, roll, pitch, yaw) }}
+  <collision name="{{ name }}_collision">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    <geometry>
+      <box>
+        <size>{{ size_x }} {{ size_y }} {{ size_z }}</size>
+      </box>
+    </geometry>
+  </collision>
+{%- endmacro -%}
+{# <!--}--> #}
+
     <!-- ============================ drone legs =========================== -->
 
 {# leg_macro {--> #}
@@ -311,34 +357,6 @@
     <!-- ========================= drone propellers ======================== -->
 
 {# motor_plugins_macro {--> #}
-{%- macro motor_plugins_macro(motor_number, direction, time_constant_up, time_constant_down, max_rot_velocity, motor_constant, moment_constant, rotor_drag_coefficient, rolling_moment_coefficient, rotor_velocity_slowdown_sim, enable_motor_crash) -%}
-  <plugin name="motor{{ motor_number }}_plugin" filename="libgazebo_motor_model.so">
-    <robotNamespace/>
-    <jointName>prop_{{ motor_number }}_joint</jointName>
-    <linkName>prop_{{ motor_number }}_link</linkName>
-    <turningDirection>{{ direction }}</turningDirection>
-    <timeConstantUp>{{ time_constant_up }}</timeConstantUp>
-    <timeConstantDown>{{ time_constant_down }}</timeConstantDown>
-    <maxRotVelocity>{{ max_rot_velocity }}</maxRotVelocity>
-    <motorConstant>{{ motor_constant }}</motorConstant>
-    <momentConstant>{{ moment_constant }}</momentConstant>
-    <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
-    <motorNumber>{{ motor_number }}</motorNumber>
-    <rotorDragCoefficient>{{ rotor_drag_coefficient }}</rotorDragCoefficient>
-    <rollingMomentCoefficient>{{ rolling_moment_coefficient }}</rollingMomentCoefficient>
-    <motorSpeedPubTopic>/motor_speed/{{ motor_number }}</motorSpeedPubTopic>
-    <rotorVelocitySlowdownSim>{{ rotor_velocity_slowdown_sim }}</rotorVelocitySlowdownSim>
-    <enableMotorCrash>{{ enable_motor_crash }}</enableMotorCrash>
-  </plugin>
-
-  <plugin name="motor{{ motor_number }}_speed_republisher_plugin" filename="libMrsGazeboCommonResources_MotorSpeedRepublisherPlugin.so">
-    <robotNamespace/>
-    <motorSpeedTopic>/motor_speed/{{ motor_number }}</motorSpeedTopic>
-  </plugin>
-{%- endmacro -%}
-{# <!--}--> #}
-
-{# mrs_motor_plugins_macro {--> #}
 {%- macro motor_plugins_macro(motor_number, direction, time_constant_up, time_constant_down, max_rot_velocity, motor_constant, moment_constant, rotor_drag_coefficient, rolling_moment_coefficient, rotor_velocity_slowdown_sim, enable_motor_crash) -%}
   <plugin name="motor{{ motor_number }}_plugin" filename="libgazebo_motor_model.so">
     <robotNamespace/>
@@ -463,7 +481,36 @@
 {%- endmacro -%}
 <!--}-->
 
-{# TODO: MAYBE UNUSED #}
+{# TODO: UNUSED #}
+{# mrs_motor_plugins_macro {--> #}
+{%- macro motor_plugins_macro(motor_number, direction, time_constant_up, time_constant_down, max_rot_velocity, motor_constant, moment_constant, rotor_drag_coefficient, rolling_moment_coefficient, rotor_velocity_slowdown_sim, enable_motor_crash) -%}
+  <plugin name="motor{{ motor_number }}_plugin" filename="libMrsGazeboCommonResources_MotorPropModelPlugin.so">
+    <robotNamespace/>
+    <jointName>prop_{{ motor_number }}_joint</jointName>
+    <linkName>prop_{{ motor_number }}_link</linkName>
+    <turningDirection>{{ direction }}</turningDirection>
+    <timeConstantUp>{{ time_constant_up }}</timeConstantUp>
+    <timeConstantDown>{{ time_constant_down }}</timeConstantDown>
+    <maxRotVelocity>{{ max_rot_velocity }}</maxRotVelocity>
+    <motorConstant>{{ motor_constant }}</motorConstant>
+    <momentConstant>{{ moment_constant }}</momentConstant>
+    <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
+    <motorNumber>{{ motor_number }}</motorNumber>
+    <rotorDragCoefficient>{{ rotor_drag_coefficient }}</rotorDragCoefficient>
+    <rollingMomentCoefficient>{{ rolling_moment_coefficient }}</rollingMomentCoefficient>
+    <motorSpeedPubTopic>/motor_speed/{{ motor_number }}</motorSpeedPubTopic>
+    <rotorVelocitySlowdownSim>{{ rotor_velocity_slowdown_sim }}</rotorVelocitySlowdownSim>
+    <enableMotorCrash>{{ enable_motor_crash }}</enableMotorCrash>
+  </plugin>
+
+  <plugin name="motor{{ motor_number }}_speed_republisher_plugin" filename="libMrsGazeboCommonResources_MotorSpeedRepublisherPlugin.so">
+    <robotNamespace/>
+    <motorSpeedTopic>/motor_speed/{{ motor_number }}</motorSpeedTopic>
+  </plugin>
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# TODO: UNUSED #}
 {# prop_macro_2_meshes_mrs_motor_model {--> #}
 {%- macro prop_macro_2_meshes_mrs_motor_model(direction, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, time_constant_up, time_constant_down, max_rot_velocity, motor_number, rotor_drag_coefficient, rolling_moment_coefficient, enable_motor_crash, color, mesh_file_1, mesh_file_2, meshes_z_offset,  mesh_scale, x, y, z, roll, pitch, yaw, ixx, ixy, ixz, iyy, iyz, izz) -%}
 <link name="prop_{{ motor_number }}_link">
@@ -521,29 +568,7 @@
   </collision>
 </link>
 
-<plugin name="motor{{ motor_number }}_plugin" filename="libMrsGazeboCommonResources_MotorPropModelPlugin.so">
-  <robotNamespace/>
-  <jointName>prop_{{ motor_number }}_joint</jointName>
-  <linkName>prop_{{ motor_number }}_link</linkName>
-  <turningDirection>{{ direction }}</turningDirection>
-  <timeConstantUp>{{ time_constant_up }}</timeConstantUp>
-  <timeConstantDown>{{ time_constant_down }}</timeConstantDown>
-  <maxRotVelocity>{{ max_rot_velocity }}</maxRotVelocity>
-  <motorConstant>{{ motor_constant }}</motorConstant>
-  <momentConstant>{{ moment_constant }}</momentConstant>
-  <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
-  <motorNumber>{{ motor_number }}</motorNumber>
-  <rotorDragCoefficient>{{ rotor_drag_coefficient }}</rotorDragCoefficient>
-  <rollingMomentCoefficient>{{ rolling_moment_coefficient }}</rollingMomentCoefficient>
-  <motorSpeedPubTopic>/motor_speed/{{ motor_number }}</motorSpeedPubTopic>
-  <rotorVelocitySlowdownSim>{{ rotor_velocity_slowdown_sim }}</rotorVelocitySlowdownSim>
-  <enableMotorCrash>{{ enable_motor_crash }}</enableMotorCrash>
-</plugin>
-
-<plugin name="motor{{ motor_number }}_speed_republisher_plugin" filename="libMrsGazeboCommonResources_MotorSpeedRepublisherPlugin.so">
-  <robotNamespace/>
-  <motorSpeedTopic>/motor_speed/{{ motor_number }}</motorSpeedTopic>
-</plugin>
+{{ mrs_motor_plugins_macro(motor_number, direction, time_constant_up, time_constant_down, max_rot_velocity, motor_constant, moment_constant, rotor_drag_coefficient, rolling_moment_coefficient, rotor_velocity_slowdown_sim, enable_motor_crash) }}
 
 <joint name="prop_{{ motor_number }}_joint" type="revolute">
   <parent>{{ parent }}</parent>
@@ -647,6 +672,36 @@
       <parentFrameName>{{ parent_frame_name }}</parentFrameName>
     </plugin>
   </sensor>
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# imu_sensor_macro {--> #}
+{%- macro imu_sensor_macro(sensor_name, parent_link, update_rate, topic_name, frame_name, noise_mean, x, y, z, roll, pitch, yaw) -%}
+  <link name="{{ sensor_name }}_link">
+    <pose relative_to = "{{ parent_link }}">{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    {{ zero_inertial_macro() }}
+    <sensor name="{{ sensor_name }}_sensor" type="imu">
+      <gravity>true</gravity>
+      <always_on>true</always_on>
+      <update_rate>{{ update_rate }}</update_rate>
+      <visualize>false</visualize>
+      <topic>__default_topic__</topic>
+      <plugin name="{{ sensor_name }}_plugin" filename="libgazebo_ros_imu_sensor.so">
+        <robotNamespace></robotNamespace>
+        <topicName>{{ topic_name }}</topicName>
+        <updateRateHZ>{{ update_rate }}</updateRateHZ>
+        <gaussianNoise>{{ noise_mean }}</gaussianNoise>
+        <xyzOffset>0 0 0</xyzOffset>
+        <rpyOffset>0 0 0</rpyOffset>
+        <frameName>{{ frame_name }}</frameName>
+      </plugin>
+    </sensor>
+  </link>
+
+  <joint name="{{ sensor_name }}_joint" type="fixed">
+    <parent>{{ parent_link }}</parent>
+    <child>{{ sensor_name }}_link</child>
+  </joint>
 {%- endmacro -%}
 {# <!--}--> #}
 
@@ -846,6 +901,41 @@
       <joint_control_type>velocity</joint_control_type>
     </channel>
   </control_channels>
+</plugin>
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# TODO: UNUSED #}
+{# gazebo_fluid_resistance_plugin_macro {--> #}
+{%- macro gazebo_fluid_resistance_plugin_macro(verbose, model_mass, parent_link, update_rate, uav_body_resistance_x, uav_body_resistance_y, uav_body_resistance_z) -%}
+<plugin name="gazebo_fluid_resistance_plugin" filename="libMrsGazeboCommonResources_FluidResistancePlugin.so">
+  <robotNamespace/>
+  <model_mass>{{ model_mass }}</model_mass>
+  <FluidResistanceTopicName>/fluid_resistance</FluidResistanceTopicName>
+  <NameLinkToApplyResistance>{{ parent_link }}</NameLinkToApplyResistance>
+  <rate>{{ update_rate }}</rate>
+  <res_x>{{ uav_body_resistance_x }}</res_x>
+  <res_y>{{ uav_body_resistance_y }}</res_y>
+  <res_z>{{ uav_body_resistance_z }}</res_z>
+  <verbose>{{ verbose }}</verbose>
+</plugin>
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# TODO: UNUSED #}
+{# gazebo_wind_plugin_macro {--> #}
+{%- macro gazebo_wind_plugin_macro(xyz_offset, wind_direction, wind_force_mean, wind_gust_direction, wind_gust_duration, wind_gust_start, wind_gust_force_mean) -%}
+<plugin filename="libgazebo_wind_plugin.so" name="wind_plugin">
+  <frameId>base_link</frameId>
+  <linkName>base_link</linkName>
+  <robotNamespace/>
+  <xyzOffset>{{ xyz_offset }}</xyzOffset> <!-- [m] [m] [m] -->
+  <windDirection>{{ wind_direction }}</windDirection>
+  <windForceMean>{{ wind_force_mean }}</windForceMean> <!-- [N] -->
+  <windGustDirection>{{ wind_gust_direction }}</windGustDirection>
+  <windGustDuration>{{ wind_gust_duration }}</windGustDuration> <!-- [s] -->
+  <windGustStart>{{ wind_gust_start }}</windGustStart> <!-- [s] -->
+  <windGustForceMean>{{ wind_gust_force_mean }}</windGustForceMean> <!-- [N] -->
 </plugin>
 {%- endmacro -%}
 {# <!--}--> #}
@@ -1130,46 +1220,132 @@
 {%- endmacro -%}
 <!--}-->
 
-  <!-- ======================== UV leds and cameras ======================== -->
+{# fisheye_camera_macro {--> #}
+{%- macro fisheye_camera_macro(parent_link, camera_name, topic_ns_prefix, camera_frame_name, sensor_base_frame_name, frame_rate, parent_frame_name, horizontal_fov, image_width, image_height, min_distance, max_distance, lens_type, lens_c1, lens_c2, lens_f, lens_fun, lens_scale, lens_cutoff_angle, lens_texture_size, noise_mean, noise_stddev, mesh_file, mesh_scale, color, visual_x, visual_y, visual_z, visual_roll, visual_pitch, visual_yaw, x, y, z, roll, pitch, yaw) -%}
+  {# -- topics -- #}
+  {%- set topic_image = topic_ns_prefix + "image_raw" -%}
+  {%- set topic_camera_ifo = topic_ns_prefix + "camera_info" -%}
 
-{# uvcam_macro {--> #}
-{%- macro uvcam_macro(parent_link, calibration_file, occlusions, frame_rate, device_id, camera_publish_topic, x, y, z, roll, pitch, yaw) -%}
-<link name="uvcam_{{ device_id }}_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ zero_inertial_macro() }}
-  <visual name="visual">
-    <pose>0 0 0 {{ math.radians(90) }} 0 0</pose>
-    <geometry>
-      <mesh>
-        <uri>model://mrs_robots_description/meshes/sensors/bluefox.dae</uri>
-        <scale>1 1 1</scale>
-      </mesh>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Black</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <sensor name="uvcam_{{ device_id }}_sensor" type="rfid" >
-    <update_rate>1</update_rate>
-    <plugin name='uvcam_{{ device_id }}_plugin' filename="libuvdar_cam.so">
-      <alwaysOn>false</alwaysOn>
-      <updateRate>{{ frame_rate }}</updateRate>
-      <occlusion>{{ occlusions }}</occlusion>
-      <framerate>{{ frame_rate }}</framerate>
-      <calibration_file>{{ calibration_file }}</calibration_file>
-      <device_id>{{ device_id }}</device_id>
-      <camera_publish_topic>{{ camera_publish_topic }}</camera_publish_topic>
-    </plugin>
-  </sensor>
-</link>
+  <link name="{{ camera_name }}_link">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    {{ zero_inertial_macro() }}
+    {{ visual_mesh_macro(
+      name = "",
+      mesh_file = mesh_file,
+      mesh_scale = mesh_scale,
+      color = color,
+      x = visual_x,
+      y = visual_y,
+      z = visual_z,
+      roll = visual_roll,
+      pitch = visual_pitch,
+      yaw = visual_yaw)
+    }}
+    <sensor name="{{ camera_name }}_sensor" type="wideanglecamera">
+      <update_rate>{{ frame_rate }}</update_rate>
+      <camera>
+        <horizontal_fov>{{ horizontal_fov }}</horizontal_fov>
+        <image>
+          <width>{{ image_width }}</width>
+          <height>{{ image_height }}</height>
+        </image>
+        <clip>
+          <near>{{ min_distance }}</near>
+          <far>{{ max_distance }}</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+          <!-- Noise is sampled independently per pixel on each frame.
+          That pixel's noise value is added to each of its color
+          channels, which at that point lie in the range [0,1]. -->
+          <mean>{{ noise_mean }}</mean>
+          <stddev>{{ noise_stddev }}</stddev>
+        </noise>
+        <lens>
+          <type>{{ lens_type }}</type>
+          <custom_function>
+            <c1>{{ lens_c1 }}</c1>
+            <c2>{{ lens_c2 }}</c2>
+            <f>{{ lens_f }}</f>
+            <fun>{{ lens_fun }}</fun>
+          </custom_function>
+          <scale_to_hfov>{{ lens_scale }}</scale_to_hfov>
+          <cutoff_angle>{{ lens_cutoff_angle }}</cutoff_angle>
+          <env_texture_size>{{ lens_texture_size }}</env_texture_size>
+        </lens>
+      </camera>
+      <plugin name="{{ camera_name }}_plugin" filename="libMrsGazeboCommonResources_CameraPlugin.so">
+        <alwaysOn>true</alwaysOn>
+        <updateRate>{{ frame_rate }}</updateRate>
+        <cameraName>{{ camera_name }}</cameraName>
+        <imageTopicName>{{ topic_image }}</imageTopicName>
+        <cameraInfoTopicName>{{ topic_camera_ifo }}</cameraInfoTopicName>
+        <frameName>/{{ camera_frame_name }}</frameName>
+        <hackBaseline>0.0</hackBaseline>
+        <distortionK1>0.0</distortionK1>
+        <distortionK2>0.0</distortionK2>
+        <distortionK3>0.0</distortionK3>
+        <distortionT1>0.0</distortionT1>
+        <distortionT2>0.0</distortionT2>
+        <parentFrameName>{{ parent_frame_name }}</parentFrameName>
+        <sensorBaseFrameName>{{ sensor_base_frame_name }}</sensorBaseFrameName>
+        <x>{{ x }}</x>
+        <y>{{ y }}</y>
+        <z>{{ z }}</z>
+        <roll>{{ roll }}</roll>
+        <pitch>{{ pitch }}</pitch>
+        <yaw>{{ yaw }}</yaw>
+      </plugin>
+    </sensor>
+  </link>
 
-<joint name="uvcam_{{ device_id }}_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>uvcam_{{ device_id }}_link</child>
-</joint>
+  <joint name="{{ camera_name }}_joint" type="fixed">
+    <parent>{{ parent_link }}</parent>
+    <child>{{ camera_name }}_link</child>
+  </joint>
+  {%- endmacro -%}
+  <!--}-->
+
+    <!-- ======================== UV leds and cameras ======================== -->
+
+  {# uvcam_macro {--> #}
+  {%- macro uvcam_macro(parent_link, calibration_file, occlusions, frame_rate, device_id, camera_publish_topic, x, y, z, roll, pitch, yaw) -%}
+  <link name="uvcam_{{ device_id }}_link">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    {{ zero_inertial_macro() }}
+    <visual name="visual">
+      <pose>0 0 0 {{ math.radians(90) }} 0 0</pose>
+      <geometry>
+        <mesh>
+          <uri>model://mrs_robots_description/meshes/sensors/bluefox.dae</uri>
+          <scale>1 1 1</scale>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <name>Gazebo/Black</name>
+          <uri>file://media/materials/scripts/gazebo.material</uri>
+        </script>
+      </material>
+    </visual>
+    <sensor name="uvcam_{{ device_id }}_sensor" type="rfid" >
+      <update_rate>1</update_rate>
+      <plugin name='uvcam_{{ device_id }}_plugin' filename="libuvdar_cam.so">
+        <alwaysOn>false</alwaysOn>
+        <updateRate>{{ frame_rate }}</updateRate>
+        <occlusion>{{ occlusions }}</occlusion>
+        <framerate>{{ frame_rate }}</framerate>
+        <calibration_file>{{ calibration_file }}</calibration_file>
+        <device_id>{{ device_id }}</device_id>
+        <camera_publish_topic>{{ camera_publish_topic }}</camera_publish_topic>
+      </plugin>
+    </sensor>
+  </link>
+
+  <joint name="uvcam_{{ device_id }}_joint" type="fixed">
+    <parent>{{ parent_link }}</parent>
+    <child>uvcam_{{ device_id }}_link</child>
+  </joint>
 {%- endmacro -%}
 {# <!--}--> #}
 
