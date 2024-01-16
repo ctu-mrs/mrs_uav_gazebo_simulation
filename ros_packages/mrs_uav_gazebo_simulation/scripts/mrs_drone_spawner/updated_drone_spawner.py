@@ -375,7 +375,16 @@ class MrsDroneSpawner:
 
         context = template_wrapper.jinja_template.new_context(params)
         rendered_template = template_wrapper.jinja_template.render(context)
-        root = xml.dom.minidom.parseString(rendered_template)
+        try:
+            root = xml.dom.minidom.parseString(rendered_template)
+        except Exception as e:
+            rospy.logerr(f'[MrsDroneSpawner]: XML error: "{e}"')
+            fd, filepath = tempfile.mkstemp(prefix='mrs_drone_spawner_' + datetime.datetime.now().strftime("%Y_%m_%d__%H_%M_%S_"), suffix='_DUMP_' + str(model_name) + '.sdf')
+            with os.fdopen(fd, 'w') as output_file:
+                output_file.write(rendered_template)
+                rospy.loginfo(f'[MrsDroneSpawner]: Malformed XML for model {model_name} dumped to {filepath}')
+            return
+
         ugly_xml = root.toprettyxml(indent='  ')
 
         # Remove empty lines
