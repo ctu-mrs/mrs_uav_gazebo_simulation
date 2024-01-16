@@ -279,19 +279,45 @@ class MrsDroneSpawner:
             return spawner_components
     # #}
 
-    # #{ get_all_available_components(self, template_wrapper, all_components)
-    def get_all_available_components(self, template_wrapper, all_components):
+    # #{ get_accessible_components(self, template_wrapper, all_components)
+    def get_accessible_components(self, template_wrapper, all_components):
         '''
         Recursive function to get all spawner-compatible components accessible from template_wrapper
         Includes components in imported sub-templates
+        :param template_wrapper: template_wrapper.TemplateWrapper for which we want to load components
+        :param all_components: a dict to which all found ComponentWrappers will be added
+        :returns a dict of objects {macro name: component_wrapper.ComponentWrapper}
         '''
         all_components.update(template_wrapper.components)
         for i in template_wrapper.imported_templates:
             try:
-                all_components.update(self.get_all_available_components(i, all_components))
+                all_components.update(self.get_accessible_components(i, all_components))
             except RecursionError as err:
                 raise RecursionError(f'Cyclic import detected in file {template_wrapper.jinja_template.filename}. Fix your templates')
         return all_components
+    # #}
+
+    # #{ get_callable_components(self, template)
+    def get_callable_components(self, template, accessible_components):
+        '''
+        Get all components that are actually called from a template
+        :param template: a jinja template file
+        :param accessible_components: a dict of macros accessible from this template (including imported modules)
+        :returns a dictionary of callable components {macro_name: component_wrapper.ComponentWrapper}
+        sorted alphabetically by keywords
+        '''
+        callable_components = {}
+        with open(template.filename, 'r') as f:
+            template_source = f.read()
+            preprocessed_template = template_source.replace('\n', '')
+            parsed_template = self.jinja_env.parse(preprocessed_template)
+            call_nodes = [node for node in parsed_template.find_all(jinja2.nodes.Call)]
+            callable_components = {}
+            for node in call_nodes:
+                if isinstance(node.node, jinja2.nodes.Getattr):
+                    if node.node.attr in accessible_components.keys():
+                        callable_components[node.node.attr] = accessible_components[node.node.attr]
+        return dict(sorted(callable_components.items(), key=lambda item: item[1].keyword))
     # #}
 
     # #{ build_template_database(self)
@@ -300,7 +326,7 @@ class MrsDroneSpawner:
         Generate a database of jinja2 templates available to the spawner
         Scans through all folders provided into the jinja2 environment for files with matching target suffix
         Recursively checks templates imported by templates, prevents recursion loops
-        Returns a dictionary of TemplateWrapper objects in format {template_name: template_wrapper}
+        Returns a dictionary of template_wrapper.TemplateWrapper objects in format {template_name: template_wrapper.TemplateWrapper}
         '''
 
         template_wrappers = {}
@@ -325,8 +351,16 @@ class MrsDroneSpawner:
         for _, wrapper in template_wrappers.items():
             prev_limit = sys.getrecursionlimit()
             sys.setrecursionlimit(len(template_wrappers) + 1)
-            wrapper.components = self.get_all_available_components(wrapper, {})
+            wrapper.components = self.get_accessible_components(wrapper, {})
             sys.setrecursionlimit(prev_limit)
+
+        rospy.loginfo('[MrsDroneSpawner]: Pruning components to only include callables')
+        callable_components = {}
+        for name, template in all_templates:
+            callable_components[name] = self.get_callable_components(template, template_wrappers[name].components)
+
+        for name, wrapper in template_wrappers.items():
+            wrapper.components = callable_components[name]
 
         rospy.loginfo('[MrsDroneSpawner]: Template database built')
 
@@ -597,7 +631,7 @@ class MrsDroneSpawner:
     # #{ get_model_help_text(self, model_name)
     def get_model_help_text(self, model_name):
         '''
-        Create a help string by loading all components from a given template in the following format
+        Create a help string by loading all callable components from a given template in the following format
         Component name
             Description:
             Default args:
@@ -605,7 +639,7 @@ class MrsDroneSpawner:
         rospy.loginfo(f'[MrsDroneSpawner]: Getting help for model {model_name}')
         try:
             template_wrapper = self.jinja_templates[model_name]
-            response = f'[MrsDroneSpawner]: Components loaded from template "{template_wrapper.jinja_template.filename}":\n'
+            response = f'[MrsDroneSpawner]: Components used in template "{template_wrapper.jinja_template.filename}":\n'
         except ValueError:
             return f'Template for model {model_name} not found'
 
@@ -613,7 +647,7 @@ class MrsDroneSpawner:
             response += f'{component.keyword}\n\tDescription: {component.description}\n\tDefault args: {component.default_args}\n\n'
 
         return response
-    # #} end get_model_help_text
+    # #}
 
     # #{ get_spawner_help_text(self)
     def get_spawner_help_text(self):
