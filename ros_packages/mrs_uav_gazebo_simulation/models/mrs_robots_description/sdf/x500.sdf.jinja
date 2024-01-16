@@ -21,11 +21,6 @@
 
   {%- set root = "base_link" -%}
 
-  {%- set enable_motor_crash = true -%}
-  {%- if disable_motor_crash -%}
-    {%- set enable_motor_crash = false -%}
-  {%- endif -%}
-
   {# <!--}--> #}
 
   {# Motor constants {--> #}
@@ -622,7 +617,7 @@
     'mesh_files': [prop_mesh_file, motor_top_mesh_file],
     'mesh_scale': mesh_scale_prop_cw,
     'color': 'Grey'
-    },
+    }
     ]
     -%}
     {{ components.propellers_macro(
@@ -810,14 +805,16 @@
     {{ ouster }}
     {# <!--}--> #}
 
-    {# do we have an active lidar? #}
+    {# do we have an active lidar? {--> #}
     {%- if rplidar | replace('\s', '') | length != 0 or ouster | replace('\s', '') | length != 0 -%}
-      {# add a mount for it #}
+      <!-- lidar mount {-->
       {{ lidar_mount }}
+      <!--}-->
     {%- else -%}
       {# otherwise put a GPS antenna to the empty space #}
       {{ gps_visuals }}
     {%- endif -%}
+    {# <!--}--> #}
 
     {# ========================== camera sensors ======================== #}
 

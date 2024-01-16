@@ -39,51 +39,6 @@ limitations under the License.
 
 <!-- ======================= rangefinder sensors ======================-->
 
-{# TODO: make a component out of this #}
-<!-- Macro to add a Teraranger One {-->
-{%- macro teraranger_macro(namespace, parent_link, x, y, z, roll, pitch, yaw) -%}
-<link name="teraranger_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="visual">
-    <geometry>
-      <box>
-        <size>0.015 0.027 0.033</size>
-      </box>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Yellow</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  {{ generic.rangefinder_sensor_macro(
-    name = "teraranger",
-    parent_frame_name = namespace + "/fcu",
-    rangefinder_frame_name = namespace + "/teraranger",
-    topic = "teraranger/range",
-    frame_rate = 100,
-    fov = 0.03,
-    min_distance = 0.1,
-    max_distance = 14,
-    resolution = 0.005,
-    noise = 0.04,
-    x = x,
-    y = y,
-    z = z,
-    roll = roll,
-    pitch = pitch,
-    yaw = yaw)
-  }}
-</link>
-
-<joint name="teraranger_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>teraranger_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
 
 {# TODO: make a component out of this #}
 <!-- Macro to add a URM37 ultrasound {-->
@@ -128,240 +83,6 @@ limitations under the License.
 <joint name="ultrasound{{ suffix }}_joint" type="fixed">
   <parent>{{ parent_link }}</parent>
   <child>ultrasound{{ suffix }}_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
-
-<!-- ========================== LIDAR sensors ========================= -->
-
-{# TODO: make a component out of this #}
-<!-- Macro to add a Scanse Sweeper{-->
-{%- macro scanse_sweep_macro(namespace, parent_link, x, y, z, roll, pitch, yaw) -%}
-<link name="sweeper_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="base_visual">
-    <pose>0 0 -0.031 0 0 0</pose>
-    <geometry>
-      <cylinder>
-        <length>0.0255</length>
-        <radius>0.0234</radius>
-      </cylinder>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/DarkGrey</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <visual name="rotator_visual">
-    <geometry>
-      <cylinder>
-        <length>0.0385</length>
-        <radius>0.0325</radius>
-      </cylinder>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/DarkGrey</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <sensor name='sweeper_sensor' type='ray'>
-    <visualize>false</visualize>
-    <update_rate>10</update_rate>
-    <ray>
-      <scan>
-        <horizontal>
-          <samples>500</samples>
-          <resolution>1</resolution>
-          <min_angle>0</min_angle>
-          <max_angle>6.283185</max_angle>
-        </horizontal>
-      </scan>
-      <range>
-        <min>0.45</min>
-        <max>10</max>
-        <resolution>0.01</resolution>
-      </range>
-      <noise>
-        <type>gaussian</type>
-        <mean>0.0</mean>
-        <stddev>0.01</stddev>
-      </noise>
-    </ray>
-    <plugin name='sweeper_plugin' filename='libMrsGazeboCommonResources_2DLidarPlugin.so'>
-      <topicName>scanse_sweep/range</topicName>
-      <frameName>{{ namespace }}/scanse_sweep</frameName>
-      <parentFrameName>{{ namespace}}/fcu</parentFrameName>
-      <x>{{ x }}</x>
-      <y>{{ y }}</y>
-      <z>{{ z }}</z>
-      <roll>{{ roll }}</roll>
-      <pitch>{{ pitch }}</pitch>
-      <yaw>{{ yaw }}</yaw>
-    </plugin>
-  </sensor>
-</link>
-
-<joint name="sweeper_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>sweeper_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
-
-{# TODO: make a component out of this #}
-<!-- Macro to add a Velodyne Lidar {-->
-{%- macro velodyne_macro(namespace, parent_link, sensor_name, rotation_freq, lasers, max_range, noise, vfov_angle, enable_gpu_ray, horizontal_samples, x, y, z, roll, pitch, yaw) -%}
-
-{# The real ouster is transforming lidar data from lidar_frame to sensor_frame directly for user. #}
-{# For simplicity, we are placing sensor_frame to the same place as the lidar_frame is. #}
-{# Velodyne macro is using the same plugin as ouster macro. Therefore we need to render data in the same way. #}
-
-{# -- frame names -- #}
-{%- set frame_fcu = namespace + "/fcu" -%}
-{%- set frame_sensor = namespace + "/" + sensor_name + "_sensor" -%}
-{%- set frame_lidar = namespace + "/" + sensor_name  -%}
-
-{# -- topics -- #}
-{%- set topic_lidar = "/" + namespace + "/" + sensor_name + "/scan" -%}
-{%- set topic_diag = "/" + namespace + "/" + sensor_name + "/is_alive" -%}
-
-{# -- tf from sensor to lidar -- #}
-{# The laser rays should be coming approximately from the half of sensor height #}
-{%- set lidar_x = 0 -%}
-{%- set lidar_y = 0 -%}
-{%- set lidar_z = 0.037725 -%}
-{%- set lidar_roll = 0 -%}
-{%- set lidar_pitch = 0 -%}
-{%- set lidar_yaw = 0  -%}
-
-{%- if enable_gpu_ray -%}
-  {%- set velodyne_plugin_filename ="libMrsGazeboCommonResources_3DLidarGpuPlugin.so" -%}
-  {%- set sensor_type = "gpu_ray"  -%}
-{%- else -%}
-  {%- set velodyne_plugin_filename ="libMrsGazeboCommonResources_3DLidarPlugin.so" -%}
-  {%- set sensor_type = "ray"  -%}
-{%- endif -%}
-
-{%- if horizontal_samples == 'None' -%}
-  {%- set samples = 3600 -%}
-{%- else -%}
-  {%- set samples = horizontal_samples | int -%}
-{%- endif -%}
-
-{%- if rotation_freq == 'None' -%}
-  {%- set update_rate = 20 -%}
-{%- else -%}
-  {%- set update_rate = rotation_freq | int -%}
-{%- endif -%}
-
-<link name="velodyne_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="base_visual">
-    <pose>0 0 0.0094 0 0 0</pose>
-    <geometry>
-      <cylinder>
-        <length>0.0188</length>
-        <radius>0.062</radius>
-      </cylinder>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/FlatBlack</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <visual name="top_visual">
-    <pose>0 0 0.0643 0 0 0</pose>
-    <geometry>
-      <cylinder>
-        <length>0.0148</length>
-        <radius>0.062</radius>
-      </cylinder>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/FlatBlack</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <visual name="window_visual">
-    <pose>0 0 0.03785 0 0 0</pose>
-    <geometry>
-      <cylinder>
-        <length>0.0381</length>
-        <radius>0.058</radius>
-      </cylinder>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Blue</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <sensor name="{{ sensor_name }}_lidar_sensor" type="{{ sensor_type }}">
-    <pose>{{ lidar_x }} {{ lidar_y }} {{ lidar_z }} {{ lidar_roll }} {{ lidar_pitch }} {{ lidar_yaw }}</pose>
-    {# <pose>0 0 0 0 0 0</pose> #}
-    <visualize>false</visualize>
-    <update_rate>{{ update_rate }}</update_rate>
-    <ray>
-      <scan>
-        <horizontal>
-          <samples>{{ samples }}</samples>
-          <resolution>1</resolution>
-          <min_angle>{{ -math.radians(180) }}</min_angle>
-          <max_angle>{{ math.radians(180) }}</max_angle>
-        </horizontal>
-        <vertical>
-          <samples>{{ lasers }}</samples>
-          <resolution>1</resolution>
-          <min_angle>{{ -vfov_angle/2*math.radians(180)/180.0 }}</min_angle>
-          <max_angle>{{ vfov_angle/2*math.radians(180)/180.0 }}</max_angle>
-        </vertical>
-      </scan>
-      <range>
-        <min>0.1</min>
-        <max>{{ max_range }}</max>
-        <resolution>0.03</resolution>
-      </range>
-    </ray>
-    <plugin name="{{ sensor_name }}_lidar_plugin" filename="{{ velodyne_plugin_filename }}">
-      <parentFrameName>{{ frame_fcu }}</parentFrameName>
-      <sensorFrameName>{{ frame_sensor }}</sensorFrameName>
-      <sensor_x>{{ x + lidar_x }}</sensor_x>
-      <sensor_y>{{ y + lidar_y }}</sensor_y>
-      <sensor_z>{{ z + lidar_z }}</sensor_z>
-      <sensor_roll>{{ roll }}</sensor_roll>
-      <sensor_pitch>{{ pitch }}</sensor_pitch>
-      <sensor_yaw>{{ yaw }}</sensor_yaw>
-      <lidar_x>0</lidar_x>
-      <lidar_y>0</lidar_y>
-      <lidar_z>0</lidar_z>
-      <lidar_roll>{{ lidar_roll }}</lidar_roll>
-      <lidar_pitch>{{ lidar_pitch }}</lidar_pitch>
-      <lidar_yaw>{{ lidar_yaw }}</lidar_yaw>
-      <topicName>{{ topic_lidar }}</topicName>
-      <topicDiagName>{{ topic_diag }}</topicDiagName>
-      <lidarFrameName>{{ frame_lidar }}</lidarFrameName>
-      <min_range>0.1</min_range>
-      <max_range>{{ max_range }}</max_range>
-      <gaussianNoise>{{ noise }}</gaussianNoise>
-      <imu>false</imu>
-    </plugin>
-  </sensor>
-</link>
-
-<joint name="velodyne_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>velodyne_link</child>
 </joint>
 {%- endmacro -%}
 <!--}-->
@@ -750,8 +471,6 @@ limitations under the License.
 <!--}-->
 
 <!-- ========================== other sensors ========================= -->
-
-<!-- Macro to add a Teraranger Tower Evo {-->
 
 {# TODO: make a component out of this #}
 <!-- Macro to add a single Teraranger Evo {-->
@@ -1424,6 +1143,97 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
+{# propellers_macro {--> #}
+{%- macro propellers_macro(prop_list, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, time_constant_up, time_constant_down, max_rot_velocity, rotor_drag_coefficient, rolling_moment_coefficient, meshes_z_offset, prop_ixx, prop_ixy, prop_ixz, prop_iyy, prop_iyz, prop_izz, spawner_args) -%}
+
+  {%- set spawner_keyword = 'disable-motor-crash' -%}
+  {%- set spawner_description = 'Disables motor failure after a crash with the environment.' -%}
+  {%- set spawner_default_args = none -%}
+
+  {%- set enable_motor_crash = spawner_args[spawner_keyword] is undefined -%}
+
+  {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+  {%- for prop_params in prop_list -%}
+
+    {%- if prop_params['mesh_files'] | length == 1 -%}
+      <!-- Propeller {{ prop_params['motor_number'] }} {-->
+      {{ generic.prop_macro(
+        direction = prop_params['direction'],
+        rotor_velocity_slowdown_sim = rotor_velocity_slowdown_sim,
+        motor_constant = motor_constant,
+        moment_constant = moment_constant,
+        parent = parent,
+        mass = mass,
+        radius = radius,
+        time_constant_up = time_constant_up,
+        time_constant_down = time_constant_down,
+        max_rot_velocity = max_rot_velocity,
+        motor_number = prop_params['motor_number'],
+        rotor_drag_coefficient = rotor_drag_coefficient,
+        rolling_moment_coefficient = rolling_moment_coefficient,
+        enable_motor_crash = enable_motor_crash,
+        color = prop_params['color'],
+        mesh_file = prop_params['mesh_files'][0],
+        mesh_scale = prop_params['mesh_scale'],
+        x = prop_params['x'],
+        y = prop_params['y'],
+        z = prop_params['z'],
+        roll = 0,
+        pitch = 0,
+        yaw = 0,
+        ixx = prop_ixx,
+        ixy = prop_ixy,
+        ixz = prop_ixz,
+        iyy = prop_iyy,
+        iyz = prop_iyz,
+        izz = prop_izz)
+      }}
+      <!--}-->
+    {%- elif prop_params['mesh_files'] | length == 2 -%}
+      <!-- Propeller {{ prop_params['motor_number'] }} {-->
+      {{ generic.prop_macro_2_meshes(
+        direction = prop_params['direction'],
+        rotor_velocity_slowdown_sim = rotor_velocity_slowdown_sim,
+        motor_constant = motor_constant,
+        moment_constant = moment_constant,
+        parent = parent,
+        mass = mass,
+        radius = radius,
+        time_constant_up = time_constant_up,
+        time_constant_down = time_constant_down,
+        max_rot_velocity = max_rot_velocity,
+        motor_number = prop_params['motor_number'],
+        rotor_drag_coefficient = rotor_drag_coefficient,
+        rolling_moment_coefficient = rolling_moment_coefficient,
+        enable_motor_crash = enable_motor_crash,
+        color = prop_params['color'],
+        mesh_file_1 = prop_params['mesh_files'][0],
+        mesh_file_2 = prop_params['mesh_files'][1],
+        meshes_z_offset = meshes_z_offset,
+        mesh_scale = prop_params['mesh_scale'],
+        x = prop_params['x'],
+        y = prop_params['y'],
+        z = prop_params['z'],
+        roll = 0,
+        pitch = 0,
+        yaw = 0,
+        ixx = prop_ixx,
+        ixy = prop_ixy,
+        ixz = prop_ixz,
+        iyy = prop_iyy,
+        iyz = prop_iyz,
+        izz = prop_izz)
+      }}
+      <!--}-->
+    {%- endif -%}
+
+  {%- endfor -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# ======================= rangefinder sensors ====================== #}
+
 {# garmin_down_macro (through pixhawk) {--> #}
 {%- macro garmin_down_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
 
@@ -1646,6 +1456,64 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
+{# teraranger_macro {--> #}
+{%- macro teraranger_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-teraranger' -%}
+  {%- set spawner_description = 'Add a laser rangefinder (Teraranger One) pointing down' -%}
+  {%- set spawner_default_args = {'update_rate': 100, 'min_range': 0.1, 'max_range': 14.0, 'noise': 0.04} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    {%- set sensor_name = "teraranger" -%}
+
+    <!-- Teraranger One {-->
+
+    <!-- sensor {-->
+    <link name="{{ sensor_name }}_link">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+      {{ generic.zero_inertial_macro() }}
+      {{ generic.visual_colored_box_macro(sensor_name, 0.015, 0.027, 0.033, 'Yellow', 0, 0, 0, 0, 0, 0) }}
+      {{ generic.rangefinder_sensor_macro(
+        name = sensor_name,
+        parent_frame_name = spawner_args['name'] + '/fcu',
+        sensor_frame_name = spawner_args['name'] + '/' + sensor_name,
+        topic = sensor_name + '/range',
+        update_rate = spawner_args[spawner_keyword]['update_rate'],
+        samples = 1,
+        fov = 0.03,
+        min_distance = spawner_args[spawner_keyword]['min_range'],
+        max_distance = spawner_args[spawner_keyword]['max_range'],
+        resolution = 0.005,
+        noise = spawner_args[spawner_keyword]['noise'],
+        x = x,
+        y = y,
+        z = z,
+        roll = roll,
+        pitch = pitch,
+        yaw = yaw)
+      }}
+    </link>
+
+    <joint name="teraranger_joint" type="fixed">
+      <parent>{{ parent_link }}</parent>
+      <child>teraranger_link</child>
+    </joint>
+    <!--}-->
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# ========================== LIDAR sensors ========================= #}
+
 {# rplidar_macro {--> #}
 {%- macro rplidar_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
 
@@ -1736,6 +1604,108 @@ limitations under the License.
     <joint name="rplidar_joint" type="fixed">
       <parent>{{ parent_link }}</parent>
       <child>rplidar_link</child>
+    </joint>
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# scanse_sweep_macro {--> #}
+{%- macro scanse_sweep_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-scanse-sweep' -%}
+  {%- set spawner_description = 'Add the Scanse Sweep laser scanner' -%}
+  {%- set spawner_default_args = {'horizontal_samples': 500, 'update_rate': 10.0, 'min_range': 0.45, 'max_range': 10.0, 'noise': 0.01} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- scanse sweep {-->
+    <link name="sweeper_link">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+      {{ generic.zero_inertial_macro() }}
+
+      <!-- visuals {-->
+      <visual name="base_visual">
+        <pose>0 0 -0.031 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.0255</length>
+            <radius>0.0234</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/DarkGrey</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+      <visual name="rotator_visual">
+        <geometry>
+          <cylinder>
+            <length>0.0385</length>
+            <radius>0.0325</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/DarkGrey</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+      <!--}-->
+
+      <!-- sensor {-->
+      <sensor name='sweeper_sensor' type='ray'>
+        <visualize>false</visualize>
+        <update_rate>{{ spawner_args[spawner_keyword]['update_rate'] }}</update_rate>
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>{{ spawner_args[spawner_keyword]['horizontal_samples'] | int }}</samples>
+              <resolution>1</resolution>
+              <min_angle>0</min_angle>
+              <max_angle>6.283185</max_angle>
+            </horizontal>
+          </scan>
+          <range>
+            <min>{{ spawner_args[spawner_keyword]['min_range'] }}</min>
+            <max>{{ spawner_args[spawner_keyword]['max_range'] }}</max>
+            <resolution>0.01</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>{{ spawner_args[spawner_keyword]['noise'] }}</stddev>
+          </noise>
+        </ray>
+        <plugin name='sweeper_plugin' filename='libMrsGazeboCommonResources_2DLidarPlugin.so'>
+          <topicName>scanse_sweep/range</topicName>
+          <frameName>{{ spawner_args['name'] }}/scanse_sweep</frameName>
+          <parentFrameName>{{ spawner_args['name'] }}/fcu</parentFrameName>
+          <x>{{ x }}</x>
+          <y>{{ y }}</y>
+          <z>{{ z }}</z>
+          <roll>{{ roll }}</roll>
+          <pitch>{{ pitch }}</pitch>
+          <yaw>{{ yaw }}</yaw>
+        </plugin>
+      </sensor>
+      <!--}-->
+
+    </link>
+
+    <joint name="sweeper_joint" type="fixed">
+      <parent>{{ parent_link }}</parent>
+      <child>sweeper_link</child>
     </joint>
 
     <!-- mount {-->
@@ -1892,7 +1862,7 @@ limitations under the License.
 
     {# <!--}--> #}
 
-    <!-- Ouster {-->
+    <!-- Ouster {{ ouster_model }} {-->
     <link name="{{ sensor_link }}">
       <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
       {{ generic.zero_inertial_macro() }}
@@ -2028,6 +1998,174 @@ limitations under the License.
   {%- endif -%}
 {%- endmacro -%}
 {# <!--}--> #}
+
+{# velodyne_macro {--> #}
+{%- macro velodyne_macro(parent_link, sensor_name, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-velodyne' -%}
+  {%- set spawner_description = 'Add Velodyne PUCK laser scanner to the vehicle' -%}
+  {%- set spawner_default_args = {'horizontal_samples': 3600, 'lasers': 16, 'noise': 0.01, 'range': 100, 'vfov': 30, 'update_rate': 20, 'use_gpu': false} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    {# setup local variables {--> #}
+
+    {# The real ouster is transforming lidar data from lidar_frame to sensor_frame directly for user. #}
+    {# For simplicity, we are placing sensor_frame to the same place as the lidar_frame is. #}
+    {# Velodyne macro is using the same plugin as ouster macro. Therefore we need to render data in the same way. #}
+
+    {# -- frame names -- #}
+    {%- set frame_fcu = spawner_args['name'] + "/fcu" -%}
+    {%- set frame_sensor = spawner_args['name'] + "/" + sensor_name + "_sensor" -%}
+    {%- set frame_lidar = spawner_args['name'] + "/" + sensor_name  -%}
+
+    {# -- topics -- #}
+    {%- set topic_lidar = "/" + spawner_args['name'] + "/" + sensor_name + "/scan" -%}
+    {%- set topic_diag = "/" + spawner_args['name'] + "/" + sensor_name + "/is_alive" -%}
+
+    {# -- tf from sensor to lidar -- #}
+    {# The laser rays should be coming approximately from the half of sensor height #}
+    {%- set lidar_x = 0 -%}
+    {%- set lidar_y = 0 -%}
+    {%- set lidar_z = 0.037725 -%}
+    {%- set lidar_roll = 0 -%}
+    {%- set lidar_pitch = 0 -%}
+    {%- set lidar_yaw = 0  -%}
+
+    {%- if spawner_args[spawner_keyword]['use_gpu'] -%}
+      {%- set velodyne_plugin_filename ="libMrsGazeboCommonResources_3DLidarGpuPlugin.so" -%}
+      {%- set sensor_type = "gpu_ray"  -%}
+    {%- else -%}
+      {%- set velodyne_plugin_filename ="libMrsGazeboCommonResources_3DLidarPlugin.so" -%}
+      {%- set sensor_type = "ray"  -%}
+    {%- endif -%}
+    {# <!--}--> #}
+
+    <!-- Velodyne PUCK {-->
+    <link name="velodyne_link">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+      {{ generic.zero_inertial_macro() }}
+
+      <!-- visuals {-->
+      <visual name="base_visual">
+        <pose>0 0 0.0094 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.0188</length>
+            <radius>0.062</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/FlatBlack</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+      <visual name="top_visual">
+        <pose>0 0 0.0643 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.0148</length>
+            <radius>0.062</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/FlatBlack</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+      <visual name="window_visual">
+        <pose>0 0 0.03785 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.0381</length>
+            <radius>0.058</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Blue</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+      <!--}-->
+
+      <!-- sensor {-->
+      <sensor name="{{ sensor_name }}_lidar_sensor" type="{{ sensor_type }}">
+        <pose>{{ lidar_x }} {{ lidar_y }} {{ lidar_z }} {{ lidar_roll }} {{ lidar_pitch }} {{ lidar_yaw }}</pose>
+        {# <pose>0 0 0 0 0 0</pose> #}
+        <visualize>false</visualize>
+        <update_rate>{{ spawner_args[spawner_keyword]['update_rate'] }}</update_rate>
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>{{ spawner_args[spawner_keyword]['horizontal_samples'] }}</samples>
+              <resolution>1</resolution>
+              <min_angle>{{ -math.radians(180) }}</min_angle>
+              <max_angle>{{ math.radians(180) }}</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>{{ spawner_args[spawner_keyword]['lasers'] }}</samples>
+              <resolution>1</resolution>
+              <min_angle>{{ -spawner_args[spawner_keyword]['vfov']/2*math.radians(180)/180.0 }}</min_angle>
+              <max_angle>{{ spawner_args[spawner_keyword]['vfov']/2*math.radians(180)/180.0 }}</max_angle>
+            </vertical>
+          </scan>
+          <range>
+            <min>0.1</min>
+            <max>{{ spawner_args[spawner_keyword]['range'] }}</max>
+            <resolution>0.03</resolution>
+          </range>
+        </ray>
+        <plugin name="{{ sensor_name }}_lidar_plugin" filename="{{ velodyne_plugin_filename }}">
+          <parentFrameName>{{ frame_fcu }}</parentFrameName>
+          <sensorFrameName>{{ frame_sensor }}</sensorFrameName>
+          <sensor_x>{{ x + lidar_x }}</sensor_x>
+          <sensor_y>{{ y + lidar_y }}</sensor_y>
+          <sensor_z>{{ z + lidar_z }}</sensor_z>
+          <sensor_roll>{{ roll }}</sensor_roll>
+          <sensor_pitch>{{ pitch }}</sensor_pitch>
+          <sensor_yaw>{{ yaw }}</sensor_yaw>
+          <lidar_x>0</lidar_x>
+          <lidar_y>0</lidar_y>
+          <lidar_z>0</lidar_z>
+          <lidar_roll>{{ lidar_roll }}</lidar_roll>
+          <lidar_pitch>{{ lidar_pitch }}</lidar_pitch>
+          <lidar_yaw>{{ lidar_yaw }}</lidar_yaw>
+          <topicName>{{ topic_lidar }}</topicName>
+          <topicDiagName>{{ topic_diag }}</topicDiagName>
+          <lidarFrameName>{{ frame_lidar }}</lidarFrameName>
+          <min_range>0.1</min_range>
+          <max_range>{{ spawner_args[spawner_keyword]['range'] }}</max_range>
+          <gaussianNoise>{{ spawner_args[spawner_keyword]['noise'] }}</gaussianNoise>
+          <imu>false</imu>
+        </plugin>
+      </sensor>
+      <!--}-->
+
+    </link>
+
+    <joint name="velodyne_joint" type="fixed">
+      <parent>{{ parent_link }}</parent>
+      <child>velodyne_link</child>
+    </joint>
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# ============================= cameras ============================ #}
 
 {# realsense_front_macro {--> #}
 {%- macro realsense_front_macro(camera_name, camera_suffix, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
@@ -2243,6 +2381,8 @@ limitations under the License.
   {%- endif -%}
 {%- endmacro -%}
 {# <!--}--> #}
+
+{# ========================= UVDAR components ======================= #}
 
 {# dual_uv_cameras_macro {--> #}
 {%- macro dual_uv_cameras_macro(parent_link, x1, y1, z1, roll1, pitch1, yaw1, x2, y2, z2, roll2, pitch2, yaw2, mount, spawner_args) -%}
@@ -2487,95 +2627,6 @@ limitations under the License.
     {%- endif -%}
 
   {%- endif -%}
-{%- endmacro -%}
-{# <!--}--> #}
-
-{# propellers_macro {--> #}
-{%- macro propellers_macro(prop_list, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, time_constant_up, time_constant_down, max_rot_velocity, rotor_drag_coefficient, rolling_moment_coefficient, meshes_z_offset, prop_ixx, prop_ixy, prop_ixz, prop_iyy, prop_iyz, prop_izz, spawner_args) -%}
-
-  {%- set spawner_keyword = 'disable-motor-crash' -%}
-  {%- set spawner_description = 'Disables motor failure after a crash with the environment.' -%}
-  {%- set spawner_default_args = none -%}
-
-  {%- set enable_motor_crash = spawner_args[spawner_keyword] is undefined -%}
-
-  {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
-
-  {%- for prop_params in prop_list -%}
-
-    {%- if prop_params['mesh_files'] | length == 1 -%}
-      <!-- Propeller {{ prop_params['motor_number'] }} {-->
-      {{ generic.prop_macro(
-        direction = prop_params['direction'],
-        rotor_velocity_slowdown_sim = rotor_velocity_slowdown_sim,
-        motor_constant = motor_constant,
-        moment_constant = moment_constant,
-        parent = parent,
-        mass = mass,
-        radius = radius,
-        time_constant_up = time_constant_up,
-        time_constant_down = time_constant_down,
-        max_rot_velocity = max_rot_velocity,
-        motor_number = prop_params['motor_number'],
-        rotor_drag_coefficient = rotor_drag_coefficient,
-        rolling_moment_coefficient = rolling_moment_coefficient,
-        enable_motor_crash = enable_motor_crash,
-        color = prop_params['color'],
-        mesh_file = prop_params['mesh_files'][0],
-        mesh_scale = prop_params['mesh_scale'],
-        x = prop_params['x'],
-        y = prop_params['y'],
-        z = prop_params['z'],
-        roll = 0,
-        pitch = 0,
-        yaw = 0,
-        ixx = prop_ixx,
-        ixy = prop_ixy,
-        ixz = prop_ixz,
-        iyy = prop_iyy,
-        iyz = prop_iyz,
-        izz = prop_izz)
-      }}
-      <!--}-->
-    {%- elif prop_params['mesh_files'] | length == 2 -%}
-      <!-- Propeller {{ prop_params['motor_number'] }} {-->
-      {{ generic.prop_macro_2_meshes(
-        direction = prop_params['direction'],
-        rotor_velocity_slowdown_sim = rotor_velocity_slowdown_sim,
-        motor_constant = motor_constant,
-        moment_constant = moment_constant,
-        parent = parent,
-        mass = mass,
-        radius = radius,
-        time_constant_up = time_constant_up,
-        time_constant_down = time_constant_down,
-        max_rot_velocity = max_rot_velocity,
-        motor_number = prop_params['motor_number'],
-        rotor_drag_coefficient = rotor_drag_coefficient,
-        rolling_moment_coefficient = rolling_moment_coefficient,
-        enable_motor_crash = enable_motor_crash,
-        color = prop_params['color'],
-        mesh_file_1 = prop_params['mesh_files'][0],
-        mesh_file_2 = prop_params['mesh_files'][1],
-        meshes_z_offset = meshes_z_offset,
-        mesh_scale = prop_params['mesh_scale'],
-        x = prop_params['x'],
-        y = prop_params['y'],
-        z = prop_params['z'],
-        roll = 0,
-        pitch = 0,
-        yaw = 0,
-        ixx = prop_ixx,
-        ixy = prop_ixy,
-        ixz = prop_ixz,
-        iyy = prop_iyy,
-        iyz = prop_iyz,
-        izz = prop_izz)
-      }}
-      <!--}-->
-    {%- endif -%}
-
-  {%- endfor -%}
 {%- endmacro -%}
 {# <!--}--> #}
 

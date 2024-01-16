@@ -25,7 +25,6 @@
   {%- set leg_radius = 0.012 -%} {# [m] #}
   {%- set leg_height = 0.17 -%} {# [m] #}
   {%- set pixhawk_offset = -0.0075 -%} {# [m] #}
-  {%- set use_battery_mount = true -%} {# [bool] #}
   {%- set root = "base_link" -%}
 
   {%- set enable_motor_crash = true -%}
@@ -63,7 +62,7 @@
   {%- set nuc_mesh_file = "model://mrs_robots_description/meshes/dji/f450/dji_f450_nuc.dae" -%}
   {# <!--}--> #}
 
-  {# Holders {--> #}
+  {# Mounts {--> #}
   {%- set battery_mount_mesh = "model://mrs_robots_description/meshes/dji/f450/dji_f450_battery_mount.dae" -%}
   {%- set bluefox_mount_mesh = "model://mrs_robots_description/meshes/dji/f450/dji_f450_bluefox_mount.dae" -%}
   {%- set ouster_mount_mesh = "model://mrs_robots_description/meshes/dji/f450/dji_f450_ouster_mount.dae" -%}
@@ -238,7 +237,7 @@
       <!--}-->
 
       <!-- legs {-->
-      {{ components.leg_macro(
+      {{ generic.leg_macro(
         name = "front_right_leg",
         mesh_file = leg_mesh_file,
         mesh_scale = mesh_scale_milimeters,
@@ -254,7 +253,7 @@
         collision_radius = leg_radius)
       }}
 
-      {{ components.leg_macro(
+      {{ generic.leg_macro(
         name = "front_left_leg",
         mesh_file = leg_mesh_file,
         mesh_scale = mesh_scale_milimeters,
@@ -270,7 +269,7 @@
         collision_radius = leg_radius)
       }}
 
-      {{ components.leg_macro(
+      {{ generic.leg_macro(
         name = "back_right_leg",
         mesh_file = leg_mesh_file,
         mesh_scale = mesh_scale_milimeters,
@@ -286,7 +285,7 @@
         collision_radius = leg_radius)
       }}
 
-      {{ components.leg_macro(
+      {{ generic.leg_macro(
         name = "back_left_leg",
         mesh_file = leg_mesh_file,
         mesh_scale = mesh_scale_milimeters,
@@ -357,7 +356,6 @@
       }}
       <!--}-->
 
-      {% if use_battery_mount %}
       <!-- battery mount and battery {-->
       {{ generic.visual_mesh_macro(
         name = "battery_mount",
@@ -369,7 +367,7 @@
         z = -body_height / 2 - 0.028,
         roll = 0,
         pitch = 0,
-        yaw = math.radians90)
+        yaw = math.radians(90))
       }}
 
       {{ generic.visual_colored_box_macro(
@@ -383,62 +381,69 @@
         z = -body_height / 2 - 0.027,
         roll = 0,
         pitch = 0,
-        yaw = math.radians90)
+        yaw = math.radians(90))
       }}
       <!--}-->
-      {% endif %}
 
-      {% if enable_ouster or enable_velodyne %}
-      <!-- battery mount and battery {-->
-      {{ generic.visual_mesh_macro(
-        name = "ouster_mount",
-        mesh_file = ouster_mount_mesh,
-        mesh_scale = mesh_scale_milimeters,
-        color = "DarkGrey",
-        x = 0,
-        y = 0,
-        z = 0.061,
-        roll = 0,
-        pitch = 0,
-        yaw = 0)
-      }}
-      <!--}-->
-      {% endif %}
+      {# component mounts and holders (these must be passed as args into components, or must be called) {--> #}
 
-      {% if enable_rplidar or enable_scanse_sweep %}
-      <!-- Rplidar and scanse mount {-->
-      {{ generic.visual_mesh_macro(
-        name = "rplidar_mount",
-        mesh_file = rplidar_mount_mesh,
-        mesh_scale = mesh_scale_milimeters,
-        color = "DarkGrey",
-        x = 0,
-        y = 0,
-        z = 0.068,
-        roll = 0,
-        pitch = 0,
-        yaw = math.radians90)
-      }}
-      <!--}-->
-      {% endif %}
+      {# garmin down mount {--> #}
+      {%- set garmin_down_mount -%}
+        {{ generic.visual_link_macro(
+          name = "garmin_mount",
+          mesh_file = garmin_mount_mesh,
+          mesh_scale = mesh_scale_milimeters,
+          color = "DarkGrey",
+          x = -0.055,
+          y = 0,
+          z = -(arm_height + 0.016),
+          roll = math.radians(90),
+          pitch = 0,
+          yaw = math.radians(90),
+          parent_link = root)
+        }}
+      {%- endset -%}
+      {# <!--}--> #}
 
-      {% if enable_rangefinder %}
-      <!-- Garmin mount {-->
-      {{ generic.visual_mesh_macro(
-        name = "garmin_mount",
-        mesh_file = garmin_mount_mesh,
-        mesh_scale = mesh_scale_milimeters,
-        color = "DarkGrey",
-        x = -0.055,
-        y = 0,
-        z = -(arm_height + 0.016),
-        roll = math.radians90,
-        pitch = 0,
-        yaw = math.radians90)
-      }}
-      <!--}-->
-      {% endif %}
+      {# lidar_mount_2d {--> #}
+      {%- set lidar_mount_2d -%}
+        {{ generic.visual_link_macro(
+          name = "lidar_mount_2d",
+          mesh_file = rplidar_mount_mesh,
+          mesh_scale = mesh_scale_milimeters,
+          color = "DarkGrey",
+          x = 0,
+          y = 0,
+          z = 0.068,
+          roll = 0,
+          pitch = 0,
+          yaw = math.radians(90),
+          parent_link = root)
+        }}
+      {% endset %}
+      {# <!--}--> #}
 
+      {# lidar_mount_3d {--> #}
+      {%- set lidar_mount_3d %}
+        {{ generic.visual_link_macro(
+          name = "lidar_mount_3d",
+          mesh_file = ouster_mount_mesh,
+          mesh_scale = mesh_scale_milimeters,
+          color = "DarkGrey",
+          x = 0,
+          y = 0,
+          z = 0.061,
+          roll = 0,
+          pitch = 0,
+          yaw = 0,
+          parent_link = root)
+        }}
+      {% endset %}
+      {# <!--}--> #}
+
+      {# <!--}--> #}
+
+      {# TODO: !! #}
       {% if enable_bluefox_camera or enable_bluefox_camera_reverse %}
       <!-- Bluefox mount {-->
       {{ generic.visual_mesh_macro(
@@ -456,6 +461,7 @@
       <!--}-->
       {% endif %}
 
+      {# TODO: !! #}
       {% if enable_realsense_front %}
       <!-- Realsense front mount {-->
       {{ generic.visual_mesh_macro(
@@ -473,6 +479,7 @@
       <!--}-->
       {% endif %}
 
+      {# TODO: !! #}
       {% if enable_realsense_front_pitched %}
       <!-- Realsense front pitched mount {-->
       {{ generic.visual_mesh_macro(
@@ -490,6 +497,7 @@
       <!--}-->
       {% endif %}
 
+      {# TODO: !! #}
       {% if enable_realsense_down %}
       <!-- Realsense down mount {-->
       {{ generic.visual_mesh_macro(
@@ -507,6 +515,7 @@
       <!--}-->
       {% endif %}
 
+      {# TODO: !! #}
       {% if enable_dual_uv_cameras %}
       <!-- UVDAR mount {-->
       {{ generic.visual_mesh_macro(
@@ -529,8 +538,51 @@
     </link>
 
     <!-- Propellers {-->
-    {{ components.prop_macro(
-      direction = "ccw",
+    {%- set prop_list = [
+    {
+    'motor_number': 0,
+    'direction': 'ccw',
+    'x': arm_length * math.sin(math.radians(45)),
+    'y': -arm_length * math.sin(math.radians(45)),
+    'z': arm_height + prop_offset_top - body_height/2,
+    'mesh_files': [prop_mesh_file],
+    'mesh_scale': mesh_scale_prop_ccw,
+    'color': 'White'
+    },
+    {
+    'motor_number': 1,
+    'direction': 'ccw',
+    'x': -arm_length * math.sin(math.radians(45)),
+    'y': arm_length * math.sin(math.radians(45)),
+    'z': arm_height + prop_offset_top - body_height/2,
+    'mesh_files': [prop_mesh_file],
+    'mesh_scale': mesh_scale_prop_ccw,
+    'color': 'White'
+    },
+    {
+    'motor_number': 2,
+    'direction': 'cw',
+    'x': arm_length * math.sin(math.radians(45)),
+    'y': arm_length * math.sin(math.radians(45)),
+    'z': arm_height + prop_offset_top - body_height/2,
+    'mesh_files': [prop_mesh_file],
+    'mesh_scale': mesh_scale_prop_cw,
+    'color': 'White'
+    },
+    {
+    'motor_number': 3,
+    'direction': 'cw',
+    'x': -arm_length * math.sin(math.radians(45)),
+    'y': -arm_length * math.sin(math.radians(45)),
+    'z': arm_height + prop_offset_top - body_height/2,
+    'mesh_files': [prop_mesh_file],
+    'mesh_scale': mesh_scale_prop_cw,
+    'color': 'White'
+    }
+    ]
+    -%}
+    {{ components.propellers_macro(
+      prop_list = prop_list,
       rotor_velocity_slowdown_sim = rotor_velocity_slowdown_sim,
       motor_constant = motor_constant,
       moment_constant = moment_constant,
@@ -540,151 +592,39 @@
       time_constant_up = time_constant_up,
       time_constant_down = time_constant_down,
       max_rot_velocity = max_rot_velocity,
-      motor_number = 0,
       rotor_drag_coefficient = rotor_drag_coefficient,
       rolling_moment_coefficient = rolling_moment_coefficient,
-      enable_motor_crash = enable_motor_crash,
-      color = "White",
-      mesh_file = prop_mesh_file,
-      mesh_scale = mesh_scale_prop_ccw,
-      x = arm_length * math.sin(math.radians(45)),
-      y = -arm_length * math.sin(math.radians(45)),
-      z = arm_height + prop_offset_top - body_height/2,
-      roll = 0,
-      pitch = 0,
-      yaw = 0,
-      ixx = prop_ixx,
-      ixy = prop_ixy,
-      ixz = prop_ixz,
-      iyy = prop_iyy,
-      iyz = prop_iyz,
-      izz = prop_izz)
-    }}
-
-    {{ components.prop_macro(
-      direction = "ccw",
-      rotor_velocity_slowdown_sim = rotor_velocity_slowdown_sim,
-      motor_constant =  motor_constant,
-      moment_constant = moment_constant,
-      parent = root,
-      mass = mass_prop,
-      radius = radius_prop,
-      time_constant_up = time_constant_up,
-      time_constant_down = time_constant_down,
-      max_rot_velocity = max_rot_velocity,
-      motor_number = 1,
-      rotor_drag_coefficient = rotor_drag_coefficient,
-      rolling_moment_coefficient = rolling_moment_coefficient,
-      enable_motor_crash = enable_motor_crash,
-      color = "White",
-      mesh_file = prop_mesh_file,
-      mesh_scale = mesh_scale_prop_ccw,
-      x = -arm_length * math.sin(math.radians(45)),
-      y = arm_length * math.sin(math.radians(45)),
-      z = arm_height + prop_offset_top - body_height/2,
-      roll = 0,
-      pitch = 0,
-      yaw = 0,
-      ixx = prop_ixx,
-      ixy = prop_ixy,
-      ixz = prop_ixz,
-      iyy = prop_iyy,
-      iyz = prop_iyz,
-      izz = prop_izz)
-    }}
-
-    {{ components.prop_macro(
-      direction = "cw",
-      rotor_velocity_slowdown_sim = rotor_velocity_slowdown_sim,
-      motor_constant =  motor_constant,
-      moment_constant = moment_constant,
-      parent = root,
-      mass = mass_prop,
-      radius = radius_prop,
-      time_constant_up = time_constant_up,
-      time_constant_down = time_constant_down,
-      max_rot_velocity = max_rot_velocity,
-      motor_number = 2,
-      rotor_drag_coefficient = rotor_drag_coefficient,
-      rolling_moment_coefficient = rolling_moment_coefficient,
-      enable_motor_crash = enable_motor_crash,
-      color = "White",
-      mesh_file = prop_mesh_file,
-      mesh_scale = mesh_scale_prop_cw,
-      x = arm_length * math.sin(math.radians(45)),
-      y = arm_length * math.sin(math.radians(45)),
-      z = arm_height + prop_offset_top - body_height/2,
-      roll = 0,
-      pitch = 0,
-      yaw = 0,
-      ixx = prop_ixx,
-      ixy = prop_ixy,
-      ixz = prop_ixz,
-      iyy = prop_iyy,
-      iyz = prop_iyz,
-      izz = prop_izz)
-    }}
-
-    {{ components.prop_macro(
-      direction = "cw",
-      rotor_velocity_slowdown_sim = rotor_velocity_slowdown_sim,
-      motor_constant =  motor_constant,
-      moment_constant = moment_constant,
-      parent = root,
-      mass = mass_prop,
-      radius = radius_prop,
-      time_constant_up = time_constant_up,
-      time_constant_down = time_constant_down,
-      max_rot_velocity = max_rot_velocity,
-      motor_number = 3,
-      rotor_drag_coefficient = rotor_drag_coefficient,
-      rolling_moment_coefficient = rolling_moment_coefficient,
-      enable_motor_crash = enable_motor_crash,
-      color = "White",
-      mesh_file = prop_mesh_file,
-      mesh_scale = mesh_scale_prop_cw,
-      x = -arm_length * math.sin(math.radians(45)),
-      y = -arm_length * math.sin(math.radians(45)),
-      z = arm_height + prop_offset_top - body_height/2,
-      roll = 0,
-      pitch = 0,
-      yaw = 0,
-      ixx = prop_ixx,
-      ixy = prop_ixy,
-      ixz = prop_ixz,
-      iyy = prop_iyy,
-      iyz = prop_iyz,
-      izz = prop_izz)
+      meshes_z_offset = 0,
+      prop_ixx = prop_ixx,
+      prop_ixy = prop_ixy,
+      prop_ixz = prop_ixz,
+      prop_iyy = prop_iyy,
+      prop_iyz = prop_iyz,
+      prop_izz = prop_izz,
+      spawner_args = spawner_args)
     }}
     <!--}-->
 
     {# ================================================================== #}
     {# ||                compulsory sensor definitions                 || #}
     {# ================================================================== #}
+    
+    <!-- pixhawk {-->
+    {%- set imu_topic = "/imu" -%}
+    {%- set mag_topic = "/mag" -%}
+    {%- set baro_topic = "/baro" -%}
+    {%- set lidar_topic = "/lidar" -%}
 
-    <!-- Mavlink interface {-->
-    {{ components.mavlink_interface_macro(
-      mavlink_addr = mavlink_addr,
-      mavlink_udp_port = mavlink_udp_port,
-      mavlink_tcp_port = mavlink_tcp_port,
-      serial_enabled = serial_enabled,
-      serial_device = serial_device,
-      baudrate = serial_baudrate,
-      qgc_addr = qgc_addr,
-      qgc_udp_port = qgc_udp_port,
-      sdk_addr = sdk_addr,
-      sdk_udp_port =sdk_udp_port,
-      hil_mode = hil_mode,
-      hil_state_level = hil_state_level,
-      send_vision_estimation = send_vision_estimation,
-      send_odometry = send_odometry,
-      enable_lockstep = use_lockstep,
-      use_tcp = use_tcp)
+    <!-- Gazebo ground truth {-->
+    {{ generic.gazebo_groundtruth_macro(
+      home_latitude = 0,
+      home_longitude = 0,
+      home_altitude = 0)
     }}
     <!--}-->
 
     <!-- GPS {-->
-    {{ components.gps_macro(
+    {{ generic.gazebo_gps_macro(
       gps_name = "gps0",
       parent_link = root,
       update_rate = 10,
@@ -705,33 +645,36 @@
     <!--}-->
 
     <!-- Magnetometer {-->
-    {{ components.magnetometer_plugin_macro(
+    {{ generic.gazebo_magnetometer_macro(
       pub_rate = 100,
       noise_density = 0.0004,
       random_walk = 0.0000064,
       bias_correlation_time = 600,
-      mag_topic = "/mag")
-    }}
-    <!--}-->
-
-    <!-- GPS groundtruth {-->
-    {{ components.gps_groundtruth_plugin_macro(
-      home_latitude = 0,
-      home_longitude = 0,
-      home_altitude = 0)
+      mag_topic = mag_topic)
     }}
     <!--}-->
 
     <!-- Barometer {-->
-    {{ components.barometer_plugin_macro(
-      baro_topic = "/baro",
+    {{ generic.gazebo_barometer_macro(
+      baro_topic = baro_topic,
       pub_rate = 50,
       baro_drift_pa_per_sec = 0)
     }}
     <!--}-->
 
+    <!-- Mavlink interface {-->
+    {{ generic.gazebo_mavlink_interface_macro(
+      imu_topic = imu_topic,
+      mag_topic = mag_topic,
+      baro_topic = baro_topic,
+      lidar_topic = lidar_topic,
+      mavlink_config = spawner_args['mavlink_config'])
+    }}
+    <!--}-->
+
     <!-- IMU {-->
-    {{ components.imu_plugin_macro(
+    <!-- NOTE: IMU has to be last, otherwise the simulation is extremely slow! -->
+    {{ generic.gazebo_imu_macro(
       imu_name = "imu",
       parent_link = root,
       imu_topic = "/imu",
@@ -752,172 +695,147 @@
     }}
     <!--}-->
 
+    <!--}-->
+
     {# ================================================================== #}
     {# ||                  optional sensor definitions                 || #}
     {# ================================================================== #}
 
     {# Ground truth {--> #}
-    {% if enable_ground_truth %}
-    <!-- Ground truth {-->
-    {{ components.odometry_plugin_macro(
-      odometry_sensor_name = "ground_truth",
+    {{ components.ground_truth_macro(
       parent_link = root,
-      topic_name = "ground_truth",
-      noise = "0",
-      frame_name = "world",
-      frame_rate = "150",
       x = 0,
       y = 0,
       z = 0,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     {# ======================= rangefinder sensors ====================== #}
 
-    {# Garmin {--> #}
-    {% if enable_rangefinder %}
-    <!-- Garmin {-->
-    {# {{ components.garmin_macro("lidar0", root, -0.077, 0, -0.069, 0, math.radians(90), 0) }} - uncomment when simulation will work with pixgarm #}
-    {{ components.external_garmin_macro(
-      namespace = namespace,
+    {# Garmin down {--> #}
+    {{ components.garmin_down_macro(
       parent_link = root,
-      orientation = "",
       x = -0.057,
       y = 0,
       z = -0.069,
       roll = 0,
       pitch = math.radians(90),
-      yaw = 0)
+      yaw = 0,
+      mount = garmin_down_mount,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     {# Garmin Up {--> #}
-    {% if enable_rangefinder_up %}
-    <!-- Garmin Up {-->
-    {{ components.external_garmin_macro(
-      namespace = namespace,
+    {{ components.garmin_up_external_macro(
       parent_link = root,
-      orientation = "_up",
       x = -0.077,
       y = 0,
       z = -0.033,
       roll = 0,
       pitch = math.radians(-90),
-      yaw = 0)
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     {# Teraranger One {--> #}
-    {% if enable_teraranger %}
-    <!-- Teraranger One {-->
     {{ components.teraranger_macro(
-      namespace = namespace,
       parent_link = root,
       x = 0.08,
       y = 0,
       z = -0.05,
       roll = 0,
       pitch = math.radians(90),
-      yaw = 0)
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     {# ========================== LIDAR sensors ========================= #}
 
     {# Scanse Sweep {--> #}
-    {% if enable_scanse_sweep %}
-    <!-- Scanse Sweep {-->
-    {{ components.scanse_sweep_macro(
-      namespace = namespace,
+    {%- set scanse_sweep = components.scanse_sweep_macro(
       parent_link = root,
       x = 0.0,
       y = 0.0,
       z = 0.113,
       roll = 0,
       pitch = 0,
-      yaw = 0)
-    }}
-    <!--}-->
-    {% endif %}
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
+    -%}
+    {{ scanse_sweep }}
     {# <!--}--> #}
 
     {# Rplidar {--> #}
-    {% if enable_rplidar %}
-    <!-- Rplidar {-->
-    {{ components.rplidar_macro(
-      namespace = namespace,
+    {%- set rplidar = components.rplidar_macro(
       parent_link = root,
-      horizontal_samples = horizontal_samples,
-      rotation_freq = rotation_freq,
       x = 0.0,
       y = 0.0,
       z = 0.1,
       roll = 0,
       pitch = 0,
-      yaw = 0)
-    }}
-    <!--}-->
-    {% endif %}
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
+    -%}
+    {{ rplidar }}
+    {# <!--}--> #}
+    
+    {# do we have an active 2D lidar? {--> #}
+    {%- if rplidar | replace('\s', '') | length != 0 or scanse_sweep | replace('\s', '') | length != 0 -%}
+      <!-- 2d lidar mount {-->
+      {{ lidar_mount_2d }}
+      <!--}-->
+    {%- endif -%}
     {# <!--}--> #}
 
     {# Velodyne {--> #}
-    {% if enable_velodyne %}
-    <!-- Velodyne  {-->
-    <!-- VLP-16 (default) -->
-    {{ components.velodyne_macro(
-      namespace = namespace,
+    {%- set velodyne = components.velodyne_macro(
       parent_link = root,
       sensor_name = "velodyne",
-      rotation_freq = rotation_freq,
-      lasers = 16,
-      vfov_angle = 30,
-      max_range = 100,
-      noise = 0.01,
-      enable_gpu_ray = use_gpu_ray,
-      horizontal_samples = horizontal_samples,
       x = 0.0,
       y = 0.0,
       z = 0.066,
       roll = 0,
       pitch = 0,
-      yaw = 0)
-    }}
-    <!--}-->
-    {% endif %}
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
+    -%}
+    {{ velodyne }}
     {# <!--}--> #}
 
     {# Ouster {--> #}
-    {% if enable_ouster %}
-    <!-- Ouster  {-->
-    {{ components.ouster_macro(
-      namespace = namespace,
+    {%- set ouster = components.ouster_macro(
       parent_link = root,
       sensor_name = "os",
-      ouster_model = ouster_model,
-      rotation_freq = rotation_freq,
-      noise = 0.03,
-      enable_gpu_ray = use_gpu_ray,
-      horizontal_samples = horizontal_samples,
       x = 0.0,
       y = 0.0,
       z = 0.066,
       roll = 0,
       pitch = 0,
-      yaw = 0)
-    }}
-    <!--}-->
-    {% endif %}
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
+    -%}
+    {{ ouster }}
+    {# <!--}--> #}
+    
+    {# do we have an active 3D lidar? {--> #}
+    {%- if velodyne | replace('\s', '') | length != 0 or ouster | replace('\s', '') | length != 0 -%}
+      <!-- 3d lidar mount {-->
+      {{ lidar_mount_3d }}
+      <!--}-->
+    {%- endif -%}
     {# <!--}--> #}
 
     {# ========================== camera sensors ======================== #}
