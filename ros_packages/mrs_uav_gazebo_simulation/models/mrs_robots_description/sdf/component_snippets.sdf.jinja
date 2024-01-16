@@ -2342,4 +2342,93 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
+{# propellers_macro {--> #}
+{%- macro propellers_macro(prop_list, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, time_constant_up, time_constant_down, max_rot_velocity, rotor_drag_coefficient, rolling_moment_coefficient, meshes_z_offset, prop_ixx, prop_ixy, prop_ixz, prop_iyy, prop_iyz, prop_izz, spawner_args) -%}
+
+  {%- set spawner_keyword = 'disable-motor-crash' -%}
+  {%- set spawner_description = 'Disables motor failure after a crash with the environment.' -%}
+  {%- set spawner_default_args = none -%}
+
+  {%- set enable_motor_crash = spawner_args[spawner_keyword] is undefined -%}
+
+  {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+  {%- for prop_params in prop_list -%}
+
+    {%- if prop_params['mesh_files'] | length == 1 -%}
+      <!-- Propeller {{ prop_params['motor_number'] }} {-->
+      {{ generic.prop_macro(
+        direction = prop_params['direction'],
+        rotor_velocity_slowdown_sim = rotor_velocity_slowdown_sim,
+        motor_constant = motor_constant,
+        moment_constant = moment_constant,
+        parent = parent,
+        mass = mass,
+        radius = radius,
+        time_constant_up = time_constant_up,
+        time_constant_down = time_constant_down,
+        max_rot_velocity = max_rot_velocity,
+        motor_number = prop_params['motor_number'],
+        rotor_drag_coefficient = rotor_drag_coefficient,
+        rolling_moment_coefficient = rolling_moment_coefficient,
+        enable_motor_crash = enable_motor_crash,
+        color = prop_params['color'],
+        mesh_file = prop_params['mesh_files'][0],
+        mesh_scale = prop_params['mesh_scale'],
+        x = prop_params['x'],
+        y = prop_params['y'],
+        z = prop_params['z'],
+        roll = 0,
+        pitch = 0,
+        yaw = 0,
+        ixx = prop_ixx,
+        ixy = prop_ixy,
+        ixz = prop_ixz,
+        iyy = prop_iyy,
+        iyz = prop_iyz,
+        izz = prop_izz)
+      }}
+      <!--}-->
+    {%- elif prop_params['mesh_files'] | length == 2 -%}
+      <!-- Propeller {{ prop_params['motor_number'] }} {-->
+      {{ generic.prop_macro_2_meshes(
+        direction = prop_params['direction'],
+        rotor_velocity_slowdown_sim = rotor_velocity_slowdown_sim,
+        motor_constant = motor_constant,
+        moment_constant = moment_constant,
+        parent = parent,
+        mass = mass,
+        radius = radius,
+        time_constant_up = time_constant_up,
+        time_constant_down = time_constant_down,
+        max_rot_velocity = max_rot_velocity,
+        motor_number = prop_params['motor_number'],
+        rotor_drag_coefficient = rotor_drag_coefficient,
+        rolling_moment_coefficient = rolling_moment_coefficient,
+        enable_motor_crash = enable_motor_crash,
+        color = prop_params['color'],
+        mesh_file_1 = prop_params['mesh_files'][0],
+        mesh_file_2 = prop_params['mesh_files'][1],
+        meshes_z_offset = meshes_z_offset,
+        mesh_scale = prop_params['mesh_scale'],
+        x = prop_params['x'],
+        y = prop_params['y'],
+        z = prop_params['z'],
+        roll = 0,
+        pitch = 0,
+        yaw = 0,
+        ixx = prop_ixx,
+        ixy = prop_ixy,
+        ixz = prop_ixz,
+        iyy = prop_iyy,
+        iyz = prop_iyz,
+        izz = prop_izz)
+      }}
+      <!--}-->
+    {%- endif -%}
+
+  {%- endfor -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
 </sdf>

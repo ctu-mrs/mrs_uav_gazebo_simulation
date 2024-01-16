@@ -430,7 +430,7 @@
       }}
       <!--}-->
 
-      {# GPS visuals {--> #}
+      {# GPS antenna and mount {--> #}
       {%- set gps_visuals -%}
       <!-- gps mount {-->
       {{ generic.visual_link_macro(
@@ -582,8 +582,51 @@
     </link>
 
     <!-- Propellers {-->
-    {{ generic.prop_macro_2_meshes(
-      direction = "ccw",
+    {%- set prop_list = [
+    {
+    'motor_number': 0,
+    'direction': 'ccw',
+    'x': rotor_xy_offset,
+    'y': -rotor_xy_offset,
+    'z': rotor_z_offset,
+    'mesh_files': [prop_mesh_file, motor_top_mesh_file],
+    'mesh_scale': mesh_scale_prop_ccw,
+    'color': 'Grey'
+    },
+    {
+    'motor_number': 1,
+    'direction': 'ccw',
+    'x': -rotor_xy_offset,
+    'y': rotor_xy_offset,
+    'z': rotor_z_offset,
+    'mesh_files': [prop_mesh_file, motor_top_mesh_file],
+    'mesh_scale': mesh_scale_prop_ccw,
+    'color': 'Grey'
+    },
+    {
+    'motor_number': 2,
+    'direction': 'cw',
+    'x': rotor_xy_offset,
+    'y': rotor_xy_offset,
+    'z': rotor_z_offset,
+    'mesh_files': [prop_mesh_file, motor_top_mesh_file],
+    'mesh_scale': mesh_scale_prop_cw,
+    'color': 'Grey'
+    },
+    {
+    'motor_number': 3,
+    'direction': 'cw',
+    'x': -rotor_xy_offset,
+    'y': -rotor_xy_offset,
+    'z': rotor_z_offset,
+    'mesh_files': [prop_mesh_file, motor_top_mesh_file],
+    'mesh_scale': mesh_scale_prop_cw,
+    'color': 'Grey'
+    },
+    ]
+    -%}
+    {{ components.propellers_macro(
+      prop_list = prop_list,
       rotor_velocity_slowdown_sim = rotor_velocity_slowdown_sim,
       motor_constant = motor_constant,
       moment_constant = moment_constant,
@@ -593,129 +636,16 @@
       time_constant_up = time_constant_up,
       time_constant_down = time_constant_down,
       max_rot_velocity = max_rot_velocity,
-      motor_number = 0,
       rotor_drag_coefficient = rotor_drag_coefficient,
       rolling_moment_coefficient = rolling_moment_coefficient,
-      enable_motor_crash = enable_motor_crash,
-      color = "Grey",
-      mesh_file_1 = prop_mesh_file,
-      mesh_file_2 = motor_top_mesh_file,
       meshes_z_offset = motor_mesh_z_offset,
-      mesh_scale = mesh_scale_prop_ccw,
-      x = rotor_xy_offset,
-      y = -rotor_xy_offset,
-      z = rotor_z_offset,
-      roll = 0,
-      pitch = 0,
-      yaw = 0,
-      ixx = prop_ixx,
-      ixy = prop_ixy,
-      ixz = prop_ixz,
-      iyy = prop_iyy,
-      iyz = prop_iyz,
-      izz = prop_izz)
-    }}
-
-    {{ generic.prop_macro_2_meshes(
-      direction = "ccw",
-      rotor_velocity_slowdown_sim = rotor_velocity_slowdown_sim,
-      motor_constant = motor_constant,
-      moment_constant = moment_constant,
-      parent = root,
-      mass = mass_prop,
-      radius = radius_rotor,
-      time_constant_up = time_constant_up,
-      time_constant_down = time_constant_down,
-      max_rot_velocity = max_rot_velocity,
-      motor_number = 1,
-      rotor_drag_coefficient = rotor_drag_coefficient,
-      rolling_moment_coefficient = rolling_moment_coefficient,
-      enable_motor_crash = enable_motor_crash,
-      color = "Grey",
-      mesh_file_1 = prop_mesh_file,
-      mesh_file_2 = motor_top_mesh_file,
-      meshes_z_offset = motor_mesh_z_offset,
-      mesh_scale = mesh_scale_prop_ccw,
-      x = -rotor_xy_offset,
-      y = rotor_xy_offset,
-      z = rotor_z_offset,
-      roll = 0,
-      pitch = 0,
-      yaw = 0,
-      ixx = prop_ixx,
-      ixy = prop_ixy,
-      ixz = prop_ixz,
-      iyy = prop_iyy,
-      iyz = prop_iyz,
-      izz = prop_izz)
-    }}
-
-    {{ generic.prop_macro_2_meshes(
-      direction = "cw",
-      rotor_velocity_slowdown_sim = rotor_velocity_slowdown_sim,
-      motor_constant = motor_constant,
-      moment_constant = moment_constant,
-      parent = root,
-      mass = mass_prop,
-      radius = radius_rotor,
-      time_constant_up = time_constant_up,
-      time_constant_down = time_constant_down,
-      max_rot_velocity = max_rot_velocity,
-      motor_number = 2,
-      rotor_drag_coefficient = rotor_drag_coefficient,
-      rolling_moment_coefficient = rolling_moment_coefficient,
-      enable_motor_crash = enable_motor_crash,
-      color = "Grey",
-      mesh_file_1 = prop_mesh_file,
-      mesh_file_2 = motor_top_mesh_file,
-      meshes_z_offset = motor_mesh_z_offset,
-      mesh_scale = mesh_scale_prop_cw,
-      x = rotor_xy_offset,
-      y = rotor_xy_offset,
-      z = rotor_z_offset,
-      roll = 0,
-      pitch = 0,
-      yaw = 0,
-      ixx = prop_ixx,
-      ixy = prop_ixy,
-      ixz = prop_ixz,
-      iyy = prop_iyy,
-      iyz = prop_iyz,
-      izz = prop_izz)
-    }}
-
-    {{ generic.prop_macro_2_meshes(
-      direction = "cw",
-      rotor_velocity_slowdown_sim = rotor_velocity_slowdown_sim,
-      motor_constant = motor_constant,
-      moment_constant = moment_constant,
-      parent = root,
-      mass = mass_prop,
-      radius = radius_rotor,
-      time_constant_up = time_constant_up,
-      time_constant_down = time_constant_down,
-      max_rot_velocity = max_rot_velocity,
-      motor_number = 3,
-      rotor_drag_coefficient = rotor_drag_coefficient,
-      rolling_moment_coefficient = rolling_moment_coefficient,
-      enable_motor_crash = enable_motor_crash,
-      color = "Grey",
-      mesh_file_1 = prop_mesh_file,
-      mesh_file_2 = motor_top_mesh_file,
-      meshes_z_offset = motor_mesh_z_offset,
-      mesh_scale = mesh_scale_prop_cw,
-      x = -rotor_xy_offset,
-      y = -rotor_xy_offset,
-      z = rotor_z_offset,
-      roll = 0,
-      pitch = 0,
-      yaw = 0,
-      ixx = prop_ixx,
-      ixy = prop_ixy,
-      ixz = prop_ixz,
-      iyy = prop_iyy,
-      iyz = prop_iyz,
-      izz = prop_izz)
+      prop_ixx = prop_ixx,
+      prop_ixy = prop_ixy,
+      prop_ixz = prop_ixz,
+      prop_iyy = prop_iyy,
+      prop_iyz = prop_iyz,
+      prop_izz = prop_izz,
+      spawner_args = spawner_args)
     }}
     <!--}-->
 

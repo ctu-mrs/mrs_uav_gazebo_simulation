@@ -64,7 +64,7 @@ limitations under the License.
 {# macro to add the lowest mass and intertia that gazebo allows #}
 {%- macro zero_inertial_macro() -%}
   <inertial>
-    <mass>0.0001</mass>
+    <mass>0.00001</mass>
     <inertia>
       <ixx>1e-7</ixx>
       <ixy>0</ixy>
@@ -222,7 +222,6 @@ limitations under the License.
 {%- macro visual_link_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw, parent_link) -%}
   <link name="{{ name }}_link">
     {{ zero_inertial_macro() }}
-    <gravity>0</gravity>
     <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
     {{ visual_mesh_macro(name, mesh_file, mesh_scale, color, 0, 0, 0, 0, 0, 0) }}
   </link>
