@@ -623,8 +623,8 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
-{# rangefinder_sensor_macro {--> #}
-{%- macro rangefinder_sensor_macro(name, parent_frame_name, sensor_frame_name, topic, update_rate, samples, fov, min_distance, max_distance, resolution, noise, x, y, z, roll, pitch, yaw) -%}
+{# gazebo_rangefinder_sensor_macro {--> #}
+{%- macro gazebo_rangefinder_sensor_macro(name, parent_frame_name, sensor_frame_name, topic, update_rate, samples, fov, min_distance, max_distance, resolution, noise, x, y, z, roll, pitch, yaw) -%}
   <sensor name="lidar_sensor" type='ray'>
     <always_on>true</always_on>
     <visualize>false</visualize>
@@ -671,6 +671,51 @@ limitations under the License.
       <parentFrameName>{{ parent_frame_name }}</parentFrameName>
     </plugin>
   </sensor>
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# rangefinder_sensor_macro {--> #}
+{%- macro rangefinder_sensor_macro(name, parent_frame_name, sensor_frame_name, topic, update_rate, samples, fov, min_distance, max_distance, resolution, noise, x, y, z, roll, pitch, yaw) -%}
+<sensor name="{{ name }}_sensor" type='ray'>
+  <update_rate>{{ update_rate }}</update_rate>
+  <ray>
+    <scan>
+      <horizontal>
+      <samples>{{ samples }}</samples>
+        <resolution>1</resolution>
+        <min_angle>-{{ fov/2 }}</min_angle>
+        <max_angle>{{ fov/2 }}</max_angle>
+      </horizontal>
+      <vertical>
+        <samples>{{ samples }}</samples>
+        <resolution>1</resolution>
+        <min_angle>-{{ fov/2 }}</min_angle>
+        <max_angle>{{ fov/2 }}</max_angle>
+      </vertical>
+    </scan>
+    <range>
+      <min>{{ min_distance }}</min>
+      <max>{{ max_distance }}</max>
+      <resolution>{{ resolution }}</resolution>
+    </range>
+  </ray>
+  <plugin name='{{ name }}_plugin' filename='libMrsGazeboCommonResources_RangefinderPlugin.so'>
+    <gaussianNoise>{{ noise }}</gaussianNoise>
+    <alwaysOn>true</alwaysOn>
+    <updateRate>{{ update_rate }}</updateRate>
+    <topicName>{{ topic }}</topicName>
+    <frameName>{{ sensor_frame_name }}</frameName>
+    <fov>{{ fov }}</fov>
+    <radiation>radiation</radiation>
+    <parentFrameName>{{ parent_frame_name }}</parentFrameName>
+    <x>{{ x }}</x>
+    <y>{{ y }}</y>
+    <z>{{ z }}</z>
+    <roll>{{ roll }}</roll>
+    <pitch>{{ pitch }}</pitch>
+    <yaw>{{ yaw }}</yaw>
+  </plugin>
+</sensor>
 {%- endmacro -%}
 {# <!--}--> #}
 

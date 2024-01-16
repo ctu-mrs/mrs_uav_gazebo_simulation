@@ -1444,7 +1444,81 @@ limitations under the License.
 
       {{ generic.zero_inertial_macro() }}
 
-      {{generic.visual_mesh_macro(
+      {{ generic.visual_mesh_macro(
+        name = sensor_name,
+        mesh_file = "model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl",
+        mesh_scale = "0.001 0.001 0.001",
+        color = "DarkGrey",
+        x = 0.015,
+        y = 0,
+        z = 0,
+        roll = 0,
+        pitch = 0,
+        yaw = 0)
+      }}
+
+      {{ generic.gazebo_rangefinder_sensor_macro(
+        name = sensor_name,
+        parent_frame_name = spawner_args['name'] + '/fcu',
+        sensor_frame_name = spawner_args['name'] + '/garmin',
+        topic = sensor_name,
+        update_rate = spawner_args[spawner_keyword]['update_rate'],
+        samples = 1,
+        fov = 0.03,
+        min_distance = spawner_args[spawner_keyword]['min_range'],
+        max_distance = spawner_args[spawner_keyword]['max_range'],
+        resolution = 0.005,
+        noise = spawner_args[spawner_keyword]['noise'],
+        x = x,
+        y = y,
+        z = z,
+        roll = roll,
+        pitch = pitch,
+        yaw = yaw)
+      }}
+
+    </link>
+
+    <!-- NOTE: this joint is required by gazebo_mavlink_interface
+      It looks for a joint named ("lidar" + number) or a nested model named ("lidar" + number)
+    -->
+    <joint name='{{ sensor_name }}_joint' type='fixed'>
+      <child>{{ sensor_name }}_link</child>
+      <parent>{{ parent_link }}</parent>
+    </joint>
+    <!--}-->
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# garmin_down_external_macro (external -> connected to computer) {--> #}
+{%- macro garmin_down_external_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-rangefinder-external' -%}
+  {%- set spawner_description = 'Add a laser rangefinder (Garmin LIDAR-Lite v3) pointing down. Creates a ROS topic /robot_name/garmin/range. Do not set range outside <0.06 - 40.0> (unrealistic)' -%}
+  {%- set spawner_default_args = {'update_rate': 100, 'min_range': 0.1, 'max_range': 36.0, 'noise': 0.01} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    {%- set sensor_name = "garmin" -%}
+
+    <!-- garmin down {-->
+
+    <!-- sensor {-->
+    <link name="{{ sensor_name }}_link">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+
+      {{ generic.zero_inertial_macro() }}
+
+      {{ generic.visual_mesh_macro(
         name = sensor_name,
         mesh_file = "model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl",
         mesh_scale = "0.001 0.001 0.001",
@@ -1460,8 +1534,82 @@ limitations under the License.
       {{ generic.rangefinder_sensor_macro(
         name = sensor_name,
         parent_frame_name = spawner_args['name'] + '/fcu',
-        sensor_frame_name = spawner_args['name'] + '/garmin',
-        topic = sensor_name,
+        sensor_frame_name = spawner_args['name'] + '/' + sensor_name,
+        topic = sensor_name + '/range',
+        update_rate = spawner_args[spawner_keyword]['update_rate'],
+        samples = 1,
+        fov = 0.03,
+        min_distance = spawner_args[spawner_keyword]['min_range'],
+        max_distance = spawner_args[spawner_keyword]['max_range'],
+        resolution = 0.005,
+        noise = spawner_args[spawner_keyword]['noise'],
+        x = x,
+        y = y,
+        z = z,
+        roll = roll,
+        pitch = pitch,
+        yaw = yaw)
+      }}
+
+    </link>
+
+    <!-- NOTE: this joint is required by gazebo_mavlink_interface
+      It looks for a joint named ("lidar" + number) or a nested model named ("lidar" + number)
+    -->
+    <joint name='{{ sensor_name }}_joint' type='fixed'>
+      <child>{{ sensor_name }}_link</child>
+      <parent>{{ parent_link }}</parent>
+    </joint>
+    <!--}-->
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# garmin_up_external_macro (external -> connected to computer) {--> #}
+{%- macro garmin_up_external_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-rangefinder-up' -%}
+  {%- set spawner_description = 'Add a laser rangefinder (Garmin LIDAR-Lite v3) pointing up. Creates a ROS topic /robot_name/garmin/range. Do not set range outside <0.06 - 40.0> (unrealistic)' -%}
+  {%- set spawner_default_args = {'update_rate': 100, 'min_range': 0.1, 'max_range': 36.0, 'noise': 0.01} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    {%- set sensor_name = "garmin_up" -%}
+
+    <!-- garmin down {-->
+
+    <!-- sensor {-->
+    <link name="{{ sensor_name }}_link">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+
+      {{ generic.zero_inertial_macro() }}
+
+      {{ generic.visual_mesh_macro(
+        name = sensor_name,
+        mesh_file = "model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl",
+        mesh_scale = "0.001 0.001 0.001",
+        color = "DarkGrey",
+        x = 0.015,
+        y = 0,
+        z = 0,
+        roll = 0,
+        pitch = 0,
+        yaw = 0)
+      }}
+
+      {{ generic.rangefinder_sensor_macro(
+        name = sensor_name,
+        parent_frame_name = spawner_args['name'] + '/fcu',
+        sensor_frame_name = spawner_args['name'] + '/' + sensor_name,
+        topic = sensor_name + '/range',
         update_rate = spawner_args[spawner_keyword]['update_rate'],
         samples = 1,
         fov = 0.03,
