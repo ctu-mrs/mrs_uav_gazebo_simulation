@@ -2707,6 +2707,7 @@ limitations under the License.
                                           (7, led4, -x1, -y1, z, 0.0, math.radians(90), -math.radians(180)),
                                           (8, led4, -x2, -y2, z, 0.0, math.radians(90), -math.radians(90))] -%}
 
+      <!-- UV LEDs {-->
       {%- for id_, signal_id_, x_, y_, z_, roll_, pitch_, yaw_ in uv_leds_macro_parameters -%}
         <!-- LED {{ id_ }} {-->
         {{ generic.uvled_macro(
@@ -2722,6 +2723,7 @@ limitations under the License.
         }}
         <!--}-->
       {%- endfor -%}
+      <!--}-->
 
     {%- endif -%}
 
