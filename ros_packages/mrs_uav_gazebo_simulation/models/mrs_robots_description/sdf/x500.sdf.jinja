@@ -805,7 +805,7 @@
     {{ ouster }}
     {# <!--}--> #}
 
-    {# do we have an active lidar? {--> #}
+    {# 3D lidar mount {--> #}
     {%- if rplidar | replace('\s', '') | length != 0 or ouster | replace('\s', '') | length != 0 -%}
       <!-- lidar mount {-->
       {{ lidar_mount }}
@@ -905,9 +905,11 @@
     {{ bluefox_camera_reverse }}
     {# <!--}--> #}
 
+    {# bluefox mount {--> #}
     {%- if bluefox_camera | replace('\s', '') | length != 0 or bluefox_camera_reverse | replace('\s', '') | length != 0 -%}
       {{ bluefox_mount }}
     {%- endif -%}
+    {# <!--}--> #}
 
     {# <!--}--> #}
 
