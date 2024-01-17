@@ -198,162 +198,6 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-{# TODO: make a component out of this #}
-<!-- Macro to add a camera mounted on virtual servo {-->
-{%- macro servo_camera_macro(parent, offset_pitch_link_x, offset_pitch_link_y, offset_pitch_link_z, offset_pitch_link_yaw, offset_pitch_link_roll, offset_pitch_link_pitch, offset_roll_link_x, offset_roll_link_y, offset_roll_link_z, offset_roll_link_yaw, offset_roll_link_roll, offset_roll_link_pitch, tilt_update_rate, max_pitch, min_pitch, max_pitch_rate, max_roll, min_roll, max_roll_rate, compensate_tilt_roll, compensate_tilt_pitch, parent_frame_name, sensor_base_frame_name, camera_frame_name, camera_update_rate, horizontal_fov, img_width, img_height, roll_link_mesh_file, pitch_link_mesh_file, mesh_scale) -%}
-
-<link name="servo_camera_gimbal_link">
-  <pose relative_to = "servo_camera_roll_joint"> 0 0 0 0 0 0</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="visual">
-    <pose>0 0 0 0 0 0</pose>
-    <geometry>
-      {%- if roll_link_mesh_file == '' -%}
-      <box>
-        <size>0.01 0.01 0.01</size>
-      </box>
-      {%- else -%}
-      <mesh>
-        <uri>{{ roll_link_mesh_file }}</uri>
-        <scale>{{ mesh_scale }}</scale>
-      </mesh>
-      {%- endif -%}
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Black</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-</link>
-
-<link name="servo_camera_link">
-  <pose relative_to = "servo_camera_pitch_joint"> 0 0 0 0 0 0</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="visual">
-    <pose>0 0 0 0 0 0</pose>
-    <geometry>
-      {%- if pitch_link_mesh_file == '' -%}
-      <box>
-        <size>0.01 0.01 0.01</size>
-      </box>
-      {%- else -%}
-      <mesh>
-        <uri>{{ pitch_link_mesh_file }}</uri>
-        <scale>{{ mesh_scale }}</scale>
-      </mesh>
-      {%- endif -%}
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Black</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <sensor name="servo_camera_sensor" type="camera">
-    <update_rate>{{ camera_update_rate }}</update_rate>
-    <camera>
-      <horizontal_fov>{{ horizontal_fov }}</horizontal_fov>
-      <image>
-        <width>{{ img_width }}</width>
-        <height>{{ img_height }}</height>
-      </image>
-      <clip>
-        <near>0.25</near>
-        <far>100</far>
-      </clip>
-      <noise>
-        <type>gaussian</type>
-          <!-- Noise is sampled independently per pixel on each frame.
-            That pixel's noise value is added to each of its color
-          channels, which at that point lie in the range [0,1]. -->
-        <mean>0.0</mean>
-        <stddev>0.01</stddev>
-      </noise>
-    </camera>
-    <plugin name="camera_plugin" filename="libMrsGazeboCommonResources_CameraPlugin.so">
-      <alwaysOn>true</alwaysOn>
-      <updateRate>{{ camera_update_rate }}</updateRate>
-      <cameraName>servo_camera</cameraName>
-      <imageTopicName>image_raw</imageTopicName>
-      <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-      <frameName>{{ camera_frame_name }}</frameName>
-      <hackBaseline>0.0</hackBaseline>
-      <distortionK1>0.0</distortionK1>
-      <distortionK2>0.0</distortionK2>
-      <distortionK3>0.0</distortionK3>
-      <distortionT1>0.0</distortionT1>
-      <distortionT2>0.0</distortionT2>
-      <x>0.0</x>
-      <y>0.0</y>
-      <z>0.0</z>
-      <roll>0.0</roll>
-      <pitch>0.0</pitch>
-      <yaw>0.0</yaw>
-      <parentFrameName>{{ parent_frame_name }}</parentFrameName>
-      <sensorBaseFrameName>{{ sensor_base_frame_name }}</sensorBaseFrameName>
-    </plugin>
-  </sensor>
-</link>
-
-<plugin name="servo_camera_plugin" filename="libMrsGazeboCommonResources_ServoCameraPlugin.so">
-  <tilt_update_rate>{{ tilt_update_rate }}</tilt_update_rate>
-  <max_pitch_rate>{{ max_pitch_rate }}</max_pitch_rate>
-  <max_pitch>{{ max_pitch }}</max_pitch>
-  <min_pitch>{{ min_pitch }}</min_pitch>
-  <max_roll_rate>{{ max_roll_rate }}</max_roll_rate>
-  <max_roll>{{ max_roll }}</max_roll>
-  <min_roll>{{ min_roll }}</min_roll>
-  <joint_name_pitch>servo_camera_pitch_joint</joint_name_pitch>
-  <joint_name_roll>servo_camera_roll_joint</joint_name_roll>
-  <parent_link_pitch>servo_camera_gimbal_link</parent_link_pitch>
-  <parent_link_roll>{{ parent }}</parent_link_roll>
-  <compensate_tilt_roll>{{ compensate_tilt_roll }}</compensate_tilt_roll>
-  <compensate_tilt_pitch>{{ compensate_tilt_pitch }}</compensate_tilt_pitch>
-</plugin>
-
-<joint name="servo_camera_roll_joint" type="revolute">
-  <parent>{{ parent }}</parent>
-  <child>servo_camera_gimbal_link</child>
-  <pose relative_to = "{{ parent }}">{{ offset_roll_link_x }} {{ offset_roll_link_y }} {{ offset_roll_link_z }} {{ offset_roll_link_roll }} {{ offset_roll_link_pitch }} {{ offset_roll_link_yaw }}</pose>
-  <axis>
-    <xyz>1 0 0</xyz>
-    <limit>
-      <lower>-0.5</lower>
-      <upper>0.5</upper>
-      <effort>1</effort>
-      <velocity>10</velocity>
-    </limit>
-    <dynamics>
-      <damping>0.0</damping>
-      <friction>0.0</friction>
-    </dynamics>
-  </axis>
-</joint>
-
-<joint name="servo_camera_pitch_joint" type="revolute">
-  <parent>servo_camera_gimbal_link</parent>
-  <child>servo_camera_link</child>
-  <pose relative_to = "servo_camera_roll_joint">{{ offset_pitch_link_x }} {{ offset_pitch_link_y }} {{ offset_pitch_link_z }} {{ offset_pitch_link_roll }} {{ offset_pitch_link_pitch }} {{ offset_pitch_link_yaw }}</pose>
-  <axis>
-    <xyz>0 1 0</xyz>
-    <limit>
-      <lower>-1.57</lower>
-      <upper>1.57</upper>
-      <effort>1</effort>
-      <velocity>10</velocity>
-    </limit>
-    <dynamics>
-      <damping>0.0</damping>
-      <friction>0.0</friction>
-    </dynamics>
-  </axis>
-</joint>
-
-{%- endmacro -%}
-<!--}-->
 
 {# TODO: make a component out of this #}
 <!-- Macro to add a fisheye camera with integrated imu {-->
@@ -2641,160 +2485,172 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
-{# vio_macro {--> #}
-{%- macro vio_macro(sensor_name, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+{# servo_camera_macro {--> #}
+{%- macro servo_camera_macro(parent, offset_pitch_link_x, offset_pitch_link_y, offset_pitch_link_z, offset_pitch_link_yaw, offset_pitch_link_roll, offset_pitch_link_pitch, offset_roll_link_x, offset_roll_link_y, offset_roll_link_z, offset_roll_link_yaw, offset_roll_link_roll, offset_roll_link_pitch, tilt_update_rate, max_pitch, min_pitch, max_pitch_rate, max_roll, min_roll, max_roll_rate, compensate_tilt_roll, compensate_tilt_pitch, parent_frame_name, sensor_base_frame_name, camera_frame_name, camera_update_rate, horizontal_fov, img_width, img_height, roll_link_mesh_file, pitch_link_mesh_file, mesh_scale, spawner_args) -%}
 
-  {%- set spawner_keyword = 'enable-vio' -%}
-  {%- set spawner_description = 'Add a forward-looking fisheye camera and a high-frequency IMU' -%}
-  {%- set spawner_default_args = {'camera_rate': 45, 'camera_noise': 0.0, 'imu_rate': 100, 'imu_noise': 0.0} -%}
-
-  {%- if spawner_keyword in spawner_args.keys() -%}
-    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
-
-    <!-- VIO {-->
-
-    <!-- fisheye camera {-->
-    {{ generic.fisheye_camera_macro(
-      camera_name = sensor_name,
-      topic_ns_prefix = 'camera/',
-      parent_frame_name = spawner_args['name'] + '/fcu',
-      camera_frame_name = spawner_args['name'] + '/' + sensor_name + '_optical',
-      sensor_base_frame_name = spawner_args['name'] + '/' + sensor_name,
-      parent_link = parent_link,
-      frame_rate = spawner_args[spawner_keyword]['camera_rate'],
-      horizontal_fov = math.radians(180),
-      image_width = 752,
-      image_height = 480,
-      lens_type = 'custom',
-      lens_c1 = 1.05,
-      lens_c2 = 4,
-      lens_f = 1.0,
-      lens_fun = 'tan',
-      lens_scale = True,
-      lens_cutoff_angle = math.radians(90),
-      lens_texture_size = 512,
-      min_distance = 0.02,
-      max_distance = 40,
-      noise_mean = 0.0,
-      noise_stddev = spawner_args[spawner_keyword]['camera_noise'],
-      mesh_file = 'model://mrs_robots_description/meshes/sensors/bluefox.dae',
-      mesh_scale = '1 1 1',
-      color = 'DarkGrey',
-      visual_x = 0,
-      visual_y = 0,
-      visual_z = 0,
-      visual_roll = math.radians(90),
-      visual_pitch = 0,
-      visual_yaw = 0,
-      x = x,
-      y = y,
-      z = z,
-      roll = roll,
-      pitch = pitch,
-      yaw = yaw)
-    }}
-    <!--}-->
-
-    <!-- imu {-->
-    {{ generic.imu_sensor_macro(
-      sensor_name = sensor_name + '_imu',
-      parent_link = parent_link,
-      update_rate = spawner_args[spawner_keyword]['imu_rate'],
-      topic_name = '/' + spawner_args['name'] + '/' + sensor_name + '/imu',
-      frame_name = spawner_args['name'] + '/' + sensor_name,
-      noise_mean = spawner_args[spawner_keyword]['imu_noise'],
-      x = 0,
-      y = 0,
-      z = 0,
-      roll = -math.radians(90),
-      pitch = 0,
-      yaw = -math.radians(90))
-    }}
-    <!--}-->
-
-    <!-- mount {-->
-    {{ mount }}
-    <!--}-->
-
-    <!--}-->
-
-  {%- endif -%}
-{%- endmacro -%}
-{# <!--}--> #}
-
-{# vio_down_macro {--> #}
-{%- macro vio_down_macro(sensor_name, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
-
-  {%- set spawner_keyword = 'enable-vio-down' -%}
-  {%- set spawner_description = 'Add a downward-looking fisheye camera and a high-frequency IMU' -%}
-  {%- set spawner_default_args = {'camera_rate': 45, 'camera_noise': 0.0, 'imu_rate': 100, 'imu_noise': 0.0} -%}
+  {%- set spawner_keyword = 'enable-servo-camera' -%}
+  {%- set spawner_description = 'Add camera on virtual servo to the vehicle' -%}
+  {%- set spawner_default_args = none -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
-    <!-- VIO down {-->
+    <!-- Servo camera {-->
 
-    <!-- fisheye camera {-->
-    {{ generic.fisheye_camera_macro(
-      camera_name = sensor_name,
-      topic_ns_prefix = 'camera/',
-      parent_frame_name = spawner_args['name'] + '/fcu',
-      camera_frame_name = spawner_args['name'] + '/' + sensor_name + '_optical',
-      sensor_base_frame_name = spawner_args['name'] + '/' + sensor_name,
-      parent_link = parent_link,
-      frame_rate = spawner_args[spawner_keyword]['camera_rate'],
-      horizontal_fov = math.radians(180),
-      image_width = 752,
-      image_height = 480,
-      lens_type = 'custom',
-      lens_c1 = 1.05,
-      lens_c2 = 4,
-      lens_f = 1.0,
-      lens_fun = 'tan',
-      lens_scale = True,
-      lens_cutoff_angle = math.radians(90),
-      lens_texture_size = 512,
-      min_distance = 0.02,
-      max_distance = 40,
-      noise_mean = 0.0,
-      noise_stddev = spawner_args[spawner_keyword]['camera_noise'],
-      mesh_file = 'model://mrs_robots_description/meshes/sensors/bluefox.dae',
-      mesh_scale = '1 1 1',
-      color = 'DarkGrey',
-      visual_x = 0,
-      visual_y = 0,
-      visual_z = 0,
-      visual_roll = math.radians(90),
-      visual_pitch = 0,
-      visual_yaw = 0,
-      x = x,
-      y = y,
-      z = z,
-      roll = roll,
-      pitch = pitch,
-      yaw = yaw)
-    }}
+    <!-- gimbal visuals {-->
+    <link name="servo_camera_gimbal_link">
+      <pose relative_to = "servo_camera_roll_joint"> 0 0 0 0 0 0</pose>
+      {{ generic.zero_inertial_macro() }}
+      <visual name="visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          {%- if roll_link_mesh_file == '' -%}
+          <box>
+            <size>0.01 0.01 0.01</size>
+          </box>
+          {%- else -%}
+          <mesh>
+            <uri>{{ roll_link_mesh_file }}</uri>
+            <scale>{{ mesh_scale }}</scale>
+          </mesh>
+          {%- endif -%}
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+    </link>
     <!--}-->
 
-    <!-- imu {-->
-    {{ generic.imu_sensor_macro(
-      sensor_name = sensor_name + '_imu',
-      parent_link = parent_link,
-      update_rate = spawner_args[spawner_keyword]['imu_rate'],
-      topic_name = '/' + spawner_args['name'] + '/' + sensor_name + '/imu',
-      frame_name = spawner_args['name'] + '/' + sensor_name,
-      noise_mean = spawner_args[spawner_keyword]['imu_noise'],
-      x = 0,
-      y = 0,
-      z = 0,
-      roll = -math.radians(90),
-      pitch = 0,
-      yaw = -math.radians(90))
-    }}
+    <!-- sensor {-->
+    <link name="servo_camera_link">
+      <pose relative_to = "servo_camera_pitch_joint"> 0 0 0 0 0 0</pose>
+      {{ generic.zero_inertial_macro() }}
+      <visual name="visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          {%- if pitch_link_mesh_file == '' -%}
+          <box>
+            <size>0.01 0.01 0.01</size>
+          </box>
+          {%- else -%}
+          <mesh>
+            <uri>{{ pitch_link_mesh_file }}</uri>
+            <scale>{{ mesh_scale }}</scale>
+          </mesh>
+          {%- endif -%}
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+      <sensor name="servo_camera_sensor" type="camera">
+        <update_rate>{{ camera_update_rate }}</update_rate>
+        <camera>
+          <horizontal_fov>{{ horizontal_fov }}</horizontal_fov>
+          <image>
+            <width>{{ img_width }}</width>
+            <height>{{ img_height }}</height>
+          </image>
+          <clip>
+            <near>0.25</near>
+            <far>100</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+              <!-- Noise is sampled independently per pixel on each frame.
+                That pixel's noise value is added to each of its color
+              channels, which at that point lie in the range [0,1]. -->
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </camera>
+        <plugin name="camera_plugin" filename="libMrsGazeboCommonResources_CameraPlugin.so">
+          <alwaysOn>true</alwaysOn>
+          <updateRate>{{ camera_update_rate }}</updateRate>
+          <cameraName>servo_camera</cameraName>
+          <imageTopicName>image_raw</imageTopicName>
+          <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+          <frameName>{{ camera_frame_name }}</frameName>
+          <hackBaseline>0.0</hackBaseline>
+          <distortionK1>0.0</distortionK1>
+          <distortionK2>0.0</distortionK2>
+          <distortionK3>0.0</distortionK3>
+          <distortionT1>0.0</distortionT1>
+          <distortionT2>0.0</distortionT2>
+          <x>0.0</x>
+          <y>0.0</y>
+          <z>0.0</z>
+          <roll>0.0</roll>
+          <pitch>0.0</pitch>
+          <yaw>0.0</yaw>
+          <parentFrameName>{{ parent_frame_name }}</parentFrameName>
+          <sensorBaseFrameName>{{ sensor_base_frame_name }}</sensorBaseFrameName>
+        </plugin>
+      </sensor>
+    </link>
+
+    <plugin name="servo_camera_plugin" filename="libMrsGazeboCommonResources_ServoCameraPlugin.so">
+      <tilt_update_rate>{{ tilt_update_rate }}</tilt_update_rate>
+      <max_pitch_rate>{{ max_pitch_rate }}</max_pitch_rate>
+      <max_pitch>{{ max_pitch }}</max_pitch>
+      <min_pitch>{{ min_pitch }}</min_pitch>
+      <max_roll_rate>{{ max_roll_rate }}</max_roll_rate>
+      <max_roll>{{ max_roll }}</max_roll>
+      <min_roll>{{ min_roll }}</min_roll>
+      <joint_name_pitch>servo_camera_pitch_joint</joint_name_pitch>
+      <joint_name_roll>servo_camera_roll_joint</joint_name_roll>
+      <parent_link_pitch>servo_camera_gimbal_link</parent_link_pitch>
+      <parent_link_roll>{{ parent }}</parent_link_roll>
+      <compensate_tilt_roll>{{ compensate_tilt_roll }}</compensate_tilt_roll>
+      <compensate_tilt_pitch>{{ compensate_tilt_pitch }}</compensate_tilt_pitch>
+    </plugin>
     <!--}-->
 
-    <!-- mount {-->
-    {{ mount }}
+    <!-- camera joints {-->
+    <joint name="servo_camera_roll_joint" type="revolute">
+      <parent>{{ parent }}</parent>
+      <child>servo_camera_gimbal_link</child>
+      <pose relative_to = "{{ parent }}">{{ offset_roll_link_x }} {{ offset_roll_link_y }} {{ offset_roll_link_z }} {{ offset_roll_link_roll }} {{ offset_roll_link_pitch }} {{ offset_roll_link_yaw }}</pose>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-0.5</lower>
+          <upper>0.5</upper>
+          <effort>1</effort>
+          <velocity>10</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.0</damping>
+          <friction>0.0</friction>
+        </dynamics>
+      </axis>
+    </joint>
+
+    <joint name="servo_camera_pitch_joint" type="revolute">
+      <parent>servo_camera_gimbal_link</parent>
+      <child>servo_camera_link</child>
+      <pose relative_to = "servo_camera_roll_joint">{{ offset_pitch_link_x }} {{ offset_pitch_link_y }} {{ offset_pitch_link_z }} {{ offset_pitch_link_roll }} {{ offset_pitch_link_pitch }} {{ offset_pitch_link_yaw }}</pose>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-1.57</lower>
+          <upper>1.57</upper>
+          <effort>1</effort>
+          <velocity>10</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.0</damping>
+          <friction>0.0</friction>
+        </dynamics>
+      </axis>
+    </joint>
     <!--}-->
 
     <!--}-->
@@ -3046,6 +2902,170 @@ limitations under the License.
       <!--}-->
 
     {%- endif -%}
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# ========================== VIO components ======================== #}
+
+{# vio_macro {--> #}
+{%- macro vio_macro(sensor_name, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-vio' -%}
+  {%- set spawner_description = 'Add a forward-looking fisheye camera and a high-frequency IMU' -%}
+  {%- set spawner_default_args = {'camera_rate': 45, 'camera_noise': 0.0, 'imu_rate': 100, 'imu_noise': 0.0} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- VIO {-->
+
+    <!-- fisheye camera {-->
+    {{ generic.fisheye_camera_macro(
+      camera_name = sensor_name,
+      topic_ns_prefix = 'camera/',
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      camera_frame_name = spawner_args['name'] + '/' + sensor_name + '_optical',
+      sensor_base_frame_name = spawner_args['name'] + '/' + sensor_name,
+      parent_link = parent_link,
+      frame_rate = spawner_args[spawner_keyword]['camera_rate'],
+      horizontal_fov = math.radians(180),
+      image_width = 752,
+      image_height = 480,
+      lens_type = 'custom',
+      lens_c1 = 1.05,
+      lens_c2 = 4,
+      lens_f = 1.0,
+      lens_fun = 'tan',
+      lens_scale = True,
+      lens_cutoff_angle = math.radians(90),
+      lens_texture_size = 512,
+      min_distance = 0.02,
+      max_distance = 40,
+      noise_mean = 0.0,
+      noise_stddev = spawner_args[spawner_keyword]['camera_noise'],
+      mesh_file = 'model://mrs_robots_description/meshes/sensors/bluefox.dae',
+      mesh_scale = '1 1 1',
+      color = 'DarkGrey',
+      visual_x = 0,
+      visual_y = 0,
+      visual_z = 0,
+      visual_roll = math.radians(90),
+      visual_pitch = 0,
+      visual_yaw = 0,
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+    <!--}-->
+
+    <!-- imu {-->
+    {{ generic.imu_sensor_macro(
+      sensor_name = sensor_name + '_imu',
+      parent_link = parent_link,
+      update_rate = spawner_args[spawner_keyword]['imu_rate'],
+      topic_name = '/' + spawner_args['name'] + '/' + sensor_name + '/imu',
+      frame_name = spawner_args['name'] + '/' + sensor_name,
+      noise_mean = spawner_args[spawner_keyword]['imu_noise'],
+      x = 0,
+      y = 0,
+      z = 0,
+      roll = -math.radians(90),
+      pitch = 0,
+      yaw = -math.radians(90))
+    }}
+    <!--}-->
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# vio_down_macro {--> #}
+{%- macro vio_down_macro(sensor_name, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-vio-down' -%}
+  {%- set spawner_description = 'Add a downward-looking fisheye camera and a high-frequency IMU' -%}
+  {%- set spawner_default_args = {'camera_rate': 45, 'camera_noise': 0.0, 'imu_rate': 100, 'imu_noise': 0.0} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- VIO down {-->
+
+    <!-- fisheye camera {-->
+    {{ generic.fisheye_camera_macro(
+      camera_name = sensor_name,
+      topic_ns_prefix = 'camera/',
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      camera_frame_name = spawner_args['name'] + '/' + sensor_name + '_optical',
+      sensor_base_frame_name = spawner_args['name'] + '/' + sensor_name,
+      parent_link = parent_link,
+      frame_rate = spawner_args[spawner_keyword]['camera_rate'],
+      horizontal_fov = math.radians(180),
+      image_width = 752,
+      image_height = 480,
+      lens_type = 'custom',
+      lens_c1 = 1.05,
+      lens_c2 = 4,
+      lens_f = 1.0,
+      lens_fun = 'tan',
+      lens_scale = True,
+      lens_cutoff_angle = math.radians(90),
+      lens_texture_size = 512,
+      min_distance = 0.02,
+      max_distance = 40,
+      noise_mean = 0.0,
+      noise_stddev = spawner_args[spawner_keyword]['camera_noise'],
+      mesh_file = 'model://mrs_robots_description/meshes/sensors/bluefox.dae',
+      mesh_scale = '1 1 1',
+      color = 'DarkGrey',
+      visual_x = 0,
+      visual_y = 0,
+      visual_z = 0,
+      visual_roll = math.radians(90),
+      visual_pitch = 0,
+      visual_yaw = 0,
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+    <!--}-->
+
+    <!-- imu {-->
+    {{ generic.imu_sensor_macro(
+      sensor_name = sensor_name + '_imu',
+      parent_link = parent_link,
+      update_rate = spawner_args[spawner_keyword]['imu_rate'],
+      topic_name = '/' + spawner_args['name'] + '/' + sensor_name + '/imu',
+      frame_name = spawner_args['name'] + '/' + sensor_name,
+      noise_mean = spawner_args[spawner_keyword]['imu_noise'],
+      x = 0,
+      y = 0,
+      z = 0,
+      roll = -math.radians(90),
+      pitch = 0,
+      yaw = -math.radians(90))
+    }}
+    <!--}-->
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
 
   {%- endif -%}
 {%- endmacro -%}

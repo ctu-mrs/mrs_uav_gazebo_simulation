@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <sdf version="1.6">
 
-  {%- import "component_snippets.sdf.jinja" as components -%}
-  {%- import "generic_components.sdf.jinja" as generic -%}
+  {%- import 'component_snippets.sdf.jinja' as components -%}
+  {%- import 'generic_components.sdf.jinja' as generic -%}
 
   {# ================================================================== #}
   {# ||                    parameters definition                     || #}
@@ -19,7 +19,7 @@
   {%- set rotor_xy_offset = 0.1812 -%} {# [m] #}
   {%- set rotor_z_offset = 0.057 -%} {# [m] #}
 
-  {%- set root = "base_link" -%}
+  {%- set root = 'base_link' -%}
 
   {# <!--}--> #}
 
@@ -31,7 +31,7 @@
   {%- set time_constant_down = 1.0 / 40.0 -%} {# [s] #}
   {%- set max_rot_velocity = 1 -%} {# [rad/s] #}
   {%- set rotor_drag_coefficient = 0.1 -%} {# orig 8.06428e-04 #}
-  {%- set rolling_moment_coefficient = "1.0e-6" -%}
+  {%- set rolling_moment_coefficient = '1.0e-6' -%}
   {# <!--}--> #}
 
   {# Inertia constants {--> #}
@@ -40,49 +40,49 @@
   {# <!--}--> #}
 
   {# Scales {--> #}
-  {%- set mesh_scale = "1 1 1" -%}
-  {%- set mesh_scale_prop_ccw = "1 1 1" -%}
-  {%- set mesh_scale_prop_cw = "-1 1 1" -%}
-  {%- set mesh_scale_milimeters = "0.001 0.001 0.001" -%}
+  {%- set mesh_scale = '1 1 1' -%}
+  {%- set mesh_scale_prop_ccw = '1 1 1' -%}
+  {%- set mesh_scale_prop_cw = '-1 1 1' -%}
+  {%- set mesh_scale_milimeters = '0.001 0.001 0.001' -%}
   {# <!--}--> #}
 
   {# Meshes {--> #}
 
   {# Frame parts {--> #}
-  {%- set top_board_mesh_file = "model://mrs_robots_description/meshes/x500v2/top_board_mesh_file.dae" -%}
-  {%- set bottom_board_mesh_file = "model://mrs_robots_description/meshes/x500v2/bottom_board_mesh_file.dae" -%}
-  {%- set arm_carbon_mesh_file = "model://mrs_robots_description/meshes/x500v2/arm_carbon_mesh_file.dae" -%}
-  {%- set arm_plastic1_mesh_file = "model://mrs_robots_description/meshes/x500v2/arm_plastic1_mesh_file.stl" -%}
-  {%- set arm_plastic2_mesh_file = "model://mrs_robots_description/meshes/x500v2/arm_plastic2_mesh_file.stl" -%}
-  {%- set arm_3d_print_mesh_file = "model://mrs_robots_description/meshes/x500v2/arm_3d_print_mesh_file.stl" -%}
-  {%- set leg_3d_print_mesh_file = "model://mrs_robots_description/meshes/x500v2/leg_3d_print_mesh_file.stl" -%}
+  {%- set top_board_mesh_file = 'model://mrs_robots_description/meshes/x500v2/top_board_mesh_file.dae' -%}
+  {%- set bottom_board_mesh_file = 'model://mrs_robots_description/meshes/x500v2/bottom_board_mesh_file.dae' -%}
+  {%- set arm_carbon_mesh_file = 'model://mrs_robots_description/meshes/x500v2/arm_carbon_mesh_file.dae' -%}
+  {%- set arm_plastic1_mesh_file = 'model://mrs_robots_description/meshes/x500v2/arm_plastic1_mesh_file.stl' -%}
+  {%- set arm_plastic2_mesh_file = 'model://mrs_robots_description/meshes/x500v2/arm_plastic2_mesh_file.stl' -%}
+  {%- set arm_3d_print_mesh_file = 'model://mrs_robots_description/meshes/x500v2/arm_3d_print_mesh_file.stl' -%}
+  {%- set leg_3d_print_mesh_file = 'model://mrs_robots_description/meshes/x500v2/leg_3d_print_mesh_file.stl' -%}
   {# <!--}--> #}
 
   {# Motors and props {--> #}
-  {%- set motor_bottom_mesh_file = "model://mrs_robots_description/meshes/x500v2/motor_bottom_mesh_file.stl" -%}
-  {%- set motor_middle_mesh_file = "model://mrs_robots_description/meshes/x500v2/motor_middle_mesh_file.stl" -%}
-  {%- set motor_top_mesh_file = "model://mrs_robots_description/meshes/x500v2/motor_top_mesh_file.stl" -%}
-  {%- set prop_mesh_file = "model://mrs_robots_description/meshes/x500v2/prop_mesh_file.dae" -%}
+  {%- set motor_bottom_mesh_file = 'model://mrs_robots_description/meshes/x500v2/motor_bottom_mesh_file.stl' -%}
+  {%- set motor_middle_mesh_file = 'model://mrs_robots_description/meshes/x500v2/motor_middle_mesh_file.stl' -%}
+  {%- set motor_top_mesh_file = 'model://mrs_robots_description/meshes/x500v2/motor_top_mesh_file.stl' -%}
+  {%- set prop_mesh_file = 'model://mrs_robots_description/meshes/x500v2/prop_mesh_file.dae' -%}
   {# <!--}--> #}
 
   {# Sensors and computers {--> #}
-  {%- set pixhawk6c_mesh_file = "model://mrs_robots_description/meshes/x500v2/pixhawk6c_mesh_file.stl" -%}
-  {%- set gps_mount_mesh_file = "model://mrs_robots_description/meshes/x500v2/gps_mount_mesh_file.stl" -%}
-  {%- set nuc_board_mesh_file = "model://mrs_robots_description/meshes/x500v2/nuc_board_mesh_file.stl" -%}
-  {%- set nuc_cooler_mesh_file = "model://mrs_robots_description/meshes/x500v2/nuc_cooler_mesh_file.stl" -%}
+  {%- set pixhawk6c_mesh_file = 'model://mrs_robots_description/meshes/x500v2/pixhawk6c_mesh_file.stl' -%}
+  {%- set gps_mount_mesh_file = 'model://mrs_robots_description/meshes/x500v2/gps_mount_mesh_file.stl' -%}
+  {%- set nuc_board_mesh_file = 'model://mrs_robots_description/meshes/x500v2/nuc_board_mesh_file.stl' -%}
+  {%- set nuc_cooler_mesh_file = 'model://mrs_robots_description/meshes/x500v2/nuc_cooler_mesh_file.stl' -%}
   {# <!--}--> #}
 
   {# Mounts {--> #}
-  {%- set battery_mesh_file = "model://mrs_robots_description/meshes/x500v2/battery_mesh_file.stl" -%}
-  {%- set battery_mount_mesh_file = "model://mrs_robots_description/meshes/x500v2/battery_mount_mesh_file.stl" -%}
-  {%- set nuc_hex_posts_mesh_file = "model://mrs_robots_description/meshes/x500v2/nuc_hex_posts_mesh_file.stl" -%}
-  {%- set gps_module_mesh_file = "model://mrs_robots_description/meshes/x500v2/gps_module_mesh_file.stl" -%}
-  {%- set garmin_mount_mesh_file = "model://mrs_robots_description/meshes/x500v2/garmin_mount_mesh_file.stl" -%}
-  {%- set lidar_mount_mesh_file = "model://mrs_robots_description/meshes/x500v2/lidar_mount_mesh_file.stl" -%}
-  {%- set realsense_mount_mesh_file = "model://mrs_robots_description/meshes/x500v2/realsense_mount_mesh_file.stl" -%}
-  {%- set bluefox_mount_mesh_file = "model://mrs_robots_description/meshes/x500v2/bluefox_mount_mesh_file.stl" -%}
-  {%- set uvdar_mount_mesh = "model://mrs_robots_description/meshes/dji/f450/dji_f450_uvdar_mount.dae" -%}
-  {%- set qorvo_dw1000_mount_file = "model://mrs_robots_description/meshes/x500v2/qorvo_dw1000_mount.stl" -%}
+  {%- set battery_mesh_file = 'model://mrs_robots_description/meshes/x500v2/battery_mesh_file.stl' -%}
+  {%- set battery_mount_mesh_file = 'model://mrs_robots_description/meshes/x500v2/battery_mount_mesh_file.stl' -%}
+  {%- set nuc_hex_posts_mesh_file = 'model://mrs_robots_description/meshes/x500v2/nuc_hex_posts_mesh_file.stl' -%}
+  {%- set gps_module_mesh_file = 'model://mrs_robots_description/meshes/x500v2/gps_module_mesh_file.stl' -%}
+  {%- set garmin_mount_mesh_file = 'model://mrs_robots_description/meshes/x500v2/garmin_mount_mesh_file.stl' -%}
+  {%- set lidar_mount_mesh_file = 'model://mrs_robots_description/meshes/x500v2/lidar_mount_mesh_file.stl' -%}
+  {%- set realsense_mount_mesh_file = 'model://mrs_robots_description/meshes/x500v2/realsense_mount_mesh_file.stl' -%}
+  {%- set bluefox_mount_mesh_file = 'model://mrs_robots_description/meshes/x500v2/bluefox_mount_mesh_file.stl' -%}
+  {%- set uvdar_mount_mesh = 'model://mrs_robots_description/meshes/dji/f450/dji_f450_uvdar_mount.dae' -%}
+  {%- set qorvo_dw1000_mount_file = 'model://mrs_robots_description/meshes/x500v2/qorvo_dw1000_mount.stl' -%}
 
   {# <!--}--> #}
 
@@ -132,7 +132,7 @@
 
       <!-- Boards {-->
       {{ generic.visual_mesh_textured_macro(
-        name = "top_board",
+        name = 'top_board',
         mesh_file = top_board_mesh_file,
         mesh_scale = mesh_scale,
         x = 0,
@@ -144,7 +144,7 @@
       }}
 
       {{ generic.visual_mesh_textured_macro(
-        name = "bottom_board",
+        name = 'bottom_board',
         mesh_file = bottom_board_mesh_file,
         mesh_scale = mesh_scale,
         x = 0,
@@ -159,22 +159,22 @@
       <!-- Arms and legs {-->
       {%- for id in range(0, 4) -%}
 
-        {%- set affix = "front_right" -%}
-        {%- set print_color = "Black" -%}
+        {%- set affix = 'front_right' -%}
+        {%- set print_color = 'Black' -%}
         {%- if id == 1 -%}
-          {%- set affix = "front_left" -%}
+          {%- set affix = 'front_left' -%}
         {%- endif -%}
         {%- if id == 2 -%}
-          {%- set affix = "back_left" -%}
-          {%- set print_color = "Red" -%}
+          {%- set affix = 'back_left' -%}
+          {%- set print_color = 'Red' -%}
         {%- endif -%}
         {%- if id == 3 -%}
-          {%- set affix = "back_right" -%}
-          {%- set print_color = "Red" -%}
+          {%- set affix = 'back_right' -%}
+          {%- set print_color = 'Red' -%}
         {%- endif -%}
 
         {{ generic.visual_mesh_textured_macro(
-          name = "arm_carbon_" + affix,
+          name = 'arm_carbon_' + affix,
           mesh_file = arm_carbon_mesh_file,
           mesh_scale = mesh_scale,
           x = 0,
@@ -186,10 +186,10 @@
         }}
 
         {{ generic.visual_mesh_mrs_material_macro(
-          name = "arm_plastic1_" + affix,
+          name = 'arm_plastic1_' + affix,
           mesh_file = arm_plastic1_mesh_file,
           mesh_scale = mesh_scale,
-          color = "X500Blue",
+          color = 'X500Blue',
           x = 0,
           y = 0,
           z = 0,
@@ -199,10 +199,10 @@
         }}
 
         {{ generic.visual_mesh_mrs_material_macro(
-          name = "arm_plastic2_" + affix,
+          name = 'arm_plastic2_' + affix,
           mesh_file = arm_plastic2_mesh_file,
           mesh_scale = mesh_scale,
-          color = "X500Blue",
+          color = 'X500Blue',
           x = 0,
           y = 0,
           z = 0,
@@ -212,7 +212,7 @@
         }}
 
         {{ generic.visual_mesh_macro(
-          name = "arm_3d_print_" + affix,
+          name = 'arm_3d_print_' + affix,
           mesh_file = arm_3d_print_mesh_file,
           mesh_scale = mesh_scale,
           color = print_color,
@@ -227,10 +227,10 @@
       {%- endfor -%}
 
       {{ generic.leg_collision_offset_macro(
-        name = "leg_3d_print_front_right",
+        name = 'leg_3d_print_front_right',
         mesh_file = leg_3d_print_mesh_file,
         mesh_scale = mesh_scale,
-        color = "Black",
+        color = 'Black',
         x = 0,
         y = 0,
         z = 0,
@@ -245,10 +245,10 @@
       }}
 
      {{ generic.leg_collision_offset_macro(
-        name = "leg_3d_print_front_left",
+        name = 'leg_3d_print_front_left',
         mesh_file = leg_3d_print_mesh_file,
         mesh_scale = mesh_scale,
-        color = "Black",
+        color = 'Black',
         x = 0,
         y = 0,
         z = 0,
@@ -263,10 +263,10 @@
       }}
 
       {{ generic.leg_collision_offset_macro(
-        name = "leg_3d_print_back_left",
+        name = 'leg_3d_print_back_left',
         mesh_file = leg_3d_print_mesh_file,
         mesh_scale = mesh_scale,
-        color = "Red",
+        color = 'Red',
         x = 0,
         y = 0,
         z = 0,
@@ -281,10 +281,10 @@
       }}
 
       {{ generic.leg_collision_offset_macro(
-        name = "leg_3d_print_back_right",
+        name = 'leg_3d_print_back_right',
         mesh_file = leg_3d_print_mesh_file,
         mesh_scale = mesh_scale,
-        color = "Red",
+        color = 'Red',
         x = 0,
         y = 0,
         z = 0,
@@ -302,10 +302,10 @@
 
       <!-- intel nuc {-->
       {{ generic.visual_mesh_macro(
-        name = "nuc_board",
+        name = 'nuc_board',
         mesh_file = nuc_board_mesh_file,
         mesh_scale = mesh_scale,
-        color = "Grass",
+        color = 'Grass',
         x = 0,
         y = 0,
         z = 0,
@@ -314,10 +314,10 @@
         yaw = math.radians(90))
       }}
       {{ generic.visual_mesh_macro(
-        name = "nuc_cooler",
+        name = 'nuc_cooler',
         mesh_file = nuc_cooler_mesh_file,
         mesh_scale = mesh_scale,
-        color = "Grey",
+        color = 'Grey',
         x = 0,
         y = 0,
         z = 0,
@@ -326,10 +326,10 @@
         yaw = math.radians(90))
       }}
       {{ generic.visual_mesh_macro(
-        name = "nuc_hex_posts",
+        name = 'nuc_hex_posts',
         mesh_file = nuc_hex_posts_mesh_file,
         mesh_scale = mesh_scale,
-        color = "Grey",
+        color = 'Grey',
         x = 0,
         y = 0,
         z = 0,
@@ -341,10 +341,10 @@
 
       <!-- pixhawk {-->
       {{ generic.visual_mesh_macro(
-        name = "pixhawk6c",
+        name = 'pixhawk6c',
         mesh_file = pixhawk6c_mesh_file,
         mesh_scale = mesh_scale,
-        color = "DarkGrey",
+        color = 'DarkGrey',
         x = 0,
         y = 0,
         z = 0,
@@ -355,25 +355,25 @@
       <!--}-->
 
       <!-- motors {-->
-      {%- set affix = "front_right" -%}
+      {%- set affix = 'front_right' -%}
 
       {%- for id in range(0, 4) -%}
 
         {%- if id == 1 -%}
-          {%- set affix = "front_left" -%}
+          {%- set affix = 'front_left' -%}
         {%- endif -%}
         {%- if id == 2 -%}
-          {%- set affix = "back_left" -%}
+          {%- set affix = 'back_left' -%}
         {%- endif -%}
         {%- if id == 3 -%}
-          {%- set affix = "back_right" -%}
+          {%- set affix = 'back_right' -%}
         {%- endif -%}
 
         {{ generic.visual_mesh_macro(
-          name = "motor_bottom_" + affix,
+          name = 'motor_bottom_' + affix,
           mesh_file = motor_bottom_mesh_file,
           mesh_scale = mesh_scale,
-          color = "Grey",
+          color = 'Grey',
           x = 0,
           y = 0,
           z = 0,
@@ -383,10 +383,10 @@
         }}
 
         {{ generic.visual_mesh_macro(
-          name = "motor_middle_" + affix,
+          name = 'motor_middle_' + affix,
           mesh_file = motor_middle_mesh_file,
           mesh_scale = mesh_scale,
-          color = "Black",
+          color = 'Black',
           x = 0,
           y = 0,
           z = 0,
@@ -400,10 +400,10 @@
 
       <!-- battery mount and battery {-->
       {{ generic.visual_mesh_macro(
-        name = "battery_mount",
+        name = 'battery_mount',
         mesh_file = battery_mount_mesh_file,
         mesh_scale = mesh_scale,
-        color = "Red",
+        color = 'Red',
         x = 0,
         y = 0,
         z = 0.001,
@@ -412,10 +412,10 @@
         yaw = math.radians(90))
       }}
       {{ generic.visual_mesh_macro(
-        name = "battery",
+        name = 'battery',
         mesh_file = battery_mesh_file,
         mesh_scale = mesh_scale,
-        color = "Grey",
+        color = 'Grey',
         x = 0,
         y = 0,
         z = 0.001,
@@ -429,10 +429,10 @@
       {%- set gps_visuals -%}
       <!-- gps mount {-->
       {{ generic.visual_link_macro(
-        name = "gps_mount",
+        name = 'gps_mount',
         mesh_file = gps_mount_mesh_file,
         mesh_scale = mesh_scale,
-        color = "Grey",
+        color = 'Grey',
         x = 0,
         y = 0,
         z = 0,
@@ -444,10 +444,10 @@
       <!--}-->
       <!-- gps antenna {-->
       {{ generic.visual_link_macro(
-        name = "gps_module",
+        name = 'gps_module',
         mesh_file = gps_module_mesh_file,
         mesh_scale = mesh_scale,
-        color = "Black",
+        color = 'Black',
         x = 0,
         y = 0,
         z = 0,
@@ -465,10 +465,10 @@
       {# garmin down mount {--> #}
       {%- set garmin_down_mount -%}
         {{ generic.visual_link_macro(
-          name = "garmin_mount",
+          name = 'garmin_mount',
           mesh_file = garmin_mount_mesh_file,
           mesh_scale = mesh_scale,
-          color = "Black",
+          color = 'Black',
           x = 0,
           y = 0,
           z = -0.001,
@@ -483,10 +483,10 @@
       {# lidar mount {--> #}
       {%- set lidar_mount -%}
         {{ generic.visual_link_macro(
-          name = "rplidar_mount",
+          name = 'rplidar_mount',
           mesh_file = lidar_mount_mesh_file,
           mesh_scale = mesh_scale,
-          color = "FlatBlack",
+          color = 'FlatBlack',
           x = 0,
           y = 0,
           z = 0,
@@ -501,10 +501,10 @@
       {# realsense mount {--> #}
       {%- set realsense_mount -%}
         {{ generic.visual_link_macro(
-          name = "realsense_mount",
+          name = 'realsense_mount',
           mesh_file = realsense_mount_mesh_file,
           mesh_scale = mesh_scale,
-          color = "Black",
+          color = 'Black',
           x = 0,
           y = 0,
           z = 0,
@@ -519,10 +519,10 @@
       {# bluefox mount {--> #}
       {%- set bluefox_mount -%}
         {{ generic.visual_link_macro(
-          name = "bluefox_mount",
+          name = 'bluefox_mount',
           mesh_file = bluefox_mount_mesh_file,
           mesh_scale = mesh_scale_milimeters,
-          color = "FlatBlack",
+          color = 'FlatBlack',
           x = 0,
           y = 0,
           z = 0,
@@ -537,10 +537,10 @@
       {# uvdar mount {--> #}
       {%- set uvdar_mount -%}
         {{ generic.visual_link_macro(
-          name = "uvdar_mount",
+          name = 'uvdar_mount',
           mesh_file = uvdar_mount_mesh,
           mesh_scale = mesh_scale_milimeters,
-          color = "DarkGrey",
+          color = 'DarkGrey',
           x = 0.027,
           y = 0,
           z = 0.075,
@@ -555,10 +555,10 @@
       {# Qorvo DW1000 mount {--> #}
       {%- set qorvo_dw1000_mount -%}
         {{ generic.visual_link_macro(
-          name = "qorvo_dw1000_mount",
+          name = 'qorvo_dw1000_mount',
           mesh_file = qorvo_dw1000_mount_file,
           mesh_scale = mesh_scale_milimeters,
-          color = "DarkGrey",
+          color = 'DarkGrey',
           x = 0.0,
           y = -0.01,
           z = -0.078,
@@ -649,10 +649,10 @@
     {# ================================================================== #}
 
     <!-- pixhawk {-->
-    {%- set imu_topic = "/imu" -%}
-    {%- set mag_topic = "/mag" -%}
-    {%- set baro_topic = "/baro" -%}
-    {%- set lidar_topic = "/lidar" -%}
+    {%- set imu_topic = '/imu' -%}
+    {%- set mag_topic = '/mag' -%}
+    {%- set baro_topic = '/baro' -%}
+    {%- set lidar_topic = '/lidar' -%}
 
     <!-- Gazebo ground truth {-->
     {{ generic.gazebo_groundtruth_macro(
@@ -664,14 +664,14 @@
 
     <!-- GPS {-->
     {{ generic.gazebo_gps_macro(
-      gps_name = "gps0",
+      gps_name = 'gps0',
       parent_link = root,
       update_rate = 10,
       gps_noise = true,
       gps_xy_random_walk = 2.0,
       gps_z_random_walk = 4.0,
-      gps_xy_noise_density = "2.0e-4",
-      gps_z_noise_density = "4.0e-4",
+      gps_xy_noise_density = '2.0e-4',
+      gps_z_noise_density = '4.0e-4',
       gps_vxy_noise_density = 0.2,
       gps_vz_noise_density = 0.4,
       x = 0,
@@ -714,9 +714,9 @@
     <!-- IMU {-->
     <!-- NOTE: IMU has to be last, otherwise the simulation is extremely slow! -->
     {{ generic.gazebo_imu_macro(
-      imu_name = "imu",
+      imu_name = 'imu',
       parent_link = root,
-      imu_topic = "/imu",
+      imu_topic = '/imu',
       gyroscope_noise_density = 0.00018665,
       gyroscope_random_walk = 0.000038785,
       gyroscope_bias_correlation_time = 1000.0,
@@ -792,7 +792,7 @@
     {# Ouster {--> #}
     {%- set ouster = components.ouster_macro(
       parent_link = root,
-      sensor_name = "os",
+      sensor_name = 'os',
       x = 0.0,
       y = 0.0,
       z = 0.107,
@@ -822,8 +822,8 @@
 
     {# realsense front {--> #}
     {%- set realsense_front = components.realsense_front_macro(
-      camera_name = "front_rgbd",
-      camera_suffix="",
+      camera_name = 'front_rgbd',
+      camera_suffix='',
       parent_link = root,
       x = 0.092,
       y = 0.0,
@@ -839,8 +839,8 @@
 
     {# realsense up {--> #}
     {%- set realsense_up = components.realsense_up_macro(
-      camera_name = "up_rgbd",
-      camera_suffix="",
+      camera_name = 'up_rgbd',
+      camera_suffix='',
       parent_link = root,
       x = 0.086,
       y = 0,
@@ -856,8 +856,8 @@
 
     {# realsense down {--> #}
     {%- set realsense_down = components.realsense_down_macro(
-      camera_name = "down_rgbd",
-      camera_suffix="",
+      camera_name = 'down_rgbd',
+      camera_suffix='',
       parent_link = root,
       x = 0.086,
       y = 0,
@@ -881,7 +881,7 @@
 
     {# bluefox (classic) {--> #}
     {%- set bluefox_camera = components.bluefox_camera_macro(
-      camera_name = "bluefox_optflow",
+      camera_name = 'bluefox_optflow',
       parent_link = root,
       x = 0.0,
       y = -0.0515,
@@ -894,7 +894,7 @@
 
     {# bluefox reverse {--> #}
     {%- set bluefox_camera_reverse = components.bluefox_camera_reverse_macro(
-      camera_name = "bluefox_optflow",
+      camera_name = 'bluefox_optflow',
       parent_link = root,
       x = 0.0,
       y = -0.0515,
