@@ -26,11 +26,6 @@
   {%- set leg_height = 0.17 -%} {# [m] #}
   {%- set pixhawk_offset = -0.0075 -%} {# [m] #}
   {%- set root = 'base_link' -%}
-
-  {%- set enable_motor_crash = true -%}
-  {% if disable_motor_crash %}
-    {%- set enable_motor_crash = false -%}
-  {% endif %}
   {# <!--}--> #}
 
   {# Motor constants {--> #}
@@ -456,6 +451,7 @@
         yaw = -math.radians(90),
         parent_link = root)
       }}
+      {%- endset -%}
       {# <!--}--> #}
 
       {# Realsense front mount {--> #}
@@ -535,7 +531,7 @@
 
     </link>
 
-    <!-- Propellers {-->
+    {# Propellers {--> #}
     {%- set prop_list = [
     {
     'motor_number': 0,
@@ -601,7 +597,7 @@
       prop_izz = prop_izz,
       spawner_args = spawner_args)
     }}
-    <!--}-->
+    {# <!--}--> #}
 
     {# ================================================================== #}
     {# ||                compulsory sensor definitions                 || #}
@@ -1131,26 +1127,22 @@
     {# ========================== other sensors ========================= #}
 
     {# Teraranger Tower Evo {--> #}
-    {% if enable_teraranger_evo_tower %}
-    <!-- Teraranger Tower Evo {-->
     {{ components.teraranger_evo_tower_macro(
       parent_link = root,
       visualize = False,
-      frame_name = namespace + '/teraranger_tower',
-      parent_frame_name = namespace + '/fcu',
+      frame_name = spawner_args['name'] + '/teraranger_tower',
+      parent_frame_name = spawner_args['name'] + '/fcu',
       gaussian_noise = 0.0,
       x = 0.0,
       y = 0.0,
       z = 0.1,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
-    {# Magnetic gripper {--> #}
     {% if enable_magnetic_gripper %}
     <!-- Magnetic gripper {-->
     {{ components.magnet_gripper_visualization_macro(
@@ -1164,9 +1156,7 @@
     }}
     <!--}-->
     {% endif %}
-    {# <!--}--> #}
 
-    {# Timepix {--> #}
     {% if enable_timepix %}
     <!-- Timepix {-->
     {{ components.timepix_macro(
@@ -1181,9 +1171,7 @@
     }}
     <!--}-->
     {% endif %}
-    {# <!--}--> #}
 
-    {# Timepix3 {--> #}
     {% if enable_timepix3 %}
     <!-- Timepix3 {-->
     {{ components.timepix3_macro(
@@ -1202,9 +1190,7 @@
     }}
     <!--}-->
     {% endif %}
-    {# <!--}--> #}
 
-    {# Light {--> #}
     {% if enable_light %}
     <!-- Light {-->
     {{ components.light_macro(
@@ -1222,82 +1208,31 @@
     }}
     <!--}-->
     {% endif %}
-    {# <!--}--> #}
 
     {# UV leds {--> #}
-    {% if enable_uv_leds %}
-    <!-- UV leds {-->
-
-    {% if uvled_s_l != 'None' %}
-      {% set led1 = uvled_s_l %}
-      {% set led3 = uvled_s_l %}
-    {% else %}
-      {% set led1 = uvled_s[0] %}
-      {% set led3 = uvled_s[2] %}
-    {% endif %}
-
-    {% if uvled_s_r != 'None' %}
-      {% set led2 = uvled_s_r %}
-      {% set led4 = uvled_s_r %}
-    {% else %}
-      {% set led2 = uvled_s[1] %}
-      {% set led4 = uvled_s[3] %}
-    {% endif %}
-
-    {# -- leds configuration -- (id, signal_id, x, y, z, roll, pitch, yaw) #}
-    {%- set uv_leds_macro_parameters = [(1, led1,  0.1767755,  0.1697045, -0.05, 0.0, math.radians90,  0.0),
-                                        (2, led1,  0.1697045,  0.1767755, -0.05, 0.0, math.radians90,  math.radians90),
-                                        (3, led2,  0.1697045, -0.1767755, -0.05, 0.0, math.radians90, -math.radians90),
-                                        (4, led2,  0.1767755, -0.1697045, -0.05, 0.0, math.radians90,  0.0),
-                                        (5, led3, -0.1697045,  0.1767755, -0.05, 0.0, math.radians90,  math.radians90),
-                                        (6, led3, -0.1767755,  0.1697045, -0.05, 0.0, math.radians90,  math.radians180),
-                                        (7, led4, -0.1767755, -0.1697045, -0.05, 0.0, math.radians90, -math.radians180),
-                                        (8, led4, -0.1697045, -0.1767755, -0.05, 0.0, math.radians90, -math.radians90)] -%}
-
-    {% for id_, signal_id_, x_, y_, z_, roll_, pitch_, yaw_ in uv_leds_macro_parameters %}
-      {{ components.uvled_macro(
-        parent_link = root,
-        device_id = namespace + '_' + id_ | string(),
-        signal_id = signal_id_,
-        x = x_,
-        y = y_,
-        z = z_,
-        roll = roll_,
-        pitch = pitch_,
-        yaw = yaw_)
-      }}
-    {% endfor %}
-    <!--}-->
-    {% endif %}
+    {{ components.uv_leds_macro(
+      parent_link = root,
+      x1 = 0.1767755,
+      x2 = 0.1697045,
+      y1 = 0.1697045,
+      y2 = 0.1767755,
+      z = -0.05,
+      spawner_args = spawner_args)
+    }}
     {# <!--}--> #}
 
     {# UV leds beacon {--> #}
-    {% if enable_uv_leds_beacon %}
-    <!-- UV led beacon {-->
-    {# -- leds configuration -- (id, signal_id, x, y, z, roll, pitch, yaw) #}
-    {%- set uv_leds_macro_parameters = [('b1', uvled_beacon_s,  0.01, 0.0,  0.15, 0.0, math.radians90, 0.0),
-                                        ('b2', uvled_beacon_s,  0.0,  0.01, 0.15, 0.0, math.radians90, math.radians90),
-                                        ('b3', uvled_beacon_s, -0.01, 0.0,  0.15, 0.0, math.radians90, math.radians180),
-                                        ('b4', uvled_beacon_s,  0.0, -0.01, 0.15, 0.0, math.radians90, math.radians270)] -%}
-
-    {% for id_, signal_id_, x_, y_, z_, roll_, pitch_, yaw_ in uv_leds_macro_parameters %}
-      {{ components.uvled_macro(
-        parent_link = root,
-        device_id = namespace + '_' + id_ | string(),
-        signal_id = signal_id_,
-        x = x_,
-        y = y_,
-        z = z_,
-        roll = roll_,
-        pitch = pitch_,
-        yaw = yaw_)
-      }}
-    {% endfor %}
-    <!--}-->
-    {% endif %}
+    {{ components.uv_leds_beacon_macro(
+      parent_link = root,
+      x1 = 0.01,
+      x2 = 0.0,
+      y1 = 0.0,
+      y2 = 0.01,
+      z = 0.15,
+      spawner_args = spawner_args)
+    }}
     {# <!--}--> #}
 
-    {# Whycon box {--> #}
     {% if enable_whycon_box %}
     <!-- Whycon box {-->
     {{ components.whycon_box_macro(
@@ -1312,9 +1247,7 @@
     }}
     <!--}-->
     {% endif %}
-    {# <!--}--> #}
 
-    {# Pendelum {--> #}
     {% if enable_pendulum %}
     <!-- Pendelum {-->
     {{ components.pendulum_macro(
@@ -1329,7 +1262,6 @@
     }}
     <!--}-->
     {% endif %}
-    {# <!--}--> #}
 
   </model>
 </sdf>

@@ -749,6 +749,45 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
+{# teraranger_evo_macro {--> #}
+{%- macro teraranger_evo_macro(parent_link, id, visualize, frame_name, parent_frame_name, gaussian_noise, x, y, z, roll, pitch, yaw) -%}
+  <visual name="teraranger_evo_{{ id }}_visual">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    <geometry>
+      <mesh>
+        <uri>model://mrs_robots_description/meshes/sensors/teraranger_evo.stl</uri>
+        <scale>1 1 1</scale>
+      </mesh>
+    </geometry>
+      <material>
+        <script>
+          <name>Gazebo/Yellow</name>
+          <uri>file://media/materials/scripts/gazebo.material</uri>
+        </script>
+      </material>
+  </visual>
+  {{ rangefinder_sensor_macro(
+    name = 'teraranger_evo_' ~ id,
+    parent_frame_name = parent_frame_name,
+    sensor_frame_name = frame_name + '/range_' ~ id,
+    topic = '/' + frame_name + '/range_' ~ id,
+    update_rate = 120,
+    samples = 10,
+    fov = 0.035,
+    min_distance = 0.5,
+    max_distance = 60.0,
+    resolution = 1,
+    noise = noise,
+    x = x,
+    y = y,
+    z = z,
+    roll = roll,
+    pitch = pitch,
+    yaw = yaw)
+  }}
+{%- endmacro -%}
+{# <!--}--> #}
+
     <!-- ========================== gazebo plugins ========================= -->
 
 {# gazebo_gps_macro {--> #}

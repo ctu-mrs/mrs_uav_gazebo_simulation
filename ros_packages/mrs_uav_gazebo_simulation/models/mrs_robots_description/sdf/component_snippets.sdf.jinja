@@ -1,7 +1,7 @@
 <?xml version="1.0"? encoding="utf-8">
 <sdf version="1.6">
 
-{%- import "generic_components.sdf.jinja" as generic -%}
+{%- import 'generic_components.sdf.jinja' as generic -%}
 
 <!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
 <!-- !! THIS DOCUMENT CONTAINS ONLY COMPLEX COMPONENT MACROS DESIGNED !! -->
@@ -17,7 +17,7 @@ Copyright 2015 Mina Kamel, ASL, ETH Zurich, Switzerland
 Copyright 2015 Janosch Nikolic, ASL, ETH Zurich, Switzerland
 Copyright 2015 Markus Achtelik, ASL, ETH Zurich, Switzerland
 Copyright 2022 Vojtech Spurny, MRS, CTU Prague, Czech Republic
-Copyright 2022 Petr Stibinger, MRS, CTU Prague, Czech Republic
+Copyright 2024 Petr Stibinger, MRS, CTU Prague, Czech Republic
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -198,163 +198,8 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-
-{# TODO: make a component out of this #}
-<!-- Macro to add a fisheye camera with integrated imu {-->
-{%- macro vio_macro(namespace, sensor_name, parent_link, frame_rate, noise, imu_rate, imu_noise_mean, x, y, z, roll, pitch, yaw) -%}
-{{ fisheye_camera_macro(
-  namespace = namespace,
-  camera_name = sensor_name,
-  topic_ns_prefix = "camera/",
-  parent_link = parent_link,
-  frame_rate = frame_rate,
-  noise = noise,
-  x = x,
-  y = y,
-  z = z,
-  roll = roll,
-  pitch = pitch,
-  yaw = yaw)
-}}
-
-{{ generic.imu_sensor_macro(
-  sensor_name = sensor_name + "_imu",
-  parent_link = sensor_name + "_link",
-  update_rate = imu_rate,
-  topic_name = "/" + namespace + "/" + sensor_name + "/imu",
-  frame_name = namespace + "/" + sensor_name,
-  noise_mean = imu_noise_mean,
-  x = 0,
-  y = 0,
-  z = 0,
-  roll = -math.radians(90),
-  pitch = 0,
-  yaw = -math.radians(90))
-}}
-{%- endmacro -%}
-<!--}-->
-
 <!-- ========================== other sensors ========================= -->
 
-{# TODO: make a component out of this #}
-<!-- Macro to add a single Teraranger Evo {-->
-{%- macro teraranger_evo_macro(parent_link, id, visualize, frame_name, parent_frame_name, gaussian_noise, x, y, z, roll, pitch, yaw) -%}
-<visual name="teraranger_evo_{{ id }}_visual">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  <geometry>
-    <mesh>
-      <uri>model://mrs_robots_description/meshes/sensors/teraranger_evo.stl</uri>
-      <scale>1 1 1</scale>
-    </mesh>
-  </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Yellow</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-</visual>
-<sensor name="teraranger_evo_{{ id }}_sensor" type="ray">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  <visualize>{{ visualize }}</visualize>
-  <update_rate>120</update_rate>
-  <ray>
-    <scan>
-      <horizontal>
-        <samples>10</samples>
-        <resolution>1</resolution>
-        <min_angle>-0.01750</min_angle>
-        <max_angle>0.01750</max_angle>
-      </horizontal>
-      <vertical>
-        <samples>10</samples>
-        <resolution>1</resolution>
-        <min_angle>-0.01750</min_angle>
-        <max_angle>0.01750</max_angle>
-      </vertical>
-    </scan>
-    <range>
-      <min>0.5</min>
-      <max>60.0</max>
-      <resolution>0.05</resolution>
-    </range>
-  </ray>
-  <plugin name='teraranger_evo_{{ id }}_plugin' filename='libMRSGazeboRangefinderPlugin.so'>
-    <topicName>/{{ frame_name }}/range_{{ id }}</topicName>
-    <frameName>{{ frame_name }}/range_{{ id }}</frameName>
-    <parentFrameName>{{ parent_frame_name }}</parentFrameName>
-    <gaussianNoise>{{ gaussian_noise }}</gaussianNoise>
-    <updateRate>20</updateRate>
-    <radiation>ultrasound</radiation>
-    <fov>0.035</fov>
-    <x>{{ x }}</x>
-    <y>{{ y }}</y>
-    <z>{{ z }}</z>
-    <roll>{{ roll }}</roll>
-    <pitch>{{ pitch }}</pitch>
-    <yaw>{{ yaw }}</yaw>
-  </plugin>
-</sensor>
-{%- endmacro -%}
-<!--}-->
-
-{# TODO: make a component out of this #}
-<!-- Macro to add a Teraranger Tower base hub {-->
-{%- macro teraranger_evo_tower_macro(parent_link, visualize, frame_name, parent_frame_name, gaussian_noise, x, y, z, roll, pitch, yaw) -%}
-{# -- parameters of sensors -- (id, x, y, z, roll, pitch, yaw) #}
-{%- set sensor_parameters = [(0,  0.046,  0.0,   0.001, 0.0, 0.0,  0.0),
-                             (1,  0.032,  0.032, 0.001, 0.0, 0.0,  math.radians(45)),
-                             (2,  0.000,  0.046, 0.001, 0.0, 0.0,  math.radians(90)),
-                             (3, -0.032,  0.032, 0.001, 0.0, 0.0,  math.radians(135)),
-                             (4, -0.046,  0.000, 0.001, 0.0, 0.0,  math.radians(180)),
-                             (5, -0.032, -0.032, 0.001, 0.0, 0.0, -math.radians(135)),
-                             (6,  0.000, -0.046, 0.001, 0.0, 0.0, -math.radians(90)),
-                             (7,  0.032, -0.032, 0.001, 0.0, 0.0, -math.radians(45))] -%}
-
-<link name="teraranger_evo_tower_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="visual">
-    <pose>0 0 -0.014 0 0 0</pose>
-    <geometry>
-      <cylinder>
-        <length>0.001</length>
-        <radius>0.06</radius>
-      </cylinder>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Black</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-
-{%- for id_, x_, y_, z_, roll_, pitch_, yaw_ in sensor_parameters -%}
-  {{ teraranger_evo_macro(
-    parent_link = parent_link,
-    id = id_,
-    visualize = visualize,
-    frame_name = frame_name,
-    parent_frame_name = parent_frame_name,
-    gaussian_noise = gaussian_noise,
-    x = x_,
-    y = y_,
-    z = z_,
-    roll = roll_,
-    pitch = pitch_,
-    yaw = yaw_)
-  }}
-{%- endfor -%}
-</link>
-
-<joint name="teraranger_evo_tower_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>teraranger_evo_tower_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
-<!--}-->
 
 {# TODO: make a component out of this #}
 <!-- Macro to add a gps satelite blocking sensor {-->
@@ -880,8 +725,6 @@ limitations under the License.
   {%- set spawner_description = 'Enable ROS topic with ground truth odometry published under model namespace' -%}
   {%- set spawner_default_args = {'topic_name': 'ground_truth', 'frame_name': 'world', 'update_rate': 150} -%}
 
-  {%- set odometry_sensor_name = "ground_truth" -%}
-
   {%- if spawner_keyword in spawner_args.keys() -%}
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
@@ -918,6 +761,7 @@ limitations under the License.
 
   {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
+  <!-- Propellers {-->
   {%- for prop_params in prop_list -%}
 
     {%- if prop_params['mesh_files'] | length == 1 -%}
@@ -993,6 +837,8 @@ limitations under the License.
     {%- endif -%}
 
   {%- endfor -%}
+  <!--}-->
+
 {%- endmacro -%}
 {# <!--}--> #}
 
@@ -1008,7 +854,7 @@ limitations under the License.
   {%- if spawner_keyword in spawner_args.keys() -%}
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
-    {%- set sensor_name = "lidar0" -%}
+    {%- set sensor_name = 'lidar0' -%}
 
     <!-- garmin down {-->
 
@@ -1020,9 +866,9 @@ limitations under the License.
 
       {{ generic.visual_mesh_macro(
         name = sensor_name,
-        mesh_file = "model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl",
-        mesh_scale = "0.001 0.001 0.001",
-        color = "DarkGrey",
+        mesh_file = 'model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl',
+        mesh_scale = '0.001 0.001 0.001',
+        color = 'DarkGrey',
         x = 0.015,
         y = 0,
         z = 0,
@@ -1082,7 +928,7 @@ limitations under the License.
   {%- if spawner_keyword in spawner_args.keys() -%}
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
-    {%- set sensor_name = "garmin" -%}
+    {%- set sensor_name = 'garmin' -%}
 
     <!-- garmin down {-->
 
@@ -1094,9 +940,9 @@ limitations under the License.
 
       {{ generic.visual_mesh_macro(
         name = sensor_name,
-        mesh_file = "model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl",
-        mesh_scale = "0.001 0.001 0.001",
-        color = "DarkGrey",
+        mesh_file = 'model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl',
+        mesh_scale = '0.001 0.001 0.001',
+        color = 'DarkGrey',
         x = 0.015,
         y = 0,
         z = 0,
@@ -1156,7 +1002,7 @@ limitations under the License.
   {%- if spawner_keyword in spawner_args.keys() -%}
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
-    {%- set sensor_name = "garmin_up" -%}
+    {%- set sensor_name = 'garmin_up' -%}
 
     <!-- garmin down {-->
 
@@ -1168,9 +1014,9 @@ limitations under the License.
 
       {{ generic.visual_mesh_macro(
         name = sensor_name,
-        mesh_file = "model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl",
-        mesh_scale = "0.001 0.001 0.001",
-        color = "DarkGrey",
+        mesh_file = 'model://mrs_robots_description/meshes/sensors/garmin_lidar_v3.stl',
+        mesh_scale = '0.001 0.001 0.001',
+        color = 'DarkGrey',
         x = 0.015,
         y = 0,
         z = 0,
@@ -1230,7 +1076,7 @@ limitations under the License.
   {%- if spawner_keyword in spawner_args.keys() -%}
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
-    {%- set sensor_name = "teraranger" -%}
+    {%- set sensor_name = 'teraranger' -%}
 
     <!-- Teraranger One {-->
 
@@ -1260,9 +1106,9 @@ limitations under the License.
       }}
     </link>
 
-    <joint name="teraranger_joint" type="fixed">
+    <joint name="{{ sensor_name }}_joint" type="fixed">
       <parent>{{ parent_link }}</parent>
-      <child>teraranger_link</child>
+      <child>{{ sensor_name}}_link</child>
     </joint>
     <!--}-->
 
@@ -1270,6 +1116,76 @@ limitations under the License.
     {{ mount }}
     <!--}-->
 
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# teraranger_evo_tower_macro {--> #}
+{%- macro teraranger_evo_tower_macro(parent_link, visualize, frame_name, parent_frame_name, gaussian_noise, x, y, z, roll, pitch, yaw, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-teraranger-evo-tower' -%}
+  {%- set spawner_description = 'Add the Teraranger Evo Tower laser scanner to the vehicle' -%}
+  {%- set spawner_default_args = none -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    {# -- parameters of sensors -- (id, x, y, z, roll, pitch, yaw) #}
+    {%- set sensor_parameters = [(0,  0.046,  0.0,   0.001, 0.0, 0.0,  0.0),
+                                 (1,  0.032,  0.032, 0.001, 0.0, 0.0,  math.radians(45)),
+                                 (2,  0.000,  0.046, 0.001, 0.0, 0.0,  math.radians(90)),
+                                 (3, -0.032,  0.032, 0.001, 0.0, 0.0,  math.radians(135)),
+                                 (4, -0.046,  0.000, 0.001, 0.0, 0.0,  math.radians(180)),
+                                 (5, -0.032, -0.032, 0.001, 0.0, 0.0, -math.radians(135)),
+                                 (6,  0.000, -0.046, 0.001, 0.0, 0.0, -math.radians(90)),
+                                 (7,  0.032, -0.032, 0.001, 0.0, 0.0, -math.radians(45))] -%}
+
+    <!-- Teraranger Evo Tower {-->
+    <link name="teraranger_evo_tower_link">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+      {{ generic.zero_inertial_macro() }}
+      <visual name="visual">
+        <pose>0 0 -0.014 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.001</length>
+            <radius>0.06</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+
+      {%- for id_, x_, y_, z_, roll_, pitch_, yaw_ in sensor_parameters -%}
+        <!-- teraranger sensor {{ id_ }} {-->
+        {{ generic.teraranger_evo_macro(
+          parent_link = parent_link,
+          id = id_,
+          visualize = visualize,
+          frame_name = frame_name,
+          parent_frame_name = parent_frame_name,
+          gaussian_noise = gaussian_noise,
+          x = x_,
+          y = y_,
+          z = z_,
+          roll = roll_,
+          pitch = pitch_,
+          yaw = yaw_)
+        }}
+        <!--}-->
+      {%- endfor -%}
+    </link>
+
+    <joint name="teraranger_evo_tower_joint" type="fixed">
+      <parent>{{ parent_link }}</parent>
+      <child>teraranger_evo_tower_link</child>
+    </joint>
     <!--}-->
 
   {%- endif -%}
@@ -1288,7 +1204,7 @@ limitations under the License.
   {%- if spawner_keyword in spawner_args.keys() -%}
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
-    {%- set sensor_name = "rplidar" -%}
+    {%- set sensor_name = 'rplidar' -%}
 
     <!-- rplidar A3 {-->
     <link name="{{ sensor_name }}_link">
@@ -1297,10 +1213,10 @@ limitations under the License.
 
       <!-- visuals {-->
       {{ generic.visual_mesh_macro(
-        name = "base_visual",
-        mesh_file = "model://mrs_robots_description/meshes/sensors/rplidar.stl",
-        mesh_scale = "0.001 0.001 0.001",
-        color = "FlatBlack",
+        name = 'base_visual',
+        mesh_file = 'model://mrs_robots_description/meshes/sensors/rplidar.stl',
+        mesh_scale = '0.001 0.001 0.001',
+        color = 'FlatBlack',
         x = 0,
         y = 0,
         z = -0.029,
@@ -1326,7 +1242,7 @@ limitations under the License.
       <!--}-->
 
       <!-- sensor {-->
-      <sensor name='rplidar_sensor' type='ray'>
+      <sensor name='{{ sensor_name }}_sensor' type='ray'>
         <visualize>false</visualize>
         <update_rate>{{ spawner_args[spawner_keyword]['update_rate'] }}</update_rate>
         <ray>
@@ -1349,9 +1265,9 @@ limitations under the License.
             <stddev>{{ spawner_args[spawner_keyword]['noise'] }}</stddev>
           </noise>
         </ray>
-        <plugin name='rplidar_plugin' filename='libMrsGazeboCommonResources_2DLidarPlugin.so'>
-          <topicName>rplidar/scan</topicName>
-          <frameName>{{ spawner_args['name'] }}/rplidar</frameName>
+        <plugin name='{{ sensor_name }}_plugin' filename='libMrsGazeboCommonResources_2DLidarPlugin.so'>
+          <topicName>{{ sensor_name }}/scan</topicName>
+          <frameName>{{ spawner_args['name'] }}/{{ sensor_name }}</frameName>
           <parentFrameName>{{ spawner_args['name'] }}/fcu</parentFrameName>
           <x>{{ x }}</x>
           <y>{{ y }}</y>
@@ -1365,9 +1281,9 @@ limitations under the License.
 
     </link>
 
-    <joint name="rplidar_joint" type="fixed">
+    <joint name="{{ sensor_name }}_joint" type="fixed">
       <parent>{{ parent_link }}</parent>
-      <child>rplidar_link</child>
+      <child>{{ sensor_name }}_link</child>
     </joint>
 
     <!-- mount {-->
@@ -1587,18 +1503,18 @@ limitations under the License.
     {# setup local variables {--> #}
 
     {# -- gazebo links -- #}
-    {%- set sensor_link = sensor_name + "_sensor_link" -%}
+    {%- set sensor_link = sensor_name + '_sensor_link' -%}
 
     {# -- frame names -- #}
-    {%- set frame_fcu = spawner_args['name'] + "/fcu" -%}
-    {%- set frame_sensor = spawner_args['name'] + "/" + sensor_name + "_sensor" -%}
-    {%- set frame_lidar = spawner_args['name'] + "/" + sensor_name + "_lidar"  -%}
-    {%- set frame_imu = spawner_args['name'] + "/" + sensor_name + "_imu"  -%}
+    {%- set frame_fcu = spawner_args['name'] + '/fcu' -%}
+    {%- set frame_sensor = spawner_args['name'] + '/' + sensor_name + '_sensor' -%}
+    {%- set frame_lidar = spawner_args['name'] + '/' + sensor_name + '_lidar'  -%}
+    {%- set frame_imu = spawner_args['name'] + '/' + sensor_name + '_imu'  -%}
 
     {# -- topics -- #}
-    {%- set topic_lidar = "/" + spawner_args['name'] + "/" + sensor_name + "_cloud_nodelet/points" -%}
-    {%- set topic_imu = "/" + spawner_args['name'] + "/" + sensor_name + "_cloud_nodelet/imu" -%}
-    {%- set topic_diag = "/" + spawner_args['name'] + "/" + sensor_name + "_cloud_nodelet/is_alive" -%}
+    {%- set topic_lidar = '/' + spawner_args['name'] + '/' + sensor_name + '_cloud_nodelet/points' -%}
+    {%- set topic_imu = '/' + spawner_args['name'] + '/' + sensor_name + '_cloud_nodelet/imu' -%}
+    {%- set topic_diag = '/' + spawner_args['name'] + '/' + sensor_name + '_cloud_nodelet/is_alive' -%}
 
     {# -- tf from sensor to lidar -- #}
     {%- set lidar_x = 0 -%}
@@ -1617,11 +1533,11 @@ limitations under the License.
     {%- set imu_yaw = 0 -%}
 
     {%- if spawner_args[spawner_keyword]['use_gpu'] -%}
-      {%- set ouster_plugin_filename ="libMrsGazeboCommonResources_3DLidarGpuPlugin.so" -%}
-      {%- set sensor_type = "gpu_ray"  -%}
+      {%- set ouster_plugin_filename ='libMrsGazeboCommonResources_3DLidarGpuPlugin.so' -%}
+      {%- set sensor_type = 'gpu_ray'  -%}
     {%- else -%}
-      {%- set ouster_plugin_filename ="libMrsGazeboCommonResources_3DLidarPlugin.so" -%}
-      {%- set sensor_type = "ray"  -%}
+      {%- set ouster_plugin_filename ='libMrsGazeboCommonResources_3DLidarPlugin.so' -%}
+      {%- set sensor_type = 'ray'  -%}
     {%- endif -%}
 
     {# <!--}--> #}
@@ -1633,10 +1549,10 @@ limitations under the License.
 
       <!-- visuals {-->
       {{ generic.visual_mesh_macro(
-        name = "base_visual",
-        mesh_file = "://mrs_robots_description/meshes/sensors/os1_64.dae",
-        mesh_scale = "1 1 1",
-        color = "White",
+        name = 'base_visual',
+        mesh_file = '://mrs_robots_description/meshes/sensors/os1_64.dae',
+        mesh_scale = '1 1 1',
+        color = 'White',
         x = 0,
         y = 0,
         z = 0,
@@ -1780,13 +1696,13 @@ limitations under the License.
     {# Velodyne macro is using the same plugin as ouster macro. Therefore we need to render data in the same way. #}
 
     {# -- frame names -- #}
-    {%- set frame_fcu = spawner_args['name'] + "/fcu" -%}
-    {%- set frame_sensor = spawner_args['name'] + "/" + sensor_name + "_sensor" -%}
-    {%- set frame_lidar = spawner_args['name'] + "/" + sensor_name  -%}
+    {%- set frame_fcu = spawner_args['name'] + '/fcu' -%}
+    {%- set frame_sensor = spawner_args['name'] + '/' + sensor_name + '_sensor' -%}
+    {%- set frame_lidar = spawner_args['name'] + '/' + sensor_name  -%}
 
     {# -- topics -- #}
-    {%- set topic_lidar = "/" + spawner_args['name'] + "/" + sensor_name + "/scan" -%}
-    {%- set topic_diag = "/" + spawner_args['name'] + "/" + sensor_name + "/is_alive" -%}
+    {%- set topic_lidar = '/' + spawner_args['name'] + '/' + sensor_name + '/scan' -%}
+    {%- set topic_diag = '/' + spawner_args['name'] + '/' + sensor_name + '/is_alive' -%}
 
     {# -- tf from sensor to lidar -- #}
     {# The laser rays should be coming approximately from the half of sensor height #}
@@ -1798,11 +1714,11 @@ limitations under the License.
     {%- set lidar_yaw = 0  -%}
 
     {%- if spawner_args[spawner_keyword]['use_gpu'] -%}
-      {%- set velodyne_plugin_filename ="libMrsGazeboCommonResources_3DLidarGpuPlugin.so" -%}
-      {%- set sensor_type = "gpu_ray"  -%}
+      {%- set velodyne_plugin_filename ='libMrsGazeboCommonResources_3DLidarGpuPlugin.so' -%}
+      {%- set sensor_type = 'gpu_ray'  -%}
     {%- else -%}
-      {%- set velodyne_plugin_filename ="libMrsGazeboCommonResources_3DLidarPlugin.so" -%}
-      {%- set sensor_type = "ray"  -%}
+      {%- set velodyne_plugin_filename ='libMrsGazeboCommonResources_3DLidarPlugin.so' -%}
+      {%- set sensor_type = 'ray'  -%}
     {%- endif -%}
     {# <!--}--> #}
 
@@ -2107,9 +2023,9 @@ limitations under the License.
     {{ generic.camera_macro(
       parent_link = parent_link,
       camera_name = camera_name,
-      parent_frame_name = spawner_args['name'] + "/fcu",
-      camera_frame_name = spawner_args['name'] + "/" + camera_name + "_optical",
-      sensor_base_frame_name = spawner_args['name'] + "/" + camera_name,
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      camera_frame_name = spawner_args['name'] + '/' + camera_name + '_optical',
+      sensor_base_frame_name = spawner_args['name'] + '/' + camera_name,
       frame_rate = spawner_args[spawner_keyword]['update_rate'],
       horizontal_fov = 2.1,
       image_width = 752,
@@ -2118,9 +2034,9 @@ limitations under the License.
       max_distance = 80,
       noise_mean = 0.0,
       noise_stddev = spawner_args[spawner_keyword]['noise'],
-      mesh_file = "model://mrs_robots_description/meshes/sensors/bluefox.dae",
-      mesh_scale = "1 1 1",
-      color = "DarkGrey",
+      mesh_file = 'model://mrs_robots_description/meshes/sensors/bluefox.dae',
+      mesh_scale = '1 1 1',
+      color = 'DarkGrey',
       visual_x = 0,
       visual_y = 0,
       visual_z = 0,
@@ -2162,9 +2078,9 @@ limitations under the License.
     {{ generic.camera_macro(
       parent_link = parent_link,
       camera_name = camera_name,
-      parent_frame_name = spawner_args['name'] + "/fcu",
-      camera_frame_name = spawner_args['name'] + "/" + camera_name + "_optical",
-      sensor_base_frame_name = spawner_args['name'] + "/" + camera_name,
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      camera_frame_name = spawner_args['name'] + '/' + camera_name + '_optical',
+      sensor_base_frame_name = spawner_args['name'] + '/' + camera_name,
       frame_rate = spawner_args[spawner_keyword]['update_rate'],
       horizontal_fov = 2.1,
       image_width = 752,
@@ -2173,9 +2089,9 @@ limitations under the License.
       max_distance = 80,
       noise_mean = 0.0,
       noise_stddev = spawner_args[spawner_keyword]['noise'],
-      mesh_file = "model://mrs_robots_description/meshes/sensors/bluefox.dae",
-      mesh_scale = "1 1 1",
-      color = "DarkGrey",
+      mesh_file = 'model://mrs_robots_description/meshes/sensors/bluefox.dae',
+      mesh_scale = '1 1 1',
+      color = 'DarkGrey',
       visual_x = 0,
       visual_y = 0,
       visual_z = 0,
@@ -2675,11 +2591,11 @@ limitations under the License.
       <!-- Dual UV cameras {-->
       {{ generic.uvcam_macro(
         parent_link = parent_link,
-        camera_publish_topic = "/" + spawner_args['name'] + "/uvdar_bluefox_left/image_raw",
+        camera_publish_topic = '/' + spawner_args['name'] + '/uvdar_bluefox_left/image_raw',
         calibration_file = spawner_args[spawner_keyword]['calib_file'],
         occlusions = spawner_args[spawner_keyword]['occlusions'],
         frame_rate = spawner_args[spawner_keyword]['update_rate'],
-        device_id = spawner_args['name'] + "_1",
+        device_id = spawner_args['name'] + '_1',
         x = x1,
         y = y1,
         z = z1,
@@ -2690,11 +2606,11 @@ limitations under the License.
 
       {{ generic.uvcam_macro(
         parent_link = parent_link,
-        camera_publish_topic = "/" + spawner_args['name'] + "/uvdar_bluefox_right/image_raw",
+        camera_publish_topic = '/' + spawner_args['name'] + '/uvdar_bluefox_right/image_raw',
         calibration_file = spawner_args[spawner_keyword]['calib_file'],
         occlusions = spawner_args[spawner_keyword]['occlusions'],
         frame_rate = spawner_args[spawner_keyword]['update_rate'],
-        device_id = spawner_args['name'] + "_2",
+        device_id = spawner_args['name'] + '_2',
         x = x2,
         y = y2,
         z = z2,
@@ -2727,11 +2643,11 @@ limitations under the License.
     <!-- Back UV camera {-->
     {{ generic.uvcam_macro(
       parent_link = parent_link,
-      camera_publish_topic = "/" + spawner_args['name'] + "/uvdar_bluefox_back/image_raw",
+      camera_publish_topic = '/' + spawner_args['name'] + '/uvdar_bluefox_back/image_raw',
       calibration_file = spawner_args[spawner_keyword]['calib_file'],
       occlusions = spawner_args[spawner_keyword]['occlusions'],
       frame_rate = spawner_args[spawner_keyword]['update_rate'],
-      device_id = spawner_args['name'] + "_3",
+      device_id = spawner_args['name'] + '_3',
       x = x,
       y = y,
       z = z,
@@ -2795,7 +2711,7 @@ limitations under the License.
         <!-- LED {{ id_ }} {-->
         {{ generic.uvled_macro(
           parent_link = parent_link,
-          device_id = spawner_args['name'] + "_" + id_ | string(),
+          device_id = spawner_args['name'] + '_' + id_ | string(),
           signal_id = signal_id_,
           x = x_,
           y = y_,
@@ -2828,10 +2744,10 @@ limitations under the License.
 
       {# setup led signals {--> #}
       {# -- leds configuration -- (id, signal_id, x, y, z, roll, pitch, yaw) #}
-      {%- set uv_leds_macro_parameters = [("b1", spawner_args[spawner_keyword]['signal_id'],  x1, y1, z, 0.0, math.radians(90), 0.0),
-                                        ("b2", spawner_args[spawner_keyword]['signal_id'],  x2, y2, z, 0.0, math.radians(90), math.radians(90)),
-                                        ("b3", spawner_args[spawner_keyword]['signal_id'], -x1, -y1, z, 0.0, math.radians(90), math.radians(180)),
-                                        ("b4", spawner_args[spawner_keyword]['signal_id'], -x2, -y2, z, 0.0, math.radians(90), math.radians(270))] -%}
+      {%- set uv_leds_macro_parameters = [('b1', spawner_args[spawner_keyword]['signal_id'],  x1, y1, z, 0.0, math.radians(90), 0.0),
+                                        ('b2', spawner_args[spawner_keyword]['signal_id'],  x2, y2, z, 0.0, math.radians(90), math.radians(90)),
+                                        ('b3', spawner_args[spawner_keyword]['signal_id'], -x1, -y1, z, 0.0, math.radians(90), math.radians(180)),
+                                        ('b4', spawner_args[spawner_keyword]['signal_id'], -x2, -y2, z, 0.0, math.radians(90), math.radians(270))] -%}
 
       {# <!--}--> #}
 
@@ -2839,7 +2755,7 @@ limitations under the License.
         <!-- Beacon LED {{ id_ }} {-->
         {{ generic.uvled_macro(
           parent_link = parent_link,
-          device_id = spawner_args['name'] + "_" + id_ | string(),
+          device_id = spawner_args['name'] + '_' + id_ | string(),
           signal_id = signal_id_,
           x = x_,
           y = y_,
