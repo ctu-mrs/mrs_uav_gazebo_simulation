@@ -840,27 +840,21 @@
 
     {# ========================== camera sensors ======================== #}
 
-    <!-- Fisheye camera placements{-->
-
-    {% if enable_fisheye_camera %}
-    <!-- fisheye classic {-->
-    {{ components.fisheye_camera_macro(
-      namespace = namespace,
+    {# Fisheye camera placements {--> #}
+    {{ components.fisheye_bluefox_macro(
       camera_name = "fisheye_camera",
       topic_ns_prefix = "",
       parent_link = root,
-      frame_rate = 45,
-      noise = 0.0,
       x = 0.05,
       y = 0,
       z = - (arm_height + 0.055),
       roll = 0,
-      pitch = math.radians90,
-      yaw = 0)
+      pitch = math.radians(90),
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
-    <!--}-->
+    {# <!--}--> #}
 
     {# Bluefox camera placements {--> #}
 
@@ -1064,9 +1058,8 @@
     }}
     {# <!--}--> #}
 
-    {# Servo camera {--> #}
-    {% if enable_servo_camera %}
     <!-- Servo camera {-->
+    {% if enable_servo_camera %}
     {{ components.servo_camera_macro(
       parent = root,
       parent_frame_name = namespace + "/fcu",
@@ -1101,52 +1094,42 @@
       roll_link_mesh_file = "",
       mesh_scale = "")
     }}
-    <!--}-->
     {% endif %}
-    {# <!--}--> #}
+    <!--}-->
 
-    <!-- VIO placements {-->
+    {# VIO placements {--> #}
 
-    {% if enable_vio %}
-    <!-- VIO classic {-->
+    {# VIO (classic) {--> #}
     {{ components.vio_macro(
-      namespace = namespace,
       sensor_name = "vio",
       parent_link = root,
-      frame_rate = 45,
-      noise = 0.0,
-      imu_rate = 100,
-      imu_noise_mean = 0.0,
       x = 0.107,
       y = 0,
       z = -0.002,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
 
-    {% if enable_vio_down %}
-    <!-- VIO down {-->
-    {{ components.vio_macro(
-      namespace = namespace,
+    {# VIO down {--> #}
+    {{ components.vio_down_macro(
       sensor_name = "vio",
       parent_link = root,
-      frame_rate = 45,
-      noise = 0.0,
-      imu_rate = 100,
-      imu_noise_mean = 0.0,
       x = 0.1,
       y = 0,
       z = -0.15,
       roll = 0,
-      pitch = math.radians90,
-      yaw = 0)
+      pitch = math.radians(90),
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
-    <!--}-->
+    {# <!--}--> #}
+
+    {# <!--}--> #}
 
     {# ========================== other sensors ========================= #}
 

@@ -125,51 +125,6 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-{# TODO: make a component out of this #}
-<!-- Macro to add a Fisheye camera {-->
-{%- macro fisheye_bluefox_camera_macro(namespace, camera_name, topic_ns_prefix, parent_link, frame_rate, noise, x, y, z, roll, pitch, yaw) -%}
-{{ fisheye_macro(
-  camera_name = camera_name,
-  topic_ns_prefix = topic_ns_prefix,
-  parent_frame_name = namespace + "/fcu",
-  camera_frame_name = namespace + "/" + camera_name + "_optical",
-  sensor_base_frame_name = namespace  + "/" + camera_name,
-  parent_link = parent_link,
-  frame_rate = frame_rate,
-  horizontal_fov = math.radians(180),
-  image_width = 752,
-  image_height = 480,
-  lens_type = "custom",
-  lens_c1 = 1.05,
-  lens_c2 = 4,
-  lens_f = 1.0,
-  lens_fun = "tan",
-  lens_scale = True,
-  lens_cutoff_angle = math.radians(90),
-  lens_texture_size = 512,
-  min_distance = 0.02,
-  max_distance = 40,
-  noise_mean = 0.0,
-  noise_stddev = noise,
-  mesh_file = "model://mrs_robots_description/meshes/sensors/bluefox.dae",
-  mesh_scale = "1 1 1",
-  color = "DarkGrey",
-  visual_x = 0,
-  visual_y = 0,
-  visual_z = 0,
-  visual_roll = math.radians(90),
-  visual_pitch = 0,
-  visual_yaw = 0,
-  x = x,
-  y = y,
-  z = z,
-  roll = roll,
-  pitch = pitch,
-  yaw = yaw)
-}}
-{%- endmacro -%}
-<!--}-->
-
 
 {# TODO: make a component out of this #}
 <!-- Macro to add a thermal camera {-->
@@ -2609,6 +2564,232 @@ limitations under the License.
       roll = roll,
       pitch = pitch,
       yaw = yaw)
+    }}
+    <!--}-->
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# fisheye_bluefox_macro {--> #}
+{%- macro fisheye_bluefox_macro(camera_name, topic_ns_prefix, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-fisheye-camera' -%}
+  {%- set spawner_description = 'Add a fisheye bluefox camera [752x480 @ 45hz, 180 deg] to the vehicle' -%}
+  {%- set spawner_default_args = {'update_rate': 45, 'noise': 0.0} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Fisheye bluefox camera {-->
+
+    <!-- sensor {-->
+    {{ generic.fisheye_camera_macro(
+      camera_name = camera_name,
+      topic_ns_prefix = topic_ns_prefix,
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      camera_frame_name = spawner_args['name'] + '/' + camera_name + '_optical',
+      sensor_base_frame_name = spawner_args['name'] + '/' + camera_name,
+      parent_link = parent_link,
+      frame_rate = spawner_args[spawner_keyword]['update_rate'],
+      horizontal_fov = math.radians(180),
+      image_width = 752,
+      image_height = 480,
+      lens_type = 'custom',
+      lens_c1 = 1.05,
+      lens_c2 = 4,
+      lens_f = 1.0,
+      lens_fun = 'tan',
+      lens_scale = True,
+      lens_cutoff_angle = math.radians(90),
+      lens_texture_size = 512,
+      min_distance = 0.02,
+      max_distance = 40,
+      noise_mean = 0.0,
+      noise_stddev = spawner_args[spawner_keyword]['noise'],
+      mesh_file = 'model://mrs_robots_description/meshes/sensors/bluefox.dae',
+      mesh_scale = '1 1 1',
+      color = 'DarkGrey',
+      visual_x = 0,
+      visual_y = 0,
+      visual_z = 0,
+      visual_roll = math.radians(90),
+      visual_pitch = 0,
+      visual_yaw = 0,
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+    <!--}-->
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# vio_macro {--> #}
+{%- macro vio_macro(sensor_name, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-vio' -%}
+  {%- set spawner_description = 'Add a forward-looking fisheye camera and a high-frequency IMU' -%}
+  {%- set spawner_default_args = {'camera_rate': 45, 'camera_noise': 0.0, 'imu_rate': 100, 'imu_noise': 0.0} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- VIO {-->
+
+    <!-- fisheye camera {-->
+    {{ generic.fisheye_camera_macro(
+      camera_name = sensor_name,
+      topic_ns_prefix = 'camera/',
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      camera_frame_name = spawner_args['name'] + '/' + sensor_name + '_optical',
+      sensor_base_frame_name = spawner_args['name'] + '/' + sensor_name,
+      parent_link = parent_link,
+      frame_rate = spawner_args[spawner_keyword]['camera_rate'],
+      horizontal_fov = math.radians(180),
+      image_width = 752,
+      image_height = 480,
+      lens_type = 'custom',
+      lens_c1 = 1.05,
+      lens_c2 = 4,
+      lens_f = 1.0,
+      lens_fun = 'tan',
+      lens_scale = True,
+      lens_cutoff_angle = math.radians(90),
+      lens_texture_size = 512,
+      min_distance = 0.02,
+      max_distance = 40,
+      noise_mean = 0.0,
+      noise_stddev = spawner_args[spawner_keyword]['camera_noise'],
+      mesh_file = 'model://mrs_robots_description/meshes/sensors/bluefox.dae',
+      mesh_scale = '1 1 1',
+      color = 'DarkGrey',
+      visual_x = 0,
+      visual_y = 0,
+      visual_z = 0,
+      visual_roll = math.radians(90),
+      visual_pitch = 0,
+      visual_yaw = 0,
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+    <!--}-->
+
+    <!-- imu {-->
+    {{ generic.imu_sensor_macro(
+      sensor_name = sensor_name + '_imu',
+      parent_link = parent_link,
+      update_rate = spawner_args[spawner_keyword]['imu_rate'],
+      topic_name = '/' + spawner_args['name'] + '/' + sensor_name + '/imu',
+      frame_name = spawner_args['name'] + '/' + sensor_name,
+      noise_mean = spawner_args[spawner_keyword]['imu_noise'],
+      x = 0,
+      y = 0,
+      z = 0,
+      roll = -math.radians(90),
+      pitch = 0,
+      yaw = -math.radians(90))
+    }}
+    <!--}-->
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# vio_down_macro {--> #}
+{%- macro vio_down_macro(sensor_name, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-vio-down' -%}
+  {%- set spawner_description = 'Add a downward-looking fisheye camera and a high-frequency IMU' -%}
+  {%- set spawner_default_args = {'camera_rate': 45, 'camera_noise': 0.0, 'imu_rate': 100, 'imu_noise': 0.0} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- VIO down {-->
+
+    <!-- fisheye camera {-->
+    {{ generic.fisheye_camera_macro(
+      camera_name = sensor_name,
+      topic_ns_prefix = 'camera/',
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      camera_frame_name = spawner_args['name'] + '/' + sensor_name + '_optical',
+      sensor_base_frame_name = spawner_args['name'] + '/' + sensor_name,
+      parent_link = parent_link,
+      frame_rate = spawner_args[spawner_keyword]['camera_rate'],
+      horizontal_fov = math.radians(180),
+      image_width = 752,
+      image_height = 480,
+      lens_type = 'custom',
+      lens_c1 = 1.05,
+      lens_c2 = 4,
+      lens_f = 1.0,
+      lens_fun = 'tan',
+      lens_scale = True,
+      lens_cutoff_angle = math.radians(90),
+      lens_texture_size = 512,
+      min_distance = 0.02,
+      max_distance = 40,
+      noise_mean = 0.0,
+      noise_stddev = spawner_args[spawner_keyword]['camera_noise'],
+      mesh_file = 'model://mrs_robots_description/meshes/sensors/bluefox.dae',
+      mesh_scale = '1 1 1',
+      color = 'DarkGrey',
+      visual_x = 0,
+      visual_y = 0,
+      visual_z = 0,
+      visual_roll = math.radians(90),
+      visual_pitch = 0,
+      visual_yaw = 0,
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+    <!--}-->
+
+    <!-- imu {-->
+    {{ generic.imu_sensor_macro(
+      sensor_name = sensor_name + '_imu',
+      parent_link = parent_link,
+      update_rate = spawner_args[spawner_keyword]['imu_rate'],
+      topic_name = '/' + spawner_args['name'] + '/' + sensor_name + '/imu',
+      frame_name = spawner_args['name'] + '/' + sensor_name,
+      noise_mean = spawner_args[spawner_keyword]['imu_noise'],
+      x = 0,
+      y = 0,
+      z = 0,
+      roll = -math.radians(90),
+      pitch = 0,
+      yaw = -math.radians(90))
     }}
     <!--}-->
 
