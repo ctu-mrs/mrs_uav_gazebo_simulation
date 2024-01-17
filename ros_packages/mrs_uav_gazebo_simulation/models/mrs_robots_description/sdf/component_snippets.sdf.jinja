@@ -170,41 +170,6 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-{# TODO: make a component out of this #}
-<!-- Macro to add a Mobius camera {-->
-{%- macro mobius_camera_macro(namespace, camera_name, parent_link, frame_rate, x, y, z, roll, pitch, yaw) -%}
-{{ generic.camera_macro(
-  parent_link = parent_link,
-  camera_name = camera_name,
-  parent_frame_name = namespace + "/fcu",
-  camera_frame_name = namespace + "/" + camera_name + "_optical",
-  sensor_base_frame_name = namespace  + "/" + camera_name,
-  frame_rate = frame_rate,
-  horizontal_fov = 2.28638,
-  image_width = 1280,
-  image_height = 720,
-  min_distance = 0.02,
-  max_distance = 40,
-  noise_mean = 0.0,
-  noise_stddev = 0.007,
-  mesh_file = "model://mrs_robots_description/meshes/sensors/mobius.dae",
-  mesh_scale = "1 1 1",
-  color = "DarkGrey",
-  visual_x = -0.004,
-  visual_y = 0.0045,
-  visual_z = 0,
-  visual_roll = 0,
-  visual_pitch = 0,
-  visual_yaw = 0,
-  x = x,
-  y = y,
-  z = z,
-  roll = roll,
-  pitch = pitch,
-  yaw = yaw)
-}}
-{%- endmacro -%}
-<!--}-->
 
 {# TODO: make a component out of this #}
 <!-- Macro to add a thermal camera {-->
@@ -2178,6 +2143,8 @@ limitations under the License.
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     <!-- Realsense front {-->
+
+    <!-- sensor {-->
     {{ generic.realsense_d435_macro(
       namespace = spawner_args['name'],
       camera_name = camera_name,
@@ -2192,6 +2159,7 @@ limitations under the License.
       pitch = pitch,
       yaw = yaw)
     }}
+    <!--}-->
 
     <!-- mount {-->
     {{ mount }}
@@ -2205,9 +2173,9 @@ limitations under the License.
 {# <!--}--> #}
 
 {# realsense_front_pitched_macro {--> #}
-{%- macro realsense_front_macro(camera_name, camera_suffix, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+{%- macro realsense_front_pitched_macro(camera_name, camera_suffix, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
 
-  {%- set spawner_keyword = 'enable-realsense-front' -%}
+  {%- set spawner_keyword = 'enable-realsense-front-pitched' -%}
   {%- set spawner_description = 'Add Intel Realsense D435 depth camera to the vehicle [1280x720 @ 30hz], pointed forward pitched down by 10-45 deg (angle depends on vehicle model)' -%}
   {%- set spawner_default_args = {'realistic': False, 'update_rate': 30} -%}
 
@@ -2215,6 +2183,8 @@ limitations under the License.
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     <!-- Realsense front pitched {-->
+
+    <!-- sensor {-->
     {{ generic.realsense_d435_macro(
       namespace = spawner_args['name'],
       camera_name = camera_name,
@@ -2229,6 +2199,7 @@ limitations under the License.
       pitch = pitch,
       yaw = yaw)
     }}
+    <!--}-->
 
     <!-- mount {-->
     {{ mount }}
@@ -2252,6 +2223,8 @@ limitations under the License.
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     <!-- Realsense up {-->
+
+    <!-- sensor {-->
     {{ generic.realsense_d435_macro(
       namespace = spawner_args['name'],
       camera_name = camera_name,
@@ -2266,6 +2239,7 @@ limitations under the License.
       pitch = pitch,
       yaw = yaw)
     }}
+    <!--}-->
 
     <!-- mount {-->
     {{ mount }}
@@ -2289,6 +2263,8 @@ limitations under the License.
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     <!-- Realsense down {-->
+
+    <!-- sensor {-->
     {{ generic.realsense_d435_macro(
       namespace = spawner_args['name'],
       camera_name = camera_name,
@@ -2303,6 +2279,7 @@ limitations under the License.
       pitch = pitch,
       yaw = yaw)
     }}
+    <!--}-->
 
     <!-- mount {-->
     {{ mount }}
@@ -2326,6 +2303,8 @@ limitations under the License.
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     <!-- bluefox camera {-->
+
+    <!-- sensor {-->
     {{ generic.camera_macro(
       parent_link = parent_link,
       camera_name = camera_name,
@@ -2356,6 +2335,7 @@ limitations under the License.
       pitch = math.radians(90),
       yaw = 0)
     }}
+    <!--}-->
 
     <!-- mount {-->
     {{ mount }}
@@ -2378,6 +2358,8 @@ limitations under the License.
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
     <!-- bluefox camera reverse {-->
+
+    <!-- sensor {-->
     {{ generic.camera_macro(
       parent_link = parent_link,
       camera_name = camera_name,
@@ -2408,6 +2390,227 @@ limitations under the License.
       pitch = math.radians(90),
       yaw = math.radians(180))
     }}
+    <!--}-->
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# mobius_down_macro {-->#}
+{%- macro mobius_down_macro(camera_name, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-mobius-camera-down' -%}
+  {%- set spawner_description = 'Add mobius camera to the vehicle [1280x720 @ 30hz], pointing down' -%}
+  {%- set spawner_default_args = {'update_rate': 30, 'noise': 0.007} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Mobius down {-->
+
+    <!-- sensor {-->
+    {{ generic.camera_macro(
+      parent_link = parent_link,
+      camera_name = camera_name,
+      camera_frame_name = spawner_args['name'] + '/' + camera_name + '_optical',
+      frame_rate = spawner_args[spawner_keyword]['update_rate'],
+      sensor_base_frame_name = spawner_args['name']  + '/' + camera_name,
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      horizontal_fov = 2.28638,
+      image_width = 1280,
+      image_height = 720,
+      min_distance = 0.02,
+      max_distance = 40,
+      noise_mean = 0.0,
+      noise_stddev = spawner_args[spawner_keyword]['noise'],
+      mesh_file = 'model://mrs_robots_description/meshes/sensors/mobius.dae',
+      mesh_scale = '1 1 1',
+      color = 'DarkGrey',
+      visual_x = -0.004,
+      visual_y = 0.0045,
+      visual_z = 0,
+      visual_roll = 0,
+      visual_pitch = 0,
+      visual_yaw = 0,
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+    <!--}-->
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# mobius_front_macro {-->#}
+{%- macro mobius_front_macro(camera_name, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-mobius-camera-front' -%}
+  {%- set spawner_description = 'Add mobius camera to the vehicle [1280x720 @ 30hz], pointing forward' -%}
+  {%- set spawner_default_args = {'update_rate': 30, 'noise': 0.007} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Mobius front {-->
+
+    <!-- sensor {-->
+    {{ generic.camera_macro(
+      parent_link = parent_link,
+      camera_name = camera_name,
+      camera_frame_name = spawner_args['name'] + '/' + camera_name + '_optical',
+      frame_rate = spawner_args[spawner_keyword]['update_rate'],
+      sensor_base_frame_name = spawner_args['name']  + '/' + camera_name,
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      horizontal_fov = 2.28638,
+      image_width = 1280,
+      image_height = 720,
+      min_distance = 0.02,
+      max_distance = 40,
+      noise_mean = 0.0,
+      noise_stddev = spawner_args[spawner_keyword]['noise'],
+      mesh_file = 'model://mrs_robots_description/meshes/sensors/mobius.dae',
+      mesh_scale = '1 1 1',
+      color = 'DarkGrey',
+      visual_x = -0.004,
+      visual_y = 0.0045,
+      visual_z = 0,
+      visual_roll = 0,
+      visual_pitch = 0,
+      visual_yaw = 0,
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+    <!--}-->
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# mobius_back_left_macro {-->#}
+{%- macro mobius_back_left_macro(camera_name, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-mobius-camera-back-left' -%}
+  {%- set spawner_description = 'Add mobius camera to the vehicle [1280x720 @ 30hz], pointing to the back left' -%}
+  {%- set spawner_default_args = {'update_rate': 30, 'noise': 0.007} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Mobius back left {-->
+
+    <!-- sensor {-->
+    {{ generic.camera_macro(
+      parent_link = parent_link,
+      camera_name = camera_name,
+      camera_frame_name = spawner_args['name'] + '/' + camera_name + '_optical',
+      frame_rate = spawner_args[spawner_keyword]['update_rate'],
+      sensor_base_frame_name = spawner_args['name']  + '/' + camera_name,
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      horizontal_fov = 2.28638,
+      image_width = 1280,
+      image_height = 720,
+      min_distance = 0.02,
+      max_distance = 40,
+      noise_mean = 0.0,
+      noise_stddev = spawner_args[spawner_keyword]['noise'],
+      mesh_file = 'model://mrs_robots_description/meshes/sensors/mobius.dae',
+      mesh_scale = '1 1 1',
+      color = 'DarkGrey',
+      visual_x = -0.004,
+      visual_y = 0.0045,
+      visual_z = 0,
+      visual_roll = 0,
+      visual_pitch = 0,
+      visual_yaw = 0,
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+    <!--}-->
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# mobius_back_right_macro {-->#}
+{%- macro mobius_back_right_macro(camera_name, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-mobius-camera-back-right' -%}
+  {%- set spawner_description = 'Add mobius camera to the vehicle [1280x720 @ 30hz], pointing to the back right' -%}
+  {%- set spawner_default_args = {'update_rate': 30, 'noise': 0.007} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Mobius back right {-->
+
+    <!-- sensor {-->
+    {{ generic.camera_macro(
+      parent_link = parent_link,
+      camera_name = camera_name,
+      camera_frame_name = spawner_args['name'] + '/' + camera_name + '_optical',
+      frame_rate = spawner_args[spawner_keyword]['update_rate'],
+      sensor_base_frame_name = spawner_args['name']  + '/' + camera_name,
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      horizontal_fov = 2.28638,
+      image_width = 1280,
+      image_height = 720,
+      min_distance = 0.02,
+      max_distance = 40,
+      noise_mean = 0.0,
+      noise_stddev = spawner_args[spawner_keyword]['noise'],
+      mesh_file = 'model://mrs_robots_description/meshes/sensors/mobius.dae',
+      mesh_scale = '1 1 1',
+      color = 'DarkGrey',
+      visual_x = -0.004,
+      visual_y = 0.0045,
+      visual_z = 0,
+      visual_roll = 0,
+      visual_pitch = 0,
+      visual_yaw = 0,
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+    <!--}-->
 
     <!-- mount {-->
     {{ mount }}

@@ -533,6 +533,8 @@
       {%- endset -%}
       {# <!--}--> #}
 
+    <!--}-->
+
     </link>
 
     <!-- Propellers {-->
@@ -964,76 +966,69 @@
 
     {# <!--}--> #}
 
-    <!-- Mobius placements {-->
+    {# Mobius camera placements {--> #}
 
-    {% if enable_mobius_camera_down %}
-    <!-- mobius down {-->
-    {{ components.mobius_camera_macro(
-      namespace = namespace,
+    {# mobius down {--> #}
+    {{ components.mobius_down_macro(
       camera_name = "mobius_down",
       parent_link = root,
-      frame_rate = 30.0,
       x = 0.144,
       y = 0.0,
       z = -0.092,
       roll = 0,
-      pitch = math.radians90,
-      yaw = 0)
+      pitch = math.radians(90),
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
 
-    {% if enable_mobius_camera_front %}
-    <!-- mobius front {-->
-    {{ components.mobius_camera_macro(
-      namespace = namespace,
+    {# mobius front {--> #}
+    {{ components.mobius_front_macro(
       camera_name = "mobius_front",
       parent_link = root,
-      frame_rate = 30.0,
       x = 0.2,
       y = 0.0,
       z = -0.04,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
 
-    {% if enable_mobius_camera_back_left %}
-    <!-- mobius back left {-->
-    {{ components.mobius_camera_macro(
-      namespace = namespace,
+    {# mobius back left {--> #}
+    {{ components.mobius_back_left_macro(
       camera_name = "mobius_back_left",
       parent_link = root,
-      frame_rate = 30.0,
       x = -0.1,
       y = 0.1732,
       z = -0.04,
       roll = 0,
       pitch = 0,
-      yaw = math.radians120)
+      yaw = math.radians(120),
+      mount = none,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
 
-    {% if enable_mobius_camera_back_right %}
-    <!-- mobius back right {-->
-    {{ components.mobius_camera_macro(
-      namespace = namespace,
+    {# mobius back right {--> #}
+    {{ components.mobius_back_right_macro(
       camera_name = "mobius_back_right",
       parent_link = root,
-      frame_rate = 30.0,
       x = -0.1,
       y = -0.1732,
       z = -0.04,
       roll = 0,
       pitch = 0,
-      yaw = -math.radians120)
+      yaw = -math.radians(120),
+      mount = none,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
-    <!--} -->
+    {# <!--}--> #}
+
+    {# <!--}--> #}
 
     {# Dual UV cameras {--> #}
     {{ components.dual_uv_cameras_macro(
