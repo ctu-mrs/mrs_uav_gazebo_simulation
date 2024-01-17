@@ -3,11 +3,11 @@
 
 {%- import 'generic_components.sdf.jinja' as generic -%}
 
-<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
-<!-- !! THIS DOCUMENT CONTAINS ONLY COMPLEX COMPONENT MACROS DESIGNED !! -->
-<!-- !!   FOR USE WITH THE MRS DRONE SPAWNER AND USE THE SPAWNER API  !! -->
-<!-- !! GENERIC SENSORS, VISUAL BLOCKS, PLUGINS ETC BELONG TO GENERIC !! -->
-<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+{# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #}
+{# !! THIS DOCUMENT CONTAINS ONLY COMPLEX COMPONENT MACROS DESIGNED !! #}
+{# !!   FOR USE WITH THE MRS DRONE SPAWNER AND USE THE SPAWNER API  !! #}
+{# !! GENERIC SENSORS, VISUAL BLOCKS, PLUGINS ETC BELONG TO GENERIC !! #}
+{# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #}
 
 <!-- License {-->
 <!--
@@ -2773,6 +2773,7 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
+{# TODO: UWB plugin is not core #}
 {# uwb_range_macro {--> #}
 {%- macro uwb_range_macro(parent_link, x, y, z, roll, pitch, yaw, spawner_args) -%}
 

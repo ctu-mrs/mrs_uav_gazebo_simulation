@@ -1,11 +1,11 @@
 <?xml version="1.0"? encoding="utf-8">
 <sdf version="1.6">
 
-<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
-<!-- !!  THIS DOCUMENT CONTAINS ONLY BASIC BUILDING BLOCKS, PLUGINS,  !! -->
-<!-- !!   AND GENERIC SENSORS DEFINITIONS. DO NOT DEFINE ARGUMENTS    !! -->
-<!-- !! OR COMPLEX COMPONENTS THAT ARE USED BY THE MRS DRONE SPAWNER  !! -->
-<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+{# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #}
+{# !!  THIS DOCUMENT CONTAINS ONLY BASIC BUILDING BLOCKS, PLUGINS,  !! #}
+{# !!   AND GENERIC SENSORS DEFINITIONS. DO NOT DEFINE ARGUMENTS    !! #}
+{# !! OR COMPLEX COMPONENTS THAT ARE USED BY THE MRS DRONE SPAWNER  !! #}
+{# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #}
 
 <!-- License {-->
 <!--
@@ -31,7 +31,7 @@ limitations under the License.
 -->
 <!--}-->
 
-    <!-- ========================== general blocks ========================= -->
+{# ========================== general blocks ========================= #}
 
 {# handle_spawner_args {--> #}
 {%- macro handle_spawner_args(keyword, default_args, args) -%}
@@ -162,7 +162,7 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
-    <!-- ========================== visual blocks ========================= -->
+{# ========================== visual blocks ========================= #}
 
 {# visual_mesh_macro {--> #}
 {%- macro visual_mesh_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw) -%}
@@ -295,7 +295,7 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
-    <!-- ============================ drone legs =========================== -->
+{# ============================ drone legs =========================== #}
 
 {# leg_macro {--> #}
 {%- macro leg_macro(name, mesh_file, mesh_scale, color, parent, x, y, z, roll, pitch, yaw, collision_height, collision_radius) -%}
@@ -353,7 +353,7 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
-    <!-- ========================= drone propellers ======================== -->
+{# ========================= drone propellers ======================== #}
 
 {# motor_plugins_macro {--> #}
 {%- macro motor_plugins_macro(motor_number, direction, time_constant_up, time_constant_down, max_rot_velocity, motor_constant, moment_constant, rotor_drag_coefficient, rolling_moment_coefficient, rotor_velocity_slowdown_sim, enable_motor_crash) -%}
@@ -588,7 +588,7 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
-    <!-- =========================== base sensors ========================== -->
+{# =========================== base sensors ========================== #}
 
 {# odometry_sensor_macro {--> #}
 {%- macro odometry_sensor_macro(odometry_sensor_name, parent_link, topic_name, noise, frame_name, update_rate, x, y, z, roll, pitch, yaw) -%}
@@ -788,7 +788,7 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
-    <!-- ========================== gazebo plugins ========================= -->
+{# ========================== gazebo plugins ========================= #}
 
 {# gazebo_gps_macro {--> #}
 {%- macro gazebo_gps_macro(gps_name, parent_link, update_rate, gps_noise, gps_xy_random_walk, gps_z_random_walk, gps_xy_noise_density, gps_z_noise_density, gps_vxy_noise_density, gps_vz_noise_density, x, y, z, roll, pitch, yaw) -%}
@@ -1023,7 +1023,7 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
-    <!-- ========================== camera sensors ========================= -->
+{# ========================== camera sensors ========================= #}
 
 {# camera_macro {--> #}
 {%- macro camera_macro(parent_link, camera_name, camera_frame_name, sensor_base_frame_name, frame_rate, parent_frame_name, horizontal_fov, image_width, image_height, min_distance, max_distance, noise_mean, noise_stddev, mesh_file, mesh_scale, color, visual_x, visual_y, visual_z, visual_roll, visual_pitch, visual_yaw, x, y, z, roll, pitch, yaw) -%}
@@ -1389,7 +1389,7 @@ limitations under the License.
   {%- endmacro -%}
   <!--}-->
 
-    <!-- ======================== UV leds and cameras ======================== -->
+{# ======================== UV leds and cameras ======================== #}
 
   {# uvcam_macro {--> #}
   {%- macro uvcam_macro(parent_link, calibration_file, occlusions, frame_rate, device_id, camera_publish_topic, x, y, z, roll, pitch, yaw) -%}
