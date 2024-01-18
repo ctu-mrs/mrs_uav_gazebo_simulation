@@ -247,156 +247,6 @@ limitations under the License.
 <!--}-->
 
 {# TODO: make a component out of this #}
-<!-- Macro to add a magnetic gripper {-->
-{%- macro magnet_gripper_visualization_macro(parent_link, x, y, z, roll, pitch, yaw) -%}
-<link name="magnet_gripper_visualization_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="front_visual">
-    <pose>-0.09 0 0.03 0 0 0</pose>
-    <geometry>
-      <box>
-        <size>0.005 0.05 0.06</size>
-      </box>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Black</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <visual name="back_visual">
-    <pose>0.09 0 0.03 0 0 0</pose>
-    <geometry>
-      <box>
-        <size>0.005 0.05 0.06</size>
-      </box>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Black</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <visual name="down_visual">
-    <pose>0 0 0 0 0 0</pose>
-    <geometry>
-      <box>
-        <size>0.18 0.05 0.005</size>
-      </box>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Black</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <visual name="up_visual">
-    <pose>0 0 0.06 0 0 0</pose>
-    <geometry>
-      <box>
-        <size>0.18 0.05 0.005</size>
-      </box>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Black</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <collision name="collision">
-    <pose>0 0 0 0 0 0</pose>
-    <geometry>
-      <box>
-        <size>0.18 0.05 0.005</size>
-      </box>
-    </geometry>
-  </collision>
-</link>
-
-<joint name="magnet_gripper_visualization_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>magnet_gripper_visualization_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
-
-{# TODO: make a component out of this #}
-<!-- Macro to add a Timepix detector {-->
-{%- macro timepix_macro(parent_link, name,  x, y, z, roll, pitch, yaw) -%}
-<link name="{{ name }}_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="visual">
-    <pose>0 0.05 0 0 0 0</pose>
-    <geometry>
-      <box>
-        <size>0.02 0.09 0.02</size>
-      </box>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Green</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-</link>
-
-<plugin name="{{ name }}_plugin" filename="libgazebo_timepix.so" >
-  <exposition_time>0.1</exposition_time>  <!-- [s] -->
-  <material>si</material>                 <!-- string -->
-  <size>0.0003 0.01408 0.01408</size>     <!-- [m m m] -->
-</plugin>
-
-<joint name="{{ name }}_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>{{ name }}_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
-
-{# TODO: make a component out of this #}
-<!-- Macro to add a Timepix3 event camera {-->
-{%- macro timepix3_macro(parent_link, name, material, thickness, max_message_window, sensor_suffix, x, y, z, roll, pitch, yaw) -%}
-<link name="{{ name }}_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="visual">
-    <pose>0 0.05 0 0 0 0</pose>
-    <geometry>
-      <box>
-        <size>0.02 0.09 0.02</size>
-      </box>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Green</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-</link>
-
-<plugin name="{{ name }}_plugin" filename="libgazebo_timepix3.so" >
-  <material>{{ material }}</material>               <!-- string -->
-  <size>{{ thickness }} 0.01408 0.01408</size>     <!-- [m m m] -->
-  <max_message_window>{{ max_message_window }}</max_message_window> <!-- [s] -->
-  <sensor_suffix>{{ sensor_suffix }}</sensor_suffix> <!-- string -->
-</plugin>
-
-<joint name="{{ name }}_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>{{ name }}_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
-
-{# TODO: make a component out of this #}
 <!-- Macro to add a water gun {-->
 {%- macro water_gun_macro(parent_link, muzzle_velocity, particle_capacity, spread, spawning_reservoir, nozzle_offset_x, nozzle_offset_y, nozzle_offset_z, x, y, z, roll, pitch, yaw) -%}
 <link name="water_gun_link">
@@ -2775,56 +2625,6 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
-{# TODO: UWB plugin is not core #}
-{# uwb_range_macro {--> #}
-{%- macro uwb_range_macro(parent_link, x, y, z, roll, pitch, yaw, spawner_args) -%}
-
-  {%- set spawner_keyword = 'enable-uwb-range' -%}
-  {%- set spawner_description = 'Add Qorvo DW1000 UWB transceiver. Requires param "signal_id" to be set.' -%}
-  {%- set spawner_default_args = {'signal_id': none, 'update_rate': 10} -%}
-
-  {%- if spawner_keyword in spawner_args.keys() -%}
-
-    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
-
-    {%- if spawner_args[spawner_keyword]['signal_id'] is not none -%}
-
-      <!-- Qorvo DW1000 UWB {-->
-      <link name="uwb_range_link">
-        <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-        {{ generic.zero_inertial_macro() }}
-        <sensor name="uwb_range_sensor" type="wireless_transmitter">
-          <update_rate>{{ spawner_args[spawner_keyword]['update_rate'] }}</update_rate>
-          <always_on>1</always_on>
-          <plugin name="uwb_range_plugin" filename="libuwb_range.so">
-            <uwb_id>{{ spawner_args[spawner_keyword]['signal_id'] }}</uwb_id>
-            <publish_topic>/{{ spawner_args['name'] }}/uwb_range/range</publish_topic>
-            <frame_name>{{ spawner_args['name'] }}/uwb</frame_name>
-            <sensitivity>-150</sensitivity>
-            <stddev>0.1</stddev>
-          </plugin>
-          <transceiver>
-            <frequency>6489.6</frequency>
-            <min_frequency>6240.0</min_frequency>
-            <max_frequency>6739.2</max_frequency>
-            <power>14.5</power>
-            <gain>2.5</gain>
-          </transceiver>
-        </sensor>
-      </link>
-      <joint name="uwb_range_joint" type="fixed">
-        <parent>{{ parent_link }}</parent>
-        <child>uwb_range_link</child>
-        <disableFixedJointLumping>true</disableFixedJointLumping>
-        <preserveFixedJoint>true</preserveFixedJoint>
-      </joint>
-      <!--}-->
-
-    {%- endif -%}
-
-  {%- endif -%}
-{%- endmacro -%}
-{# <!--}--> #}
 
 {# ========================== VIO components ======================== #}
 
@@ -2989,5 +2789,198 @@ limitations under the License.
   {%- endif -%}
 {%- endmacro -%}
 {# <!--}--> #}
+
+{# ==================== miscellaneous components ==================== #}
+
+{# TODO: UWB plugin is not core #}
+{# uwb_range_macro {--> #}
+{%- macro uwb_range_macro(parent_link, x, y, z, roll, pitch, yaw, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-uwb-range' -%}
+  {%- set spawner_description = 'Add Qorvo DW1000 UWB transceiver. Requires param "signal_id" to be set.' -%}
+  {%- set spawner_default_args = {'signal_id': none, 'update_rate': 10} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    {%- if spawner_args[spawner_keyword]['signal_id'] is not none -%}
+
+      <!-- Qorvo DW1000 UWB {-->
+      <link name="uwb_range_link">
+        <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+        {{ generic.zero_inertial_macro() }}
+        <sensor name="uwb_range_sensor" type="wireless_transmitter">
+          <update_rate>{{ spawner_args[spawner_keyword]['update_rate'] }}</update_rate>
+          <always_on>1</always_on>
+          <plugin name="uwb_range_plugin" filename="libuwb_range.so">
+            <uwb_id>{{ spawner_args[spawner_keyword]['signal_id'] }}</uwb_id>
+            <publish_topic>/{{ spawner_args['name'] }}/uwb_range/range</publish_topic>
+            <frame_name>{{ spawner_args['name'] }}/uwb</frame_name>
+            <sensitivity>-150</sensitivity>
+            <stddev>0.1</stddev>
+          </plugin>
+          <transceiver>
+            <frequency>6489.6</frequency>
+            <min_frequency>6240.0</min_frequency>
+            <max_frequency>6739.2</max_frequency>
+            <power>14.5</power>
+            <gain>2.5</gain>
+          </transceiver>
+        </sensor>
+      </link>
+      <joint name="uwb_range_joint" type="fixed">
+        <parent>{{ parent_link }}</parent>
+        <child>uwb_range_link</child>
+        <disableFixedJointLumping>true</disableFixedJointLumping>
+        <preserveFixedJoint>true</preserveFixedJoint>
+      </joint>
+      <!--}-->
+
+    {%- endif -%}
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# magnet_gripper_visualization_macro {--> #}
+{%- macro magnet_gripper_visualization_macro(parent_link, x, y, z, roll, pitch, yaw, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-magnetic-gripper' -%}
+  {%- set spawner_description = 'Add a magnetic gripper visualization' -%}
+  {%- set spawner_default_args = none %}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- magnetic gripper visualization {-->
+    <link name="magnet_gripper_visualization_link">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+      {{ generic.zero_inertial_macro() }}
+      {{ generic.visual_colored_box_macro('front', 0.005, 0.05, 0.06, 'Black', -0.09, 0, 0.03, 0, 0, 0) }}
+      {{ generic.visual_colored_box_macro('back', 0.005, 0.05, 0.06, 'Black', 0.09, 0, 0.03, 0, 0, 0) }}
+      {{ generic.visual_colored_box_macro('down', 0.18, 0.05, 0.005, 'Black', 0, 0, 0, 0, 0, 0) }}
+      {{ generic.visual_colored_box_macro('up', 0.18, 0.05, 0.005, 'Black', 0, 0, 0.06, 0, 0, 0) }}
+      <collision name="collision">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.18 0.05 0.005</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="magnet_gripper_visualization_joint" type="fixed">
+      <parent>{{ parent_link }}</parent>
+      <child>magnet_gripper_visualization_link</child>
+    </joint>
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# TODO: Timepix is not core #}
+{# Timepix detector {--> #}
+{%- macro timepix_macro(parent_link, sensor_name,  x, y, z, roll, pitch, yaw, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-timepix' -%}
+  {%- set spawner_description = 'Add a Timepix radiation detector to the vehicle' -%}
+  {%- set spawner_default_args = {'material': 'si', 'exposition_time': 0.1, 'thickness': 0.0003} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Timepix {-->
+    <link name="{{ sensor_name }}_link">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+      {{ generic.zero_inertial_macro() }}
+      {{ generic.visual_colored_box_macro(sensor_name, 0.02, 0.09, 0.02, 'Green', 0, 0.05, 0, 0, 0, 0) }}
+    </link>
+
+    <plugin name="{{ sensor_name }}_plugin" filename="libgazebo_timepix.so" >
+      <exposition_time>{{ spawner_args[spawner_keyword]['exposition_time'] }}</exposition_time>   <!-- [s] -->
+      <material>{{ spawner_args[spawner_keyword]['material'] }}</material>                        <!-- string -->
+      <size>{{ spawner_args[spawner_keyword]['thickness'] }} 0.01408 0.01408</size>               <!-- [m m m] -->
+    </plugin>
+
+    <joint name="{{ sensor_name }}_joint" type="fixed">
+      <parent>{{ parent_link }}</parent>
+      <child>{{ sensor_name }}_link</child>
+    </joint>
+    <!--}-->
+
+  {%- endif -%}
+
+{%- endmacro -%}
+<!--}-->
+
+{# TODO: Timepix3 is not core #}
+{# Timepix3 detector {--> #}
+{%- macro timepix3_macro(parent_link, sensor_name, sensor_suffix, x, y, z, roll, pitch, yaw, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-timepix3' -%}
+  {%- set spawner_description = 'Add a Timepix3 gamma event camera to the vehicle' -%}
+  {%- set spawner_default_args = {'material': 'cdte', 'max_message_window': 1.0, 'thickness': 0.002} %}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Timepix3 {-->
+    <link name="{{ sensor_name }}_link">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+      {{ generic.zero_inertial_macro() }}
+      {{ generic.visual_colored_box_macro(sensor_name, 0.02, 0.09, 0.02, 'Green', 0.05, 0, 0, 0, 0, 0) }}
+    </link>
+
+    <plugin name="{{ sensor_name }}_plugin" filename="libgazebo_timepix3.so" >
+      <material>{{ material }}</material>                                                                 <!-- string -->
+      <size>{{ spawner_args[spawner_keyword]['thickness'] }} 0.01408 0.01408</size>                       <!-- [m m m] -->
+      <max_message_window>{{ spawner_args[spawner_keyword]['max_message_window'] }}</max_message_window>  <!-- [s] -->
+      <sensor_suffix>{{ sensor_suffix }}</sensor_suffix>                                                  <!-- string -->
+    </plugin>
+
+    <joint name="{{ name }}_joint" type="fixed">
+      <parent>{{ parent_link }}</parent>
+      <child>{{ sensor_name }}_link</child>
+    </joint>
+    <!--}-->
+
+  {%- endif -%}
+
+{%- endmacro -%}
+<!--}-->
+
+{# whycon_box_macro {--> #}
+{%- macro whycon_box_macro(parent_link, x, y, z, roll, pitch, yaw, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-whycon-box' -%}
+  {%- set spawner_description = 'Add a Whycon box for relative localization using visual markers' -%}
+  {%- set spawner_default_args = none -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    {%- set mesh_file = 'model://mrs_robots_description/meshes/sensors/whycon_box.dae' -%}
+    {%- set mesh_scale = '1 1 1' -%}
+
+    <!-- Whycon Box {-->
+    <link name="whycon_box_link">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+      {{ generic.zero_inertial_macro() }}
+      {{ generic.visual_mesh_textured_macro("whycon_box", mesh_file, mesh_scale, x, y, z, roll, pitch, yaw) }}
+    </link>
+
+    <joint name="whycon_box_joint" type="fixed">
+      <parent>{{ parent_link }}</parent>
+      <child>whycon_box_link</child>
+    </joint>
+    <!--}-->
+
+  {%- endif -%}
+
+{%- endmacro -%}
+<!--}-->
 
 </sdf>

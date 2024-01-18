@@ -1145,8 +1145,7 @@
     }}
     {# <!--}--> #}
 
-    {% if enable_magnetic_gripper %}
-    <!-- Magnetic gripper {-->
+    {# Magnetic gripper {--> #}
     {{ components.magnet_gripper_visualization_macro(
       parent_link = root,
       x = 0.0,
@@ -1154,44 +1153,39 @@
       z = - (0.20/2 + 0.01),
       roll = 0,
       pitch = 0,
-      yaw = math.radians90)
+      yaw = math.radians(90),
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
 
-    {% if enable_timepix %}
-    <!-- Timepix {-->
+    {# Timepix {--> #}
     {{ components.timepix_macro(
       parent_link = root,
-      name = 'timepix',
+      sensor_name = 'timepix',
       x = 0.115,
       y = -0.05,
       z = -0.05,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
 
-    {% if enable_timepix3 %}
-    <!-- Timepix3 {-->
+    {# Timepix3 {--> #}
     {{ components.timepix3_macro(
       parent_link = root,
-      name = 'timepix3',
-      material = 'cdte',
-      thickness = 0.002,
-      max_message_window = 1.0,
+      sensor_name = 'timepix3',
       sensor_suffix = '',
       x = 0.115,
       y = -0.05,
       z = -0.05,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
 
     {% if enable_light %}
     <!-- Light {-->
@@ -1235,20 +1229,18 @@
     }}
     {# <!--}--> #}
 
-    {% if enable_whycon_box %}
-    <!-- Whycon box {-->
+    {# Whycon box {--> #}
     {{ components.whycon_box_macro(
       parent_link = root,
-      mesh_scale = '1 1 1',
       x = 0,
       y = 0,
-      z = 0.25,
+      z = 0.08,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
 
     {% if enable_pendulum %}
     <!-- Pendelum {-->
