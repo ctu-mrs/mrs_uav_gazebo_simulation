@@ -300,61 +300,6 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-{# TODO: make a component out of this #}
-<!-- Macro to add a light {-->
-{%- macro light_macro(parent_link, update_rate, max_pitch_rate, initial_on, compensate_tilt, x, y, z, roll, pitch, yaw) -%}
-<link name="light_macro_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="visual">
-    <pose>0 0 0 0 0 0</pose>
-    <geometry>
-      <box>
-        <size>0.01 0.01 0.01</size>
-      </box>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Yellow</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-</link>
-
-<plugin name="light_plugin" filename="libMrsGazeboCommonResources_LightPlugin.so">
-  <offset_x>{{ x }}</offset_x>
-  <offset_y>{{ y }}</offset_y>
-  <offset_z>{{ z }}</offset_z>
-  <offset_roll>{{ roll }}</offset_roll>
-  <offset_pitch>{{ pitch }}</offset_pitch>
-  <offset_yaw>{{ yaw }}</offset_yaw>
-  <spawning_frame>{{ parent_link }}</spawning_frame>
-  <update_rate>{{ update_rate }}</update_rate>
-  <max_pitch_rate>{{ max_pitch_rate }}</max_pitch_rate>
-  <initial_on>{{ initial_on }}</initial_on>
-  <compensate_tilt>{{ compensate_tilt }}</compensate_tilt>
-</plugin>
-
-<joint name="light_macro_joint" type="revolute">
-  <parent>{{ parent_link }}</parent>
-  <child>light_macro_link</child>
-  <axis>
-    <xyz>0 1 0</xyz>
-    <limit>
-      <lower>-1.57</lower>
-      <upper>1.57</upper>
-      <effort>1</effort>
-      <velocity>10</velocity>
-    </limit>
-    <dynamics>
-      <damping>0.0</damping>
-      <friction>0.0</friction>
-    </dynamics>
-  </axis>
-</joint>
-{%- endmacro -%}
-<!--}-->
 
 {# TODO: make a component out of this #}
 <!-- Macro to add a safety_led {-->
@@ -424,144 +369,6 @@ limitations under the License.
   <child>parachute_link</child>
 </joint>
 {%- endmacro -%}
-<!--}-->
-
-{# TODO: make a component out of this #}
-<!-- Macro to add a whycon box {-->
-{%- macro whycon_box_macro(parent_link, mesh_scale, x, y, z, roll, pitch, yaw) -%}
-<link name="whycon_box_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="visual">
-    <pose>0 0 0 0 0 0</pose>
-    <geometry>
-      <mesh>
-        <uri>model://mrs_robots_description/meshes/sensors/whycon_box.dae</uri>
-        <scale>{{ mesh_scale }}</scale>
-      </mesh>
-    </geometry>
-  </visual>
-</link>
-
-<joint name="whycon_box_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>whycon_box_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
-
-{# TODO: make a component out of this #}
-<!-- Macro to add a pendulum {-->
-
-{# TODO: make a component out of this #}
-<!-- Macro to add a single chain in the pendulum {-->
-{%- macro single_chain_pendulum_macro(parent_link, id, chain_mass, chain_radius, chain_length, joint_offset_x, joint_offset_y, joint_offset_z) -%}
-<link name="pendulum_chain_{{ id }}_link">
-  <pose relative_to = "pendulum_chain_{{ id }}_joint"> 0 0 {{ -chain_length/2 }} 0 0 0</pose>
-  <inertial>
-    <mass>{{ chain_mass }}</mass>
-    {{ generic.cylinder_inertia(
-        m = chain_mass,
-        r = chain_radius,
-        h = chain_length)
-    }}
-  </inertial>
-  <gravity>1</gravity>
-  <visual name="chain_visual">
-    <pose>0 0 0 0 0 0</pose>
-    <geometry>
-      <cylinder>
-        <length>{{ chain_length }}</length>
-        <radius>{{ chain_radius }}</radius>
-      </cylinder>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/DarkGrey</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <visual name="connection_visual">
-    <pose>0 0 {{ chain_length/2 }} 0 0 0</pose>
-    <geometry>
-      <sphere>
-        <radius>0.012</radius>
-      </sphere>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Yellow</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-</link>
-
-<joint name="pendulum_chain_{{ id }}_joint" type="revolute2">
-  <parent>{{ parent_link }}</parent>
-  <child>pendulum_chain_{{ id }}_link</child>
-  <pose relative_to = "{{ parent_link }}">{{ joint_offset_x }} {{ joint_offset_y }} {{ joint_offset_z }} 0 0 0</pose>
-  <axis>
-    <xyz>1 0 0</xyz>
-    <limit>
-      <lower>-3.1415</lower>
-      <upper>3.1415</upper>
-      <effort>-1</effort>
-      <velocity>-1</velocity>
-    </limit>
-    <dynamics>
-      <damping>0.0</damping>
-      <friction>0.0</friction>
-    </dynamics>
-  </axis>
-  <axis2>
-    <xyz>0 1 0</xyz>
-    <limit>
-      <lower>-3.1415</lower>
-      <upper>3.1415</upper>
-      <effort>-1</effort>
-      <velocity>-1</velocity>
-    </limit>
-    <dynamics>
-      <damping>0.0</damping>
-      <friction>0.0</friction>
-    </dynamics>
-  </axis2>
-</joint>
-{%- endmacro -%}
-<!--}-->
-
-{# TODO: make a component out of this #}
-<!-- Macro to add a pendulum {-->
-{%- macro pendulum_macro(parent_link, number_of_chains, chain_length, chain_radius, chain_mass, x, y, z) -%}
-{{ single_chain_pendulum_macro(
-  parent_link = parent_link,
-  id = 0,
-  chain_mass = chain_mass,
-  chain_radius = chain_radius,
-  chain_length = chain_length,
-  joint_offset_x = x,
-  joint_offset_y = y,
-  joint_offset_z = z,
-  )
-}}
-
-{%- for id_ in range(1, number_of_chains) -%}
-  {{ single_chain_pendulum_macro(
-    parent_link = "pendulum_chain_" + (id_ - 1)| string() + "_link",
-    id = id_,
-    chain_mass = chain_mass,
-    chain_radius = chain_radius,
-    chain_length = chain_length,
-    joint_offset_x = 0,
-    joint_offset_y = 0,
-    joint_offset_z = -chain_length/2,
-    )
-  }}
-{%- endfor -%}
-{%- endmacro -%}
-<!--}-->
 <!--}-->
 
 {# ================================================================== #}
@@ -2980,6 +2787,106 @@ limitations under the License.
 
   {%- endif -%}
 
+{%- endmacro -%}
+<!--}-->
+
+{# light_macro {--> #}
+{%- macro light_macro(parent_link, max_pitch_rate, x, y, z, roll, pitch, yaw, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-light' -%}
+  {%- set spawner_description = 'Add a light on a gimbal to the vehicle. Requires a Gazebo world with enabled shadows' -%}
+  {%- set spawner_default_args = {'update_rate': 30, 'compensate_tilt': True, 'initial_on': True} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Light  {-->
+    <link name="light_macro_link">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+      {{ generic.zero_inertial_macro() }}
+      {{ generic.visual_colored_box_macro('light', 0.01, 0.01, 0.01, 'Yellow', 0, 0, 0, 0, 0, 0) }}
+    </link>
+
+    <plugin name="light_plugin" filename="libMrsGazeboCommonResources_LightPlugin.so">
+      <offset_x>{{ x }}</offset_x>
+      <offset_y>{{ y }}</offset_y>
+      <offset_z>{{ z }}</offset_z>
+      <offset_roll>{{ roll }}</offset_roll>
+      <offset_pitch>{{ pitch }}</offset_pitch>
+      <offset_yaw>{{ yaw }}</offset_yaw>
+      <spawning_frame>{{ parent_link }}</spawning_frame>
+      <update_rate>{{ spawner_args[spawner_keyword]['update_rate'] }}</update_rate>
+      <max_pitch_rate>{{ max_pitch_rate }}</max_pitch_rate>
+      <initial_on>{{ spawner_args[spawner_keyword]['initial_on'] }}</initial_on>
+      <compensate_tilt>{{ spawner_args[spawner_keyword]['compensate_tilt'] }}</compensate_tilt>
+    </plugin>
+
+    <joint name="light_macro_joint" type="revolute">
+      <parent>{{ parent_link }}</parent>
+      <child>light_macro_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-1.57</lower>
+          <upper>1.57</upper>
+          <effort>1</effort>
+          <velocity>10</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.0</damping>
+          <friction>0.0</friction>
+        </dynamics>
+      </axis>
+    </joint>
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+<!--}-->
+
+{# pendulum_macro {--> #}
+{%- macro pendulum_macro(parent_link, x, y, z, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-pendulum' -%}
+  {%- set spawner_description = 'Add a pendulum to the vehicle. Specify the length and mass of the whole chain. Length and mass is uniformly distributed between the links' -%}
+  {%- set spawner_default_args = {'chain_length': 3.0, 'chain_mass': 0.5, 'num_links': 30, 'radius': 0.01} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Pendulum {-->
+    <!-- chain link 0 {-->
+    {{ generic.single_chain_pendulum_macro(
+      parent_link = parent_link,
+      id = 0,
+      link_mass = spawner_args[spawner_keyword]['chain_mass'] / spawner_args[spawner_keyword]['num_links'],
+      link_radius = spawner_args[spawner_keyword]['radius'],
+      link_length = spawner_args[spawner_keyword]['chain_length'] / spawner_args[spawner_keyword]['num_links'],
+      joint_offset_x = x,
+      joint_offset_y = y,
+      joint_offset_z = z)
+    }}
+    <!--}-->
+
+    {%- for id_ in range(1, spawner_args[spawner_keyword]['num_links'] | int) -%}
+
+      <!-- chain link {{id_}} {-->
+      {{ generic.single_chain_pendulum_macro(
+        parent_link = 'pendulum_chain_' + (id_ - 1)| string() + '_link',
+        id = id_,
+        link_mass = spawner_args[spawner_keyword]['chain_mass'] / spawner_args[spawner_keyword]['num_links'],
+        link_radius = spawner_args[spawner_keyword]['radius'],
+        link_length = spawner_args[spawner_keyword]['chain_length'] / spawner_args[spawner_keyword]['num_links'],
+        joint_offset_x = 0,
+        joint_offset_y = 0,
+        joint_offset_z = -0.5 * (spawner_args[spawner_keyword]['chain_length'] / spawner_args[spawner_keyword]['num_links']))
+      }}
+      <!--}-->
+
+    {%- endfor -%}
+    <!--}-->
+
+  {%- endif -%}
 {%- endmacro -%}
 <!--}-->
 

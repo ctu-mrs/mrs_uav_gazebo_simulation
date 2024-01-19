@@ -1187,23 +1187,19 @@
     }}
     {# <!--}--> #}
 
-    {% if enable_light %}
-    <!-- Light {-->
+    {# Light {--> #}
     {{ components.light_macro(
       parent_link = root,
-      update_rate = 30,
       max_pitch_rate = 0.1,
-      initial_on = True,
-      compensate_tilt = True,
       x = 0.2,
       y = 0.0,
       z = -0.1,
       roll = 0,
       pitch = 0,
-      yaw = 0)
-    }}
-    <!--}-->
-    {% endif %}
+      yaw = 0,
+      spawner_args = spawner_args)
+      }}
+      {# <!--}--> #}
 
     {# UV leds {--> #}
     {{ components.uv_leds_macro(
@@ -1242,20 +1238,15 @@
     }}
     {# <!--}--> #}
 
-    {% if enable_pendulum %}
-    <!-- Pendelum {-->
+    {# Pendulum {--> #}
     {{ components.pendulum_macro(
       parent_link = root,
-      number_of_chains = 30,
-      chain_length = 0.1,
-      chain_radius = 0.01,
-      chain_mass = 0.5 / 30,
       x = 0,
       y = 0,
-      z = -0.10)
+      z = -0.10,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
 
   </model>
 </sdf>

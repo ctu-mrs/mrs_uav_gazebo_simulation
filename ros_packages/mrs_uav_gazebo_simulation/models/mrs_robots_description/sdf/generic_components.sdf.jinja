@@ -162,6 +162,84 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
+{# single_chain_pendulum_macro {--> #}
+{%- macro single_chain_pendulum_macro(parent_link, id, link_mass, link_radius, link_length, joint_offset_x, joint_offset_y, joint_offset_z) -%}
+  <link name="pendulum_chain_{{ id }}_link">
+    <pose relative_to = "pendulum_chain_{{ id }}_joint"> 0 0 {{ -link_length/2.0 }} 0 0 0</pose>
+    <inertial>
+      <mass>{{ link_mass }}</mass>
+      {{ cylinder_inertia(
+          m = link_mass,
+          r = link_radius,
+          h = link_length)
+      }}
+    </inertial>
+    <gravity>1</gravity>
+    <visual name="chain_visual">
+      <pose>0 0 0 0 0 0</pose>
+      <geometry>
+        <cylinder>
+          <length>{{ link_length }}</length>
+          <radius>{{ link_radius }}</radius>
+        </cylinder>
+      </geometry>
+      <material>
+        <script>
+          <name>Gazebo/DarkGrey</name>
+          <uri>file://media/materials/scripts/gazebo.material</uri>
+        </script>
+      </material>
+    </visual>
+    <visual name="connection_visual">
+      <pose>0 0 {{ link_length/2.0 }} 0 0 0</pose>
+      <geometry>
+        <sphere>
+          <radius>0.012</radius>
+        </sphere>
+      </geometry>
+      <material>
+        <script>
+          <name>Gazebo/Yellow</name>
+          <uri>file://media/materials/scripts/gazebo.material</uri>
+        </script>
+      </material>
+    </visual>
+  </link>
+  
+  <joint name="pendulum_chain_{{ id }}_joint" type="revolute2">
+    <parent>{{ parent_link }}</parent>
+    <child>pendulum_chain_{{ id }}_link</child>
+    <pose relative_to = "{{ parent_link }}">{{ joint_offset_x }} {{ joint_offset_y }} {{ joint_offset_z }} 0 0 0</pose>
+    <axis>
+      <xyz>1 0 0</xyz>
+      <limit>
+        <lower>-3.1415</lower>
+        <upper>3.1415</upper>
+        <effort>-1</effort>
+        <velocity>-1</velocity>
+      </limit>
+      <dynamics>
+        <damping>0.0</damping>
+        <friction>0.0</friction>
+      </dynamics>
+    </axis>
+    <axis2>
+      <xyz>0 1 0</xyz>
+      <limit>
+        <lower>-3.1415</lower>
+        <upper>3.1415</upper>
+        <effort>-1</effort>
+        <velocity>-1</velocity>
+      </limit>
+      <dynamics>
+        <damping>0.0</damping>
+        <friction>0.0</friction>
+      </dynamics>
+    </axis2>
+  </joint>
+{%- endmacro -%}
+{# <!--}--> #}
+
 {# ========================== visual blocks ========================= #}
 
 {# visual_mesh_macro {--> #}
