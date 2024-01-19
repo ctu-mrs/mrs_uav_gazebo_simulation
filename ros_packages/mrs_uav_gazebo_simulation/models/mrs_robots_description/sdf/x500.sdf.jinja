@@ -86,7 +86,6 @@
 
   {# <!--}--> #}
 
-
   {# <!--}--> #}
 
   {# Inertias {--> #}
@@ -107,9 +106,9 @@
 
   <model name="{{ name }}">
 
-  {# ================================================================== #}
-  {# ||                    bare body definitions                     || #}
-  {# ================================================================== #}
+    {# ================================================================== #}
+    {# ||                    bare body definitions                     || #}
+    {# ================================================================== #}
 
     <link name="{{ root }}">
 
@@ -771,9 +770,6 @@
 
     {# ========================== LIDAR sensors ========================= #}
 
-    {# NOTE: special handling of lidars - content of component macro stored in a variable #}
-    {# later we check the variable and add more visuals based on active components #}
-
     {# Rplidar {--> #}
     {%- set rplidar = components.rplidar_macro(
       parent_link = root,
@@ -803,17 +799,6 @@
       spawner_args = spawner_args)
     -%}
     {{ ouster }}
-    {# <!--}--> #}
-
-    {# 3D lidar mount {--> #}
-    {%- if rplidar | replace('\s', '') | length != 0 or ouster | replace('\s', '') | length != 0 -%}
-      <!-- lidar mount {-->
-      {{ lidar_mount }}
-      <!--}-->
-    {%- else -%}
-      {# otherwise put a GPS antenna to the empty space #}
-      {{ gps_visuals }}
-    {%- endif -%}
     {# <!--}--> #}
 
     {# ========================== camera sensors ======================== #}
@@ -905,12 +890,6 @@
     {{ bluefox_camera_reverse }}
     {# <!--}--> #}
 
-    {# bluefox mount {--> #}
-    {%- if bluefox_camera | replace('\s', '') | length != 0 or bluefox_camera_reverse | replace('\s', '') | length != 0 -%}
-      {{ bluefox_mount }}
-    {%- endif -%}
-    {# <!--}--> #}
-
     {# <!--}--> #}
 
     {# UV camera placements {--> #}
@@ -986,8 +965,28 @@
         roll = 0.0,
         pitch = 0.0,
         yaw = 0.0,
+        mount = qorvo_dw1000_mount,
         spawner_args = spawner_args)
     }}
+    {# <!--}--> #}
+
+    {# ====================== conditional components ==================== #}
+
+    {# lidar mount / gps antenna visuals {--> #}
+    {%- if rplidar | replace('\s', '') | length != 0 or ouster | replace('\s', '') | length != 0 -%}
+      <!-- lidar mount {-->
+      {{ lidar_mount }}
+      <!--}-->
+    {%- else -%}
+      {# otherwise put a GPS antenna to the empty space #}
+      {{ gps_visuals }}
+    {%- endif -%}
+    {# <!--}--> #}
+
+    {# bluefox mount {--> #}
+    {%- if bluefox_camera | replace('\s', '') | length != 0 or bluefox_camera_reverse | replace('\s', '') | length != 0 -%}
+      {{ bluefox_mount }}
+    {%- endif -%}
     {# <!--}--> #}
 
   </model>

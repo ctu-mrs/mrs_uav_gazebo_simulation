@@ -96,9 +96,9 @@
 
   <model name="{{ name }}">
 
-  {# ================================================================== #}
-  {# ||                    bare body definitions                     || #}
-  {# ================================================================== #}
+    {# ================================================================== #}
+    {# ||                    bare body definitions                     || #}
+    {# ================================================================== #}
 
     <link name="{{ root }}">
 
@@ -526,7 +526,6 @@
       {%- endset -%}
       {# <!--}--> #}
 
-
     {# <!--}--> #}
 
     <!--}-->
@@ -726,7 +725,7 @@
     }}
     {# <!--}--> #}
 
-    {# Garmin Up {--> #}
+    {# Garmin up {--> #}
     {{ components.garmin_up_external_macro(
       parent_link = root,
       x = -0.077,
@@ -786,14 +785,6 @@
     {{ rplidar }}
     {# <!--}--> #}
 
-    {# 2D lidar mount {--> #}
-    {%- if rplidar | replace('\s', '') | length != 0 or scanse_sweep | replace('\s', '') | length != 0 -%}
-      <!-- 2d lidar mount {-->
-      {{ lidar_mount_2d }}
-      <!--}-->
-    {%- endif -%}
-    {# <!--}--> #}
-
     {# Velodyne {--> #}
     {%- set velodyne = components.velodyne_macro(
       parent_link = root,
@@ -824,14 +815,6 @@
       spawner_args = spawner_args)
     -%}
     {{ ouster }}
-    {# <!--}--> #}
-
-    {# 3D lidar mount {--> #}
-    {%- if velodyne | replace('\s', '') | length != 0 or ouster | replace('\s', '') | length != 0 -%}
-      <!-- 3d lidar mount {-->
-      {{ lidar_mount_3d }}
-      <!--}-->
-    {%- endif -%}
     {# <!--}--> #}
 
     {# ========================== camera sensors ======================== #}
@@ -878,12 +861,6 @@
       spawner_args = spawner_args)
     -%}
     {{ bluefox_camera_reverse }}
-    {# <!--}--> #}
-
-    {# bluefox mount {--> #}
-    {%- if bluefox_camera | replace('\s', '') | length != 0 or bluefox_camera_reverse | replace('\s', '') | length != 0 -%}
-      {{ bluefox_mount }}
-    {%- endif -%}
     {# <!--}--> #}
 
     {# <!--}--> #}
@@ -1246,6 +1223,30 @@
       z = -0.10,
       spawner_args = spawner_args)
     }}
+    {# <!--}--> #}
+
+    {# ====================== conditional components ==================== #}
+
+    {# bluefox mount {--> #}
+    {%- if bluefox_camera | replace('\s', '') | length != 0 or bluefox_camera_reverse | replace('\s', '') | length != 0 -%}
+      {{ bluefox_mount }}
+    {%- endif -%}
+    {# <!--}--> #}
+
+    {# 2D lidar mount {--> #}
+    {%- if rplidar | replace('\s', '') | length != 0 or scanse_sweep | replace('\s', '') | length != 0 -%}
+      <!-- 2d lidar mount {-->
+      {{ lidar_mount_2d }}
+      <!--}-->
+    {%- endif -%}
+    {# <!--}--> #}
+
+    {# 3D lidar mount {--> #}
+    {%- if velodyne | replace('\s', '') | length != 0 or ouster | replace('\s', '') | length != 0 -%}
+      <!-- 3d lidar mount {-->
+      {{ lidar_mount_3d }}
+      <!--}-->
+    {%- endif -%}
     {# <!--}--> #}
 
   </model>
