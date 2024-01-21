@@ -428,7 +428,7 @@
 
       {# Realsense front mount {--> #}
       {%- set realsense_front_mount -%}
-      {{ components.visual_link_macro(
+      {{ generic.visual_link_macro(
         name = 'realsense_front_mount',
         mesh_file = realsense_front_mount_mesh,
         mesh_scale = mesh_scale_milimeters,
@@ -658,11 +658,10 @@
     }}
     {# <!--}--> #}
 
-    <!-- ========================== LIDAR sensors ========================= -->
+    {# ========================== LIDAR sensors ========================= #}
 
     {# Scanse Sweep {--> #}
     {{ components.scanse_sweep_macro(
-      namespace = namespace,
       parent_link = root,
       x = 0.0,
       y = 0.0,
@@ -721,7 +720,7 @@
     {{ ouster }}
     {# <!--}--> #}
 
-    <!-- ========================= camera sensors ========================= -->
+    {# ========================= camera sensors ========================= #}
 
     {# Bluefox camera placements {--> #}
 
@@ -922,7 +921,7 @@
       parent_link = root,
       visualize = False,
       frame_name = spawner_args['name'] + '/teraranger_tower',
-      parent_frame_name = namespace + '/fcu',
+      parent_frame_name = spawner_args['name'] + '/fcu',
       gaussian_noise = 0.0,
       x = 0.0,
       y = 0.0,
@@ -950,7 +949,7 @@
     {# Timepix {--> #}
     {{ components.timepix_macro(
       parent_link = root,
-      name = 'timepix',
+      sensor_name = 'timepix',
       x = 0.115,
       y = -0.05,
       z = -0.05,
@@ -964,7 +963,7 @@
     {# Timepix3 {--> #}
     {{ components.timepix3_macro(
       parent_link = root,
-      name = 'timepix3',
+      sensor_name = 'timepix3',
       sensor_suffix = '',
       x = 0.115,
       y = -0.05,
@@ -1001,15 +1000,8 @@
     {# <!--}--> #}
 
     {# Water gun {--> #}
-    {# TODO: !! #}
-    {% if enable_water_gun %}
-    <!-- Water gun {-->
     {{ components.water_gun_macro(
       parent_link = root,
-      muzzle_velocity = 15.0,
-      particle_capacity = 30,
-      spread = 1.0,
-      spawning_reservoir = "the_void",
       nozzle_offset_x = 0.21,
       nozzle_offset_y = 0.0,
       nozzle_offset_z = -0.085,
@@ -1018,158 +1010,9 @@
       z = -0.11,
       roll = 0,
       pitch = 0,
-      yaw = 0)
-    }}
-    <!--}-->
-    {% endif %}
-    {# <!--}--> #}
-
-    {# MBZIRC PROFILES {--> #}
-
-    {% if wall_challenge %}
-    <!-- wall_challenge {-->
-
-    <!-- garmin {-->
-    {{ components.external_garmin_macro(
-      namespace = namespace,
-      parent_link = root,
-      orientation = "",
-      x = 0.0,
-      y = -0.221,
-      z = -0.035,
-      roll = 0,
-      pitch = math.radians(90),
-      yaw = math.radians(90))
-    }}
-    <!--}-->
-
-    <!-- bluefox brick {-->
-    {{ components.bluefox_camera_macro(
-      namespace = namespace,
-      camera_name = "bluefox_brick",
-      parent_link = root,
-      frame_rate = 100.0,
-      hfov = 2.05,
-      noise = 0.007,
-      x = 0.0,
-      y = -0.187,
-      z = -0.055,
-      roll = 0,
-      pitch = math.radians(90),
-      yaw = math.radians(-90))
-    }}
-    <!--}-->
-
-    <!-- bluefox optflow {-->
-    {{ components.bluefox_camera_macro(
-      namespace = namespace,
-      camera_name = "bluefox_optflow",
-      parent_link = root,
-      frame_rate = 100.0,
-      hfov = 1.9,
-      noise = 0.007,
-      x = 0.0,
-      y = -0.152,
-      z = -0.055,
-      roll = 0,
-      pitch = math.radians(90),
-      yaw = math.radians(-90))
-    }}
-    <!--}-->
-
-    <!-- realsense tilted {-->
-    {{ components.realsense_macro(
-      namespace = namespace,
-      camera_name = "rgbd",
-      camera_suffix="_down",
-      parent_link = root,
-      enable_realistic_realsense = enable_realistic_realsense,
-      x = 0.15,
-      y = 0.15,
-      z = -0.05,
-      roll=-0.9727464,
-      pitch=1.2572625,
-      yaw=-2.5665787)
-    }}
-    <!--}-->
-
-    <!--}-->
-    {% endif %}
-
-    {% if fire_challenge_blanket %}
-    <!-- fire_challenge_blanket {-->
-
-    <!-- garmin {-->
-    {{ components.external_garmin_macro(
-      namespace = namespace,
-      parent_link = root,
-      orientation = "",
-      x = 0.177,
-      y = 0.0735,
-      z = -0.07,
-      roll = 0,
-      pitch = math.radians(90),
-      yaw = 0)
-    }}
-    <!--}-->
-
-    <!-- rplidar {-->
-    {{ components.rplidar_macro(
-      namespace = namespace,
-      parent_link = root,
-      x = 0.0,
-      y = 0.0,
-      z = 0.107,
-      roll = 0,
-      pitch = 0,
-      yaw = 0)
-    }}
-    <!--}-->
-
-    {# thermal camera front {--> #}
-    {{ components.thermal_camera_macro(
-      camera_name = 'thermal_front',
-      camera_topic_name = '/' + spawner_args['name'] + '/thermal/front',
-      parent_frame_name = spawner_args['name'] + '/fcu',
-      camera_frame_name = 'thermal/front_optical',
-      sensor_base_frame_name = spawner_args['name'] + '/thermal/front',
-      parent_link = root,
-      frame_rate = 14.0,
-      hfov = 0.575959,
-      x = 0.13,
-      y = 0.0,
-      z = -0.085,
-      roll = 0,
-      pitch = 1.0472,
       yaw = 0,
-      mount = none,
       spawner_args = spawner_args)
     }}
-    {# <!--}--> #}
-
-    <!-- thermal_front {-->
-    {{ components.thermal_camera_macro(
-      camera_name = "thermal_bottom",
-      camera_topic_name = "/" + namespace + "/thermal/bottom",
-      parent_frame_name = namespace + "/fcu",
-      camera_frame_name = "thermal/bottom_optical",
-      sensor_base_frame_name = namespace + "/thermal/bottom",
-      parent_link = root,
-      frame_rate = 14.0,
-      hfov = 0.575959,
-      image_width = 32,
-      image_height = 32,
-      x = 0.13,
-      y = 0.0,
-      z = -0.085,
-      roll = 0,
-      pitch = 1.5708,
-      yaw = 0)
-    }}
-    <!--}-->
-
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     {# ====================== conditional components ==================== #}

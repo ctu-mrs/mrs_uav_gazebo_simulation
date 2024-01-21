@@ -39,7 +39,6 @@ limitations under the License.
 
 <!-- ======================= rangefinder sensors ======================-->
 
-
 {# TODO: make a component out of this #}
 <!-- Macro to add a URM37 ultrasound {-->
 {%- macro ultrasonic_sensor_macro(namespace, parent_link, suffix, x, y, z, roll, pitch, yaw) -%}
@@ -125,10 +124,7 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-
-
 <!-- ========================== other sensors ========================= -->
-
 
 {# TODO: make a component out of this #}
 <!-- Macro to add a gps satelite blocking sensor {-->
@@ -175,59 +171,6 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-{# TODO: make a component out of this #}
-<!-- Macro to add a water gun {-->
-{%- macro water_gun_macro(parent_link, muzzle_velocity, particle_capacity, spread, spawning_reservoir, nozzle_offset_x, nozzle_offset_y, nozzle_offset_z, x, y, z, roll, pitch, yaw) -%}
-<link name="water_gun_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="water_bag_visual">
-    <pose>0 0 0 0 0 0</pose>
-    <geometry>
-      <box>
-        <size>0.02 0.08 0.03</size>
-      </box>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/Blue</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  <visual name="nozzle_visual">
-    <pose>{{ nozzle_offset_x - 0.08/2 }} {{ nozzle_offset_y }} {{ nozzle_offset_z - 0.006/2 }} 0 {{ math.radians(90) }} 0</pose>
-    <geometry>
-      <cylinder>
-        <length>0.08</length>
-        <radius>0.006</radius>
-      </cylinder>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/DarkGrey</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-</link>
-
-<plugin name="water_gun_plugin" filename="libMrsGazeboCommonResources_WaterGunPlugin.so">
-  <muzzle_velocity>{{ muzzle_velocity }}</muzzle_velocity>
-  <offset_x>{{ nozzle_offset_x }}</offset_x>
-  <offset_y>{{ nozzle_offset_y }}</offset_y>
-  <offset_z>{{ nozzle_offset_z }}</offset_z>
-  <spread>{{ spread }}</spread>
-  <particle_capacity>{{ particle_capacity }}</particle_capacity>
-  <spawning_reservoir>{{ spawning_reservoir }}</spawning_reservoir>
-</plugin>
-
-<joint name="water_gun_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>water_gun_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
 
 
 {# TODO: make a component out of this #}
@@ -2161,6 +2104,7 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
+{# TODO: Thermal camera plugin is not core #}
 {# thermal_cameras_macro {--> #}
 {%- macro thermal_cameras_macro(cameras_list, parent_link, mount, spawner_args) -%}
 
@@ -2175,7 +2119,7 @@ limitations under the License.
       <!-- Thermal cameras {-->
       {%- for camera in cameras_list -%}
         <!-- Thermal camera {{ camera['name'] }} {-->
-        {{ thermal_camera_macro(
+        {{ generic.thermal_camera_macro(
           camera_name = camera['name'],
           camera_topic_name = '/' + spawner_args['name'] + '/thermal/' + camera['name'],
           parent_frame_name = spawner_args['name'] + '/fcu',
@@ -2905,5 +2849,57 @@ limitations under the License.
   {%- endif -%}
 {%- endmacro -%}
 <!--}-->
+
+{# water_gun_macro {--> #}
+{%- macro water_gun_macro(parent_link, nozzle_offset_x, nozzle_offset_y, nozzle_offset_z, x, y, z, roll, pitch, yaw, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-water-gun' -%}
+  {%- set spawner_description = 'Add a water gun for firefighting. Requires a dummy object (spawning_reservoir) to be present in the simulation' -%}
+  {%- set spawner_default_args = {'muzzle_velocity': 15.0, 'num_particles': 30, 'spread': 1.0, 'spawning_reservoir': 'the_void'} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Water gun {-->
+    <link name="water_gun_link">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+      {{ generic.zero_inertial_macro() }}
+      {{ generic.visual_colored_box_macro('water_bag', 0.02, 0.08, 0.03, 'Blue', 0, 0, 0, 0, 0, 0) }}
+      <visual name="nozzle_visual">
+        <pose>{{ nozzle_offset_x - 0.08/2 }} {{ nozzle_offset_y }} {{ nozzle_offset_z - 0.006/2 }} 0 {{ math.radians(90) }} 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.08</length>
+            <radius>0.006</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/DarkGrey</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+    </link>
+
+    <plugin name="water_gun_plugin" filename="libMrsGazeboCommonResources_WaterGunPlugin.so">
+      <muzzle_velocity>{{ spawner_args[spawner_keyword]['muzzle_velocity'] }}</muzzle_velocity>
+      <offset_x>{{ nozzle_offset_x }}</offset_x>
+      <offset_y>{{ nozzle_offset_y }}</offset_y>
+      <offset_z>{{ nozzle_offset_z }}</offset_z>
+      <spread>{{ spawner_args[spawner_keyword]['spread'] }}</spread>
+      <particle_capacity>{{ spawner_args[spawner_keyword]['num_particles'] }}</particle_capacity>
+      <spawning_reservoir>{{ spawner_args[spawner_keyword]['spawning_reservoir'] }}</spawning_reservoir>
+    </plugin>
+
+    <joint name="water_gun_joint" type="fixed">
+      <parent>{{ parent_link }}</parent>
+      <child>water_gun_link</child>
+    </joint>
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
 
 </sdf>
