@@ -1466,6 +1466,74 @@ limitations under the License.
   </joint>
   {%- endmacro -%}
   <!--}-->
+  
+{# thermal_camera_macro {--> #}
+{%- macro thermal_camera_macro(camera_name, camera_topic_name, parent_frame_name, camera_frame_name, sensor_base_frame_name, parent_link, frame_rate, hfov, image_width, image_height, x, y, z, roll, pitch, yaw) -%}
+  <link name="{{ camera_name }}_link">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    {{ zero_inertial_macro() }}
+    {{ visual_mesh_macro(
+        name = 'base',
+        mesh_file = 'model://mrs_robots_description/meshes/sensors/teraranger_evo_thermal_33.dae',
+        mesh_scale = '0.001 0.001 0.001',
+        color = 'Yellow',
+        x = 0,
+        y = 0,
+        z = 0,
+        roll = 0,
+        pitch = 0,
+        yaw = 0)
+    }}
+    <sensor name="mrs_thermal_camera_sensor" type="camera">
+      <update_rate>{{ frame_rate }}</update_rate>
+      <camera>
+        <horizontal_fov>{{ hfov }}</horizontal_fov>
+        <image>
+          <format>R8G8B8</format>
+          <width>{{ 3 * image_width }}</width>
+          <height>{{ 3 * image_height }}</height>
+        </image>
+        <clip>
+          <near>0.1</near>
+          <far>300</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.0</stddev>
+        </noise>
+      </camera>
+      <plugin name="{{camera_name}}_plugin" filename="libMRSGazeboThermalCameraPlugin.so">
+        <alwaysOn>true</alwaysOn>
+        <cameraName>{{ camera_name }}</cameraName>
+        <updateRate>{{ frame_rate }}</updateRate>
+        <imageTopicName>{{ camera_topic_name }}/rgb_image</imageTopicName>
+        <cameraInfoTopicName>{{ camera_topic_name }}/camera_info</cameraInfoTopicName>
+        <rawTemperatureTopicName>{{ camera_topic_name }}/raw_temp_array</rawTemperatureTopicName>
+        <surroundingTemperature>20</surroundingTemperature>
+        <maximalTemperature>150</maximalTemperature>
+        <minimalTemperatureGreenColor>0.2</minimalTemperatureGreenColor>
+        <noiseStdDev>4.0</noiseStdDev>
+        <noiseStdDevMaxTemp>20.0</noiseStdDevMaxTemp>
+        <frameName>{{ camera_frame_name }}</frameName>
+        <parentFrameName>{{ parent_frame_name }}</parentFrameName>
+        <sensorBaseFrameName>{{ sensor_base_frame_name }}</sensorBaseFrameName>
+        <x>{{ x }}</x>
+        <y>{{ y }}</y>
+        <z>{{ z }}</z>
+        <roll>{{ roll }}</roll>
+        <pitch>{{ pitch }}</pitch>
+        <yaw>{{ yaw }}</yaw>
+      </plugin>
+    </sensor>
+  </link>
+  
+  <joint name="{{ camera_name }}_joint" type="fixed">
+    <parent>{{ parent_link }}</parent>
+    <child>{{ camera_name }}_link</child>
+  </joint>
+{%- endmacro -%}
+{# <!--}--> #}
 
 {# ======================== UV leds and cameras ======================== #}
 

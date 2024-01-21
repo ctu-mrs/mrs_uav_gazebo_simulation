@@ -372,13 +372,13 @@
 
       {# component mounts and holders (these must be passed as args into components, or must be called) {--> #}
 
-      {# bluefox_garmin_mount {--> #}
+      {# bluefox + garmin mount {--> #}
       {%- set bluefox_garmin_mount -%}
         {{ generic.visual_link_macro(
-          name = "bluefox_garmin_mount",
+          name = 'bluefox_garmin_mount',
           mesh_file = bluefox_garmin_mount_mesh,
           mesh_scale = mesh_scale_milimeters,
-          color = "White",
+          color = 'White',
           x = 0,
           y = -0.145,
           z = -0.025,
@@ -390,60 +390,64 @@
       {%- endset -%}
       {# <!--}--> #}
 
+      {# rplidar mount {--> #}
+      {%- set rplidar_mount -%}
+        {{ generic.visual_link_macro(
+          name = 'rplidar_mount',
+          mesh_file = rplidar_mount_mesh,
+          mesh_scale = mesh_scale_milimeters,
+          color = 'White',
+          x = 0,
+          y = 0.0,
+          z = 0.075,
+          roll = 0,
+          pitch = 0,
+          yaw = 0,
+          parent_link = root)
+        }}
+      {%- endset -%}
       {# <!--}--> #}
 
-      {% if enable_rplidar or fire_challenge_blanket %}
-      <!-- RPLidar mount {-->
-      {{ generic.visual_mesh_macro(
-        name = "rplidar_mount",
-        mesh_file = rplidar_mount_mesh,
-        mesh_scale = mesh_scale_milimeters,
-        color = "White",
-        x = 0,
-        y = 0.0,
-        z = 0.075,
-        roll = 0,
-        pitch = 0,
-        yaw = 0)
-      }}
-      <!--}-->
-      {% endif %}
-
-      {% if enable_realsense_front %}
-      <!-- Realsense mount {-->
-      {{ components.visual_mesh_macro(
-        name = "realsense_front_mount",
-        mesh_file = realsense_front_mount_mesh,
-        mesh_scale = mesh_scale_milimeters,
-        color = "White",
-        x = 0.125,
-        y = 0.0,
-        z = -0.046,
-        roll = 0,
-        pitch = 0,
-        yaw = 0)
-      }}
-      <!--}-->
-      {% endif %}
-
-      {% if enable_ouster or enable_velodyne %}
-      <!-- Ouster mount {-->
-      {{ components.visual_mesh_macro(
-        name = "ouster_mount",
+      {# 3D lidar mount {--> #}
+      {%- set lidar_mount_3d -%}
+      {{ generic.visual_link_macro(
+        name = 'ouster_mount',
         mesh_file = ouster_mount_mesh,
         mesh_scale = mesh_scale_milimeters,
-        color = "White",
+        color = 'White',
         x = 0.0,
         y = 0.0,
         z = 0.068,
         roll = 0,
         pitch = 0,
-        yaw = math.radians(90))
+        yaw = math.radians(90),
+        parent_link = root)
       }}
-      <!--}-->
-      {% endif %}
+      {%- endset -%}
+      {# <!--}--> #}
+
+      {# Realsense front mount {--> #}
+      {%- set realsense_front_mount -%}
+      {{ components.visual_link_macro(
+        name = 'realsense_front_mount',
+        mesh_file = realsense_front_mount_mesh,
+        mesh_scale = mesh_scale_milimeters,
+        color = 'White',
+        x = 0.125,
+        y = 0.0,
+        z = -0.046,
+        roll = 0,
+        pitch = 0,
+        yaw = 0,
+        parent_link = root)
+      }}
+      {%- endset -%}
+      {# <!--}--> #}
+
+      {# <!--}--> #}
 
       <!--}-->
+
     </link>
 
     {# Propellers {--> #}
@@ -625,7 +629,7 @@
 
     {# ======================= rangefinder sensors ====================== #}
 
-    {# Garmin {--> #}
+    {# Garmin down {--> #}
     {%- set garmin_down = components.garmin_down_macro(
       parent_link = root,
       x = 0.0,
@@ -640,29 +644,23 @@
     {{ garmin_down }}
     {# <!--}--> #}
 
-    {# Garmin Up {--> #}
-    {% if enable_rangefinder_up %}
-    <!-- Garmin Up {-->
-    {{ components.external_garmin_macro(
-      namespace = namespace,
+    {# Garmin up {--> #}
+    {{ components.garmin_up_external_macro(
       parent_link = root,
-      orientation = "_up",
       x = 0.0,
       y = 0.08,
       z = -0.0075,
       roll = 0,
       pitch = math.radians(-90),
-      yaw =  math.radians(-90))
+      yaw =  math.radians(-90),
+      mount = none,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     <!-- ========================== LIDAR sensors ========================= -->
 
     {# Scanse Sweep {--> #}
-    {% if enable_scanse_sweep %}
-    <!-- Scanse Sweep {-->
     {{ components.scanse_sweep_macro(
       namespace = namespace,
       parent_link = root,
@@ -671,294 +669,220 @@
       z = 0.12,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     {# Rplidar {--> #}
-    {% if enable_rplidar %}
-    <!-- Rplidar {-->
     {{ components.rplidar_macro(
-      namespace = namespace,
       parent_link = root,
-      horizontal_samples = horizontal_samples,
-      rotation_freq = rotation_freq,
       x = 0.0,
       y = 0.0,
       z = 0.107,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      mount = rplidar_mount,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     {# Velodyne {--> #}
-    {% if enable_velodyne %}
-    <!-- Velodyne  {-->
-    <!-- VLP-16 (default) -->
-    {{ components.velodyne_macro(
-      namespace = namespace,
+    {%- set velodyne = components.velodyne_macro(
       parent_link = root,
-      sensor_name = "velodyne",
-      rotation_freq = rotation_freq,
-      lasers = 16,
-      vfov_angle = 30,
-      max_range = 100,
-      noise = 0.01,
-      enable_gpu_ray = use_gpu_ray,
-      horizontal_samples = horizontal_samples,
+      sensor_name = 'velodyne',
       x = 0.0,
       y = 0.0,
       z = 0.073,
       roll = 0,
       pitch = 0,
-      yaw = 0)
-    }}
-    <!--}-->
-    {% endif %}
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
+    -%}
+    {{ velodyne }}
     {# <!--}--> #}
 
     {# Ouster {--> #}
-    {% if enable_ouster %}
-    <!-- Ouster  {-->
-    {{ components.ouster_macro(
-      namespace = namespace,
+    {%- set ouster = components.ouster_macro(
       parent_link = root,
-      sensor_name = "os",
-      ouster_model = ouster_model,
-      rotation_freq = rotation_freq,
-      noise = 0.03,
-      enable_gpu_ray = use_gpu_ray,
-      horizontal_samples = horizontal_samples,
+      sensor_name = 'os',
       x = 0.0,
       y = 0.0,
       z = 0.073,
       roll = 0,
       pitch = 0,
-      yaw = 0)
-    }}
-    <!--}-->
-    {% endif %}
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
+    -%}
+    {{ ouster }}
     {# <!--}--> #}
 
     <!-- ========================= camera sensors ========================= -->
 
-    <!-- Bluefox camera placements{-->
+    {# Bluefox camera placements {--> #}
 
-    {% if enable_bluefox_camera_reverse %}
-    <!-- bluefox reverse {-->
-    {{ components.bluefox_camera_macro(
-      namespace = namespace,
-      camera_name = "bluefox_optflow",
+    {# bluefox (classic) {--> #}
+    {%- set bluefox_camera = components.bluefox_camera_macro(
+      camera_name = 'bluefox_optflow',
       parent_link = root,
-      frame_rate = 100.0,
-      hfov = 2.1,
-      noise = 0.007,
       x = 0.0,
       y = -0.15,
       z = -0.057,
-      roll = 0,
-      pitch = math.radians(90),
-      yaw = math.radians(180))
-    }}
-    <!--}-->
-    {% endif %}
+      mount = none,
+      spawner_args = spawner_args)
+    -%}
+    {{ bluefox_camera }}
+    {# <!--}--> #}
 
-    {% if enable_bluefox_camera %}
-    <!-- bluefox classic {-->
-    {{ components.bluefox_camera_macro(
-      namespace = namespace,
-      camera_name = "bluefox_optflow",
+    {# bluefox reverse {--> #}
+    {%- set bluefox_camera_reverse = components.bluefox_camera_reverse_macro(
+      camera_name = 'bluefox_optflow',
       parent_link = root,
-      frame_rate = 100.0,
-      hfov = 2.1,
-      noise = 0.007,
       x = 0.0,
       y = -0.15,
       z = -0.057,
-      roll = 0,
-      pitch = math.radians(90),
-      yaw = 0)
-    }}
-    <!--}-->
-    {% endif %}
+      mount = none,
+      spawner_args = spawner_args)
+    -%}
+    {{ bluefox_camera_reverse }}
+    {# <!--}--> #}
 
-    <!--}-->
+    {# <!--}--> #}
 
-    <!-- Realsense placements {-->
+    {# Realsense placements {--> #}
 
-    {% if enable_realsense_front %}
-    <!-- realsense front {-->
-    {{ components.realsense_macro(
-      namespace = namespace,
-      camera_name = "rgbd",
-      camera_suffix="",
+    {# realsense front {--> #}
+    {{ components.realsense_front_macro(
+      camera_name = 'rgbd',
+      camera_suffix='',
       parent_link = root,
-      enable_realistic_realsense = enable_realistic_realsense,
       x = 0.17,
       y = -0.011,
       z = -0.063,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      mount = realsense_front_mount,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
 
-    {% if enable_realsense_up %}
-    <!-- realsense up {-->
-    {{ components.realsense_macro(
-      namespace = namespace,
-      camera_name = "rgbd",
-      camera_suffix="_up",
+    {# realsense up {--> #}
+    {{ components.realsense_up_macro(
+      camera_name = 'rgbd',
+      camera_suffix='_up',
       parent_link = root,
-      enable_realistic_realsense = enable_realistic_realsense,
       x = 0.08,
       y = 0,
       z = 0.03,
       roll = 0,
-      pitch = - math.radians(90),
-      yaw = 0)
+      pitch = -math.radians(90),
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
 
-    {% if enable_realsense_down %}
-    <!-- realsense down {-->
-    {{ components.realsense_macro(
-      namespace = namespace,
-      camera_name = "rgbd",
-      camera_suffix="_down",
+    {# realsense down {--> #}
+    {{ components.realsense_down_macro(
+      camera_name = 'rgbd',
+      camera_suffix='_down',
       parent_link = root,
-      enable_realistic_realsense = enable_realistic_realsense,
       x = 0.1,
       y = 0,
       z = -0.05,
       roll = 0,
       pitch = math.radians(90),
-      yaw = 0)
+      yaw = 0,
+      mount = realsense_down_mount,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
+    {# <!--}--> #}
 
-    <!--}-->
+    {# <!--}--> #}
 
-    <!-- Mobius placements {-->
+    {# Mobius placements {--> #}
 
-    {% if enable_mobius_camera_front %}
-    <!-- mobius front {-->
-    {{ components.mobius_camera_macro(
-      namespace = namespace,
-      camera_name = "mobius_front",
+    {# mobius front {--> #}
+    {{ components.mobius_front_macro(
+      camera_name = 'mobius_front',
       parent_link = root,
-      frame_rate = 30.0,
       x = 0.2,
       y = 0.0,
       z = -0.04,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
-
-    <!--} -->
-
-    {# Thermal cameras {--> #}
-    {% if enable_thermal_camera %}
-    <!-- Three thermal cameras {-->
-    {{ components.thermal_camera_macro(
-      camera_name = "thermal_top",
-      camera_topic_name = "/" + namespace + "/thermal/top",
-      parent_frame_name = namespace + "/fcu",
-      camera_frame_name = "thermal/top_optical",
-      sensor_base_frame_name = namespace + "/thermal/top",
-      parent_link = root,
-      frame_rate = 14.0,
-      hfov = 0.575959,
-      image_width = 32,
-      image_height = 32,
-      x = 0.15,
-      y = 0.06,
-      z = -0.025,
-      roll = 0,
-      pitch = math.radians(-30),
-      yaw = 0)
-    }}
-
-    {{ components.thermal_camera_macro(
-      camera_name = "thermal_middle",
-      camera_topic_name = "/" + namespace + "/thermal/middle",
-      parent_frame_name = namespace + "/fcu",
-      camera_frame_name = "thermal/middle_optical",
-      sensor_base_frame_name = namespace + "/thermal/middle",
-      parent_link = root,
-      frame_rate = 14.0,
-      hfov = 0.575959,
-      image_width = 32,
-      image_height = 32,
-      x = 0.16,
-      y = 0.06,
-      z = -0.055,
-      roll = 0,
-      pitch = 0,
-      yaw = 0)
-    }}
-
-    {{ components.thermal_camera_macro(
-      camera_name = "thermal_bottom",
-      camera_topic_name = "/" + namespace + "/thermal/bottom",
-      parent_frame_name = namespace + "/fcu",
-      camera_frame_name = "thermal/bottom_optical",
-      sensor_base_frame_name = namespace + "/thermal/bottom",
-      parent_link = root,
-      frame_rate = 14.0,
-      hfov = 0.575959,
-      image_width = 32,
-      image_height = 32,
-      x = 0.15,
-      y = 0.06,
-      z = -0.085,
-      roll = 0,
-      pitch = math.radians(30),
-      yaw = 0)
-    }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
-    {% if enable_downward_uv_camera %}
-    <!-- Downward UV camera {-->
-    {{ components.uvcam_macro(
+    {# <!--}--> #}
+
+    {# Three thermal cameras {--> #}
+    {%- set three_thermal_cameras = [
+    {
+    'name': 'top',
+    'x': 0.15,
+    'y': 0.06,
+    'z': -0.025,
+    'roll': 0.0,
+    'pitch': math.radians(-30),
+    'yaw': 0.0
+    },
+    {
+    'name': 'middle',
+    'x': 0.16,
+    'y': 0.06,
+    'z': -0.055,
+    'roll': 0.0,
+    'pitch': 0.0,
+    'yaw': 0.0
+    },
+    {
+    'name': 'bottom',
+    'x': 0.15,
+    'y': 0.06,
+    'z': -0.085,
+    'roll': 0.0,
+    'pitch': math.radians(30),
+    'yaw': 0.0
+    }
+    ]
+    -%}
+    {{ components.thermal_cameras_macro(
+      cameras_list = three_thermal_cameras,
       parent_link = root,
-      camera_publish_topic = "/" + namespace + "/uvdar_bluefox_bottom/image_raw",
-      calibration_file = uvcam_calib_file,
-      occlusions = uvcam_occlusions,
-      frame_rate = 60,
-      device_id = namespace + "_3",
+      mount = none,
+      spawner_args = spawner_args)
+    }}
+    {# <!--}--> #}
+
+    {# Downward UV camera {--> #}
+    {{ components.downward_uv_camera_macro(
+      parent_link = root,
       x = 0.0,
       y = 0.0,
       z = -0.1,
       roll = 0,
       pitch = math.radians(90),
-      yaw = 0)
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     {# Servo camera {--> #}
-    {% if enable_servo_camera %}
-    <!-- Servo camera {-->
     {{ components.servo_camera_macro(
       parent = root,
-      parent_frame_name = namespace + "/fcu",
-      camera_frame_name = namespace + "/servo_camera_optical",
-      sensor_base_frame_name = namespace + "/servo_camera",
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      camera_frame_name = spawner_args['name'] + '/servo_camera_optical',
+      sensor_base_frame_name = spawner_args['name'] + '/servo_camera',
       offset_pitch_link_x = 0.0,
       offset_pitch_link_y = 0.0,
       offset_pitch_link_z = 0.0,
@@ -984,39 +908,33 @@
       img_height = 1080,
       compensate_tilt_roll = true,
       compensate_tilt_pitch = true,
-      pitch_link_mesh_file = "",
-      roll_link_mesh_file = "",
-      mesh_scale = "")
+      pitch_link_mesh_file = '',
+      roll_link_mesh_file = '',
+      mesh_scale = '',
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     {# ========================== other sensors ========================= #}
 
     {# Teraranger Tower Evo {--> #}
-    {% if enable_teraranger_evo_tower %}
-    <!-- Teraranger Tower Evo {-->
     {{ components.teraranger_evo_tower_macro(
       parent_link = root,
       visualize = False,
-      frame_name = namespace + "/teraranger_tower",
-      parent_frame_name = namespace + "/fcu",
+      frame_name = spawner_args['name'] + '/teraranger_tower',
+      parent_frame_name = namespace + '/fcu',
       gaussian_noise = 0.0,
       x = 0.0,
       y = 0.0,
       z = 0.14,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     {# Magnetic gripper {--> #}
-    {% if enable_magnetic_gripper %}
-    <!-- Magnetic gripper {-->
     {{ components.magnet_gripper_visualization_macro(
       parent_link = root,
       x = 0.0,
@@ -1024,88 +942,66 @@
       z = - (0.20/2 + 0.01),
       roll = 0,
       pitch = 0,
-      yaw = math.radians(90))
+      yaw = math.radians(90),
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     {# Timepix {--> #}
-    {% if enable_timepix %}
-    <!-- Timepix {-->
     {{ components.timepix_macro(
       parent_link = root,
-      name = "timepix",
+      name = 'timepix',
       x = 0.115,
       y = -0.05,
       z = -0.05,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     {# Timepix3 {--> #}
-    {% if enable_timepix3 %}
-    <!-- Timepix3 {-->
     {{ components.timepix3_macro(
       parent_link = root,
-      name = "timepix3",
-      material = "cdte",
-      thickness = 0.002,
-      max_message_window = 1.0,
-      sensor_suffix = "",
+      name = 'timepix3',
+      sensor_suffix = '',
       x = 0.115,
       y = -0.05,
       z = -0.05,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     {# Light {--> #}
-    {% if enable_light %}
-    <!-- Light {-->
     {{ components.light_macro(
       parent_link = root,
-      update_rate = 30,
       max_pitch_rate = 0.1,
-      initial_on = True,
-      compensate_tilt = True,
       x = 0.2,
       y = 0.0,
       z = -0.1,
       roll = 0,
       pitch = 0,
-      yaw = 0)
+      yaw = 0,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
-    {# Pendelum {--> #}
-    {% if enable_pendulum %}
-    <!-- Pendelum {-->
+    {# Pendulum {--> #}
     {{ components.pendulum_macro(
       parent_link = root,
-      number_of_chains = 30,
-      chain_length = 0.1,
-      chain_radius = 0.01,
-      chain_mass = 0.5 / 30,
       x = 0,
       y = 0,
-      z = -0.1)
+      z = -0.1,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     {# Water gun {--> #}
+    {# TODO: !! #}
     {% if enable_water_gun %}
     <!-- Water gun {-->
     {{ components.water_gun_macro(
@@ -1230,26 +1126,26 @@
     }}
     <!--}-->
 
-    <!-- thermal_front {-->
+    {# thermal camera front {--> #}
     {{ components.thermal_camera_macro(
-      camera_name = "thermal_front",
-      camera_topic_name = "/" + namespace + "/thermal/front",
-      parent_frame_name = namespace + "/fcu",
-      camera_frame_name = "thermal/front_optical",
-      sensor_base_frame_name = namespace + "/thermal/front",
+      camera_name = 'thermal_front',
+      camera_topic_name = '/' + spawner_args['name'] + '/thermal/front',
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      camera_frame_name = 'thermal/front_optical',
+      sensor_base_frame_name = spawner_args['name'] + '/thermal/front',
       parent_link = root,
       frame_rate = 14.0,
       hfov = 0.575959,
-      image_width = 32,
-      image_height = 32,
       x = 0.13,
       y = 0.0,
       z = -0.085,
       roll = 0,
       pitch = 1.0472,
-      yaw = 0)
+      yaw = 0,
+      mount = none,
+      spawner_args = spawner_args)
     }}
-    <!--}-->
+    {# <!--}--> #}
 
     <!-- thermal_front {-->
     {{ components.thermal_camera_macro(
@@ -1282,6 +1178,14 @@
     {%- if garmin_down | replace('\s', '') | length != 0 or bluefox_camera | replace('\s', '') | length != 0 or bluefox_camera_reverse | replace('\s', '') | length != 0 -%}
       <!-- bluefox + garmin mount {-->
       {{ bluefox_garmin_mount }}
+      <!--}-->
+    {%- endif -%}
+    {# <!--}--> #}
+
+    {# 3D lidar mount {--> #}
+    {%- if velodyne | replace('\s', '') | length != 0 or ouster | replace('\s', '') | length != 0 -%}
+      <!-- 3d lidar mount {-->
+      {{ lidar_mount_3d }}
       <!--}-->
     {%- endif -%}
     {# <!--}--> #}
