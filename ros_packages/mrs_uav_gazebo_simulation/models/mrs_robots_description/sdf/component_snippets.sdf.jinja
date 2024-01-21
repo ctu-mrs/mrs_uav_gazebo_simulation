@@ -1376,6 +1376,46 @@ limitations under the License.
 
 {# ============================= cameras ============================ #}
 
+{# realsense_top_macro {--> #}
+{%- macro realsense_top_macro(camera_name, camera_suffix, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-realsense-top' -%}
+  {%- set spawner_description = 'Add Intel Realsense D435 depth camera to the vehicle [1280x720 @ 30hz], pointed forward, placed on an aluminum frame above the body' -%}
+  {%- set spawner_default_args = {'realistic': False, 'update_rate': 30} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Realsense front {-->
+
+    <!-- sensor {-->
+    {{ generic.realsense_d435_macro(
+      namespace = spawner_args['name'],
+      camera_name = camera_name,
+      camera_suffix = camera_suffix,
+      parent_link = parent_link,
+      realistic = spawner_args[spawner_keyword]['realistic'],
+      update_rate = spawner_args[spawner_keyword]['update_rate'],
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+    <!--}-->
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+
+{%- endmacro -%}
+{# <!--}--> #}
+
 {# realsense_front_macro {--> #}
 {%- macro realsense_front_macro(camera_name, camera_suffix, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
 

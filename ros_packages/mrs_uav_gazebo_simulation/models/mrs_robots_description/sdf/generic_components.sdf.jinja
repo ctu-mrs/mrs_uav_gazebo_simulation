@@ -1179,7 +1179,7 @@ limitations under the License.
   {# -- frame names -- #}
   {%- set frame_fcu = namespace + "/fcu" -%}
 
-  <link name="{{ camera_name }}_link">
+  <link name="{{ camera_name }}{{ camera_suffix }}_link">
     <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
     {{ zero_inertial_macro() }}
 
@@ -1374,9 +1374,9 @@ limitations under the License.
     <yaw>{{ yaw }}</yaw>
   </plugin>
 
-  <joint name="{{ camera_name }}_joint" type="fixed">
+  <joint name="{{ camera_name }}{{ camera_suffix }}_joint" type="fixed">
     <parent>{{ parent_link }}</parent>
-    <child>{{ camera_name }}_link</child>
+    <child>{{ camera_name }}{{ camera_suffix }}_link</child>
   </joint>
 {%- endmacro -%}
 <!--}-->
