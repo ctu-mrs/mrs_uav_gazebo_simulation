@@ -5,31 +5,30 @@ set -e
 trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 trap 'echo "$0: \"${last_command}\" command failed with exit code $?"' ERR
 
-PACKAGE="mrs_uav_gazebo_simulation"
-VERBOSE=1
+ORIGINAL_PATH=`pwd`
 
-[ "$VERBOSE" = "0" ] && TEXT_OUTPUT=""
-[ "$VERBOSE" = "1" ] && TEXT_OUTPUT="-t"
+while [ ! -e ".catkin_tools" ]; do
+  cd ..
+  if [[ `pwd` == "/" ]]; then
+    # we reached the root and didn't find the build/COLCON_IGNORE file - that's a fail!
+    echo "$0: could not find the root of the current workspace".
+    return 1
+  fi
+done
+
+cd build
+
+OLD_FILES=$(find . -name "*.gcda")
+
+for FILE in $OLD_FILES; do
+  echo "$0: removing old coverage file '$FILE'"
+  rm $FILE
+done
+
+cd $ORIGINAL_PATH
 
 # build the package
-catkin build $PACKAGE # it has to be fully built normally before building with --catkin-make-args tests
-catkin build $PACKAGE --no-deps --catkin-make-args tests
+catkin build --this # it has to be fully built normally before building with --catkin-make-args tests
+catkin build --this --no-deps --catkin-make-args tests
 
-TEST_FILES=$(find . -name "*.test" -type f -printf "%f\n")
-
-for TEST_FILE in `echo $TEST_FILES`; do
-
-  echo "$0: running test '$TEST_FILE'"
-
-  # folder for test results
-  TEST_RESULT_PATH=$(realpath /tmp/$RANDOM)
-  mkdir -p $TEST_RESULT_PATH
-
-  # run the test
-  rostest $PACKAGE $TEST_FILE $TEXT_OUTPUT --results-filename=$PACKAGE.test --results-base-dir="$TEST_RESULT_PATH"
-
-  # evaluate the test results
-  echo test result path is $TEST_RESULT_PATH
-  catkin_test_results "$TEST_RESULT_PATH"
-
-done
+catkin test --this -i -p 1 -s

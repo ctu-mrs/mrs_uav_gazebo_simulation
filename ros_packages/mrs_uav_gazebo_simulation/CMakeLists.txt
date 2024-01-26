@@ -13,6 +13,7 @@ set(CATKIN_DEPENDENCIES
   px4
   rospy
   std_msgs
+  mrs_uav_testing
   )
 
 find_package(catkin REQUIRED COMPONENTS
@@ -21,6 +22,12 @@ find_package(catkin REQUIRED COMPONENTS
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if(COVERAGE)
+  message(WARNING "building with --coverage, the performance might be limited")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+endif()
 
 catkin_package(
   CATKIN_DEPENDS ${CATKIN_DEPENDENCIES}
@@ -37,9 +44,6 @@ include_directories(
 ## --------------------------------------------------------------
 
 if(CATKIN_ENABLE_TESTING)
-
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
 
   add_subdirectory(test)
 
