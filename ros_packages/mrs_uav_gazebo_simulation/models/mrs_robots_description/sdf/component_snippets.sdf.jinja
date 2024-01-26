@@ -133,32 +133,6 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-{# TODO: make a component out of this #}
-<!-- Macro to add a safety_led {-->
-{%- macro safety_led_macro(parent_link, failure_duration_threshold, x, y, z, roll, pitch, yaw) -%}
-<link name="safety_led_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-</link>
-
-<plugin name="safety_led_plugin" filename="libMrsGazeboCommonResources_SafetyLedPlugin.so">
-  <model_name>safety_led</model_name>
-  <failure_duration_threshold>{{ failure_duration_threshold }}</failure_duration_threshold>
-  <model_spawn_delay>5.0</model_spawn_delay>
-  <x>{{ x }}</x>
-  <y>{{ y }}</y>
-  <z>{{ z }}}</z>
-  <roll>{{ roll }}</roll>
-  <pitch>{{ pitch }}</pitch>
-  <yaw>{{ yaw }}</yaw>
-</plugin>
-
-<joint name="safety_led_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>safety_led_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
 
 <!-- ================================================================== -->
 <!-- ||         other equipment definitions (holders, boxes ...)     || -->
@@ -2950,6 +2924,44 @@ limitations under the License.
     <joint name="water_gun_joint" type="fixed">
       <parent>{{ parent_link }}</parent>
       <child>water_gun_link</child>
+    </joint>
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# safety_led_macro {--> #}
+{%- macro safety_led_macro(parent_link, failure_duration_threshold, x, y, z, roll, pitch, yaw, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-safety-led' -%}
+  {%- set spawner_description = 'Add a safety LED' -%}
+  {%- set spawner_default_args = none -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Safety LED {-->
+    <link name="safety_led_link">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+      {{ generic.zero_inertial_macro() }}
+    </link>
+    
+    <plugin name="safety_led_plugin" filename="libMrsGazeboCommonResources_SafetyLedPlugin.so">
+      <model_name>safety_led</model_name>
+      <failure_duration_threshold>{{ failure_duration_threshold }}</failure_duration_threshold>
+      <model_spawn_delay>5.0</model_spawn_delay>
+      <x>{{ x }}</x>
+      <y>{{ y }}</y>
+      <z>{{ z }}}</z>
+      <roll>{{ roll }}</roll>
+      <pitch>{{ pitch }}</pitch>
+      <yaw>{{ yaw }}</yaw>
+    </plugin>
+    
+    <joint name="safety_led_joint" type="fixed">
+      <parent>{{ parent_link }}</parent>
+      <child>safety_led_link</child>
     </joint>
     <!--}-->
 
