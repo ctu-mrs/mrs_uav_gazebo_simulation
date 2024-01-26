@@ -299,7 +299,7 @@
 
       <!--}-->
 
-      <!-- intel nuc {-->
+      <!-- Intel nuc {-->
       {{ generic.visual_mesh_macro(
         name = 'nuc_board',
         mesh_file = nuc_board_mesh_file,
@@ -338,7 +338,7 @@
       }}
       <!--}-->
 
-      <!-- pixhawk {-->
+      <!-- Pixhawk {-->
       {{ generic.visual_mesh_macro(
         name = 'pixhawk6c',
         mesh_file = pixhawk6c_mesh_file,
@@ -353,7 +353,7 @@
       }}
       <!--}-->
 
-      <!-- motors {-->
+      <!-- Motors {-->
       {%- set affix = 'front_right' -%}
 
       {%- for id in range(0, 4) -%}
@@ -397,7 +397,7 @@
       {%- endfor -%}
       <!--}-->
 
-      <!-- battery mount and battery {-->
+      <!-- Battery mount and battery {-->
       {{ generic.visual_mesh_macro(
         name = 'battery_mount',
         mesh_file = battery_mount_mesh_file,
@@ -426,7 +426,7 @@
 
       {# GPS antenna and mount {--> #}
       {%- set gps_visuals -%}
-      <!-- gps mount {-->
+      <!-- GPS mount {-->
       {{ generic.visual_link_macro(
         name = 'gps_mount',
         mesh_file = gps_mount_mesh_file,
@@ -441,7 +441,8 @@
         parent_link = root)
       }}
       <!--}-->
-      <!-- gps antenna {-->
+
+      <!-- GPS antenna {-->
       {{ generic.visual_link_macro(
         name = 'gps_module',
         mesh_file = gps_module_mesh_file,
@@ -647,7 +648,7 @@
     {# ||                compulsory sensor definitions                 || #}
     {# ================================================================== #}
 
-    <!-- pixhawk {-->
+    <!-- Pixhawk {-->
     {%- set imu_topic = '/imu' -%}
     {%- set mag_topic = '/mag' -%}
     {%- set baro_topic = '/baro' -%}
@@ -983,9 +984,11 @@
     {%- endif -%}
     {# <!--}--> #}
 
-    {# bluefox mount {--> #}
+    {# Bluefox mount {--> #}
     {%- if bluefox_camera | replace('\s', '') | length != 0 or bluefox_camera_reverse | replace('\s', '') | length != 0 -%}
+      <!-- Bluefox mount {-->
       {{ bluefox_mount }}
+      <!--}-->
     {%- endif -%}
     {# <!--}--> #}
 

@@ -521,7 +521,7 @@
     {# ||                compulsory sensor definitions                 || #}
     {# ================================================================== #}
 
-    <!-- pixhawk {-->
+    <!-- Pixhawk {-->
     {%- set imu_topic = '/imu' -%}
     {%- set mag_topic = '/mag' -%}
     {%- set baro_topic = '/baro' -%}
@@ -753,7 +753,7 @@
 
     {# Realsense placements {--> #}
 
-    {# realsense front {--> #}
+    {# Realsense front {--> #}
     {{ components.realsense_front_macro(
       camera_name = 'rgbd',
       camera_suffix='',
@@ -769,7 +769,7 @@
     }}
     {# <!--}--> #}
 
-    {# realsense up {--> #}
+    {# Realsense up {--> #}
     {{ components.realsense_up_macro(
       camera_name = 'rgbd',
       camera_suffix='_up',
@@ -785,7 +785,7 @@
     }}
     {# <!--}--> #}
 
-    {# realsense down {--> #}
+    {# Realsense down {--> #}
     {{ components.realsense_down_macro(
       camera_name = 'rgbd',
       camera_suffix='_down',
@@ -1016,7 +1016,7 @@
 
     {# ====================== conditional components ==================== #}
 
-    {# bluefox + garmin mount {--> #}
+    {# Bluefox + Garmin mount {--> #}
     {%- if garmin_down | replace('\s', '') | length != 0 or bluefox_camera | replace('\s', '') | length != 0 or bluefox_camera_reverse | replace('\s', '') | length != 0 -%}
       <!-- bluefox + garmin mount {-->
       {{ bluefox_garmin_mount }}

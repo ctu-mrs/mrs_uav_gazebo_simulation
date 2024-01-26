@@ -197,7 +197,7 @@
       }}
       <!--}-->
 
-      <!-- intel nuc {-->
+      <!-- Intel NUC {-->
       {{ generic.visual_mesh_macro(
         name = 'NUC',
         mesh_file = nuc_mesh_file,
@@ -212,7 +212,7 @@
       }}
       <!--}-->
 
-      <!-- pixhawk {-->
+      <!-- Pixhawk {-->
       {{ generic.visual_mesh_macro(
         name = 'pixhawk',
         mesh_file = pixhawk_mesh_file,
@@ -227,7 +227,7 @@
       }}
       <!--}-->
 
-      <!-- legs {-->
+      <!-- Legs {-->
       {{ generic.leg_collision_offset_macro(
         name = 'front_right_leg',
         mesh_file = leg_mesh_file,
@@ -301,7 +301,7 @@
       }}
       <!--}-->
 
-      <!-- motors {-->
+      <!-- Motors {-->
       {{ generic.visual_mesh_macro(
         name = 'front_right_motor',
         mesh_file = motor_mesh_file,
@@ -355,7 +355,7 @@
       }}
       <!--}-->
 
-      <!-- battery mount and battery {-->
+      <!-- Battery mount and battery {-->
       {{ generic.visual_mesh_macro(
         name = 'battery_mount',
         mesh_file = battery_mount_mesh,
@@ -387,7 +387,7 @@
 
       {# component mounts and holders (these must be passed as args into components, or must be called) {--> #}
 
-      {# bluefox mount front {--> #}
+      {# Bluefox mount front {--> #}
       {%- set bluefox_mount_front -%}
       {{ generic.visual_link_macro(
         name = 'bluefox_mount_front',
@@ -483,7 +483,7 @@
     {# ||                compulsory sensor definitions                 || #}
     {# ================================================================== #}
 
-    <!-- pixhawk {-->
+    <!-- Pixhawk {-->
     {%- set imu_topic = '/imu' -%}
     {%- set mag_topic = '/mag' -%}
     {%- set baro_topic = '/baro' -%}
@@ -608,7 +608,7 @@
 
     {# Realsense placements {--> #}
 
-    {# realsense front {--> #}
+    {# Realsense front {--> #}
     {{ components.realsense_front_macro(
       camera_name = 'rgbd',
       camera_suffix='',

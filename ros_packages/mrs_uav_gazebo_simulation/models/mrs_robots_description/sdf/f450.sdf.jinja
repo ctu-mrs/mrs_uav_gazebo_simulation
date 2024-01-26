@@ -201,7 +201,7 @@
       }}
       <!--}-->
 
-      <!-- intel nuc {-->
+      <!-- Intel NUC {-->
       {{ generic.visual_mesh_macro(
         name = 'NUC',
         mesh_file = nuc_mesh_file,
@@ -216,7 +216,7 @@
       }}
       <!--}-->
 
-      <!-- pixhawk {-->
+      <!-- Pixhawk {-->
       {{ generic.visual_mesh_macro(
         name = 'pixhawk',
         mesh_file = pixhawk_mesh_file,
@@ -231,7 +231,7 @@
       }}
       <!--}-->
 
-      <!-- legs {-->
+      <!-- Legs {-->
       {{ generic.leg_macro(
         name = 'front_right_leg',
         mesh_file = leg_mesh_file,
@@ -297,7 +297,7 @@
       }}
       <!--}-->
 
-      <!-- motors {-->
+      <!-- Motors {-->
       {{ generic.visual_mesh_macro(
         name = 'front_right_motor',
         mesh_file = motor_mesh_file,
@@ -351,7 +351,7 @@
       }}
       <!--}-->
 
-      <!-- battery mount and battery {-->
+      <!-- Battery mount and battery {-->
       {{ generic.visual_mesh_macro(
         name = 'battery_mount',
         mesh_file = battery_mount_mesh,
@@ -382,7 +382,7 @@
 
       {# component mounts and holders (these must be passed as args into components, or must be called) {--> #}
 
-      {# garmin down mount {--> #}
+      {# Garmin down mount {--> #}
       {%- set garmin_down_mount -%}
         {{ generic.visual_link_macro(
           name = 'garmin_mount',
@@ -400,7 +400,7 @@
       {%- endset -%}
       {# <!--}--> #}
 
-      {# lidar_mount_2d {--> #}
+      {# Lidar mount 2D {--> #}
       {%- set lidar_mount_2d -%}
         {{ generic.visual_link_macro(
           name = 'lidar_mount_2d',
@@ -418,7 +418,7 @@
       {%- endset -%}
       {# <!--}--> #}
 
-      {# lidar_mount_3d {--> #}
+      {# Lidar mount 3D {--> #}
       {%- set lidar_mount_3d -%}
         {{ generic.visual_link_macro(
           name = 'lidar_mount_3d',
@@ -436,7 +436,7 @@
       {%- endset -%}
       {# <!--}--> #}
 
-      {# bluefox mount {--> #}
+      {# Bluefox mount {--> #}
       {%- set bluefox_mount -%}
       {{ generic.visual_link_macro(
         name = 'bluefox_mount',
@@ -508,7 +508,7 @@
       {%- endset -%}
       {# <!--}--> #}
 
-      {# uvdar mount {--> #}
+      {# UVDAR mount {--> #}
       {%- set uvdar_mount -%}
       {{ generic.visual_link_macro(
         name = 'uvdar_mount',
@@ -604,7 +604,7 @@
     {# ||                compulsory sensor definitions                 || #}
     {# ================================================================== #}
 
-    <!-- pixhawk {-->
+    <!-- Pixhawk {-->
     {%- set imu_topic = '/imu' -%}
     {%- set mag_topic = '/mag' -%}
     {%- set baro_topic = '/baro' -%}
@@ -837,7 +837,7 @@
 
     {# Bluefox camera placements {--> #}
 
-    {# bluefox (classic) {--> #}
+    {# Bluefox (classic) {--> #}
     {%- set bluefox_camera = components.bluefox_camera_macro(
       camera_name = 'bluefox_optflow',
       parent_link = root,
@@ -850,7 +850,7 @@
     {{ bluefox_camera }}
     {# <!--}--> #}
 
-    {# bluefox reverse {--> #}
+    {# Bluefox reverse {--> #}
     {%- set bluefox_camera_reverse = components.bluefox_camera_reverse_macro(
       camera_name = 'bluefox_optflow',
       parent_link = root,
@@ -867,7 +867,7 @@
 
     {# Realsense placements {--> #}
 
-    {# realsense down {--> #}
+    {# Realsense down {--> #}
     {{ components.realsense_down_macro(
       camera_name = 'rgbd',
       camera_suffix='_down',
@@ -883,7 +883,7 @@
     }}
     {# <!--}--> #}
 
-    {# realsense front pitched {--> #}
+    {# Realsense front pitched {--> #}
     {{ components.realsense_front_pitched_macro(
       camera_name = 'rgbd',
       camera_suffix='_front_pitched',
@@ -899,7 +899,7 @@
     }}
     {# <!--}--> #}
 
-    {# realsense front {--> #}
+    {# Realsense front {--> #}
     {{ components.realsense_front_macro(
       camera_name = 'rgbd',
       camera_suffix='',
@@ -915,7 +915,7 @@
     }}
     {# <!--}--> #}
 
-    {# realsense up {--> #}
+    {# Realsense up {--> #}
     {{ components.realsense_up_macro(
       camera_name = 'rgbd',
       camera_suffix='_up',
@@ -935,7 +935,7 @@
 
     {# Mobius camera placements {--> #}
 
-    {# mobius down {--> #}
+    {# Mobius down {--> #}
     {{ components.mobius_down_macro(
       camera_name = 'mobius_down',
       parent_link = root,
@@ -950,7 +950,7 @@
     }}
     {# <!--}--> #}
 
-    {# mobius front {--> #}
+    {# Mobius front {--> #}
     {{ components.mobius_front_macro(
       camera_name = 'mobius_front',
       parent_link = root,
@@ -965,7 +965,7 @@
     }}
     {# <!--}--> #}
 
-    {# mobius back left {--> #}
+    {# Mobius back left {--> #}
     {{ components.mobius_back_left_macro(
       camera_name = 'mobius_back_left',
       parent_link = root,
@@ -980,7 +980,7 @@
     }}
     {# <!--}--> #}
 
-    {# mobius back right {--> #}
+    {# Mobius back right {--> #}
     {{ components.mobius_back_right_macro(
       camera_name = 'mobius_back_right',
       parent_link = root,
@@ -1227,9 +1227,11 @@
 
     {# ====================== conditional components ==================== #}
 
-    {# bluefox mount {--> #}
+    {# Bluefox mount {--> #}
     {%- if bluefox_camera | replace('\s', '') | length != 0 or bluefox_camera_reverse | replace('\s', '') | length != 0 -%}
+      <!-- Bluefox mount {-->
       {{ bluefox_mount }}
+      <!--}-->
     {%- endif -%}
     {# <!--}--> #}
 

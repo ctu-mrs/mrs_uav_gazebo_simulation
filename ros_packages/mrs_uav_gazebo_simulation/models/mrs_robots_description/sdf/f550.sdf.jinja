@@ -723,7 +723,7 @@
     {# ||                compulsory sensor definitions                 || #}
     {# ================================================================== #}
 
-    <!-- pixhawk {-->
+    <!-- Pixhawk {-->
     {%- set imu_topic = '/imu' -%}
     {%- set mag_topic = '/mag' -%}
     {%- set baro_topic = '/baro' -%}
@@ -940,7 +940,7 @@
 
     {# Bluefox camera placements {--> #}
 
-    {# bluefox (classic) {--> #}
+    {# Bluefox (classic) {--> #}
     {{ components.bluefox_camera_macro(
       camera_name = 'bluefox_optflow',
       parent_link = root,
@@ -952,7 +952,7 @@
     }}
     {# <!--}--> #}
 
-    {# bluefox reverse {--> #}
+    {# Bluefox reverse {--> #}
     {{ components.bluefox_camera_reverse_macro(
       camera_name = 'bluefox_optflow',
       parent_link = root,
@@ -968,7 +968,7 @@
 
     {# Realsense placements {--> #}
 
-    {# realsense top {--> #}
+    {# Realsense top {--> #}
     {{ components.realsense_top_macro(
       camera_name = 'rgbd',
       camera_suffix='_top',
@@ -984,7 +984,7 @@
     }}
     {# <!--}--> #}
 
-    {# realsense down {--> #}
+    {# Realsense down {--> #}
     {%- set realsense_down = components.realsense_down_macro(
       camera_name = 'rgbd',
       camera_suffix='_down',
@@ -1001,7 +1001,7 @@
     {{ realsense_down }}
     {# <!--}--> #}
 
-    {# realsense front pitched {--> #}
+    {# Realsense front pitched {--> #}
     {%- set realsense_front_pitched = components.realsense_front_pitched_macro(
       camera_name = 'rgbd',
       camera_suffix='_front_pitched',
@@ -1018,7 +1018,7 @@
     {{ realsense_front_pitched }}
     {# <!--}--> #}
 
-    {# realsense front {--> #}
+    {# Realsense front {--> #}
     {%- set realsense_front = components.realsense_front_macro(
       camera_name = 'rgbd',
       camera_suffix='',
@@ -1035,7 +1035,7 @@
     {{ realsense_front }}
     {# <!--}--> #}
 
-    {# realsense up {--> #}
+    {# Realsense up {--> #}
     {{ components.realsense_up_macro(
       camera_name = 'rgbd',
       camera_suffix='_up',
@@ -1055,7 +1055,7 @@
 
     {# Mobius camera placements {--> #}
 
-    {# mobius down {--> #}
+    {# Mobius down {--> #}
     {{ components.mobius_down_macro(
       camera_name = 'mobius_down',
       parent_link = root,
@@ -1070,7 +1070,7 @@
     }}
     {# <!--}--> #}
 
-    {# mobius front {--> #}
+    {# Mobius front {--> #}
     {{ components.mobius_front_macro(
       camera_name = 'mobius_front',
       parent_link = root,
@@ -1085,7 +1085,7 @@
     }}
     {# <!--}--> #}
 
-    {# mobius back left {--> #}
+    {# Mobius back left {--> #}
     {{ components.mobius_back_left_macro(
       camera_name = 'mobius_back_left',
       parent_link = root,
@@ -1100,7 +1100,7 @@
     }}
     {# <!--}--> #}
 
-    {# mobius back right {--> #}
+    {# Mobius back right {--> #}
     {{ components.mobius_back_right_macro(
       camera_name = 'mobius_back_right',
       parent_link = root,
@@ -1288,9 +1288,9 @@
     {%- endif -%}
     {# <!--}--> #}
 
-    {# extra leg to hold a realsense mount {--> #}
+    {# Extra leg to hold a Realsense mount {--> #}
     {%- if realsense_front | replace('\s', '') | length != 0 or realsense_front_pitched | replace('\s', '') | length != 0 or realsense_down | replace('\s', '') | length != 0 -%}
-      <!-- extra leg to hold a realsense mount {-->
+      <!-- Extra leg to hold a Realsense mount {-->
       {{ front_left_leg }}
       <!--}-->
     {%- endif -%}

@@ -86,44 +86,6 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-<!-- ========================= camera sensors ========================= -->
-
-{# TODO: make a component out of this #}
-<!-- Macro to add a Basler Dart camera {-->
-{%- macro basler_camera_macro(namespace, camera_name, parent_link, frame_rate, hfov, noise, x, y, z, roll, pitch, yaw) -%}
-{{ generic.camera_macro(
-  parent_link = parent_link,
-  camera_name = camera_name,
-  parent_frame_name = namespace + "/fcu",
-  camera_frame_name = namespace + "/" + camera_name + "_optical",
-  sensor_base_frame_name = namespace  + "/" + camera_name,
-  frame_rate = frame_rate,
-  horizontal_fov = hfov,
-  image_width = 1920,
-  image_height = 1200,
-  min_distance = 0.02,
-  max_distance = 80,
-  noise_mean = 0.0,
-  noise_stddev = noise,
-  mesh_file = "model://mrs_robots_description/meshes/sensors/basler_dart.stl",
-  mesh_scale = "0.001 0.001 0.001",
-  color = "DarkGrey",
-  visual_x = 0,
-  visual_y = 0,
-  visual_z = 0,
-  visual_roll = 0,
-  visual_pitch = 0,
-  visual_yaw = 0,
-  x = x,
-  y = y,
-  z = z,
-  roll = roll,
-  pitch = pitch,
-  yaw = yaw)
-}}
-{%- endmacro -%}
-<!--}-->
-
 <!-- ========================== other sensors ========================= -->
 
 {# TODO: make a component out of this #}
@@ -170,8 +132,6 @@ limitations under the License.
 </joint>
 {%- endmacro -%}
 <!--}-->
-
-
 
 {# TODO: make a component out of this #}
 <!-- Macro to add a safety_led {-->
@@ -2189,7 +2149,62 @@ limitations under the License.
 
   {%- endif -%}
 {%- endmacro -%}
-<!--}-->
+{# <!--}--> #}
+
+{# basler_camera_down_macro {--> #}
+{%- macro basler_camera_down_macro(camera_name, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-basler-camera-down' -%}
+  {%- set spawner_description = 'Add a Basler Dart camera pointing down' -%}
+  {%- set spawner_default_args = {'image_width': 1920, 'image_height': 1080, 'update_rate': 30, 'hfov': 1.990252, 'noise': 0.007} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Basler camera down {-->
+
+    <!-- sensor {-->
+    {{ generic.camera_macro(
+      parent_link = parent_link,
+      camera_name = camera_name,
+      camera_frame_name = spawner_args['name'] + '/' + camera_name + '_optical',
+      frame_rate = spawner_args[spawner_keyword]['update_rate'],
+      sensor_base_frame_name = spawner_args['name']  + '/' + camera_name,
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      horizontal_fov = spawner_args[spawner_keyword]['hfov'],
+      image_width = spawner_args[spawner_keyword]['image_width'],
+      image_height = spawner_args[spawner_keyword]['image_height'],
+      min_distance = 0.02,
+      max_distance = 80,
+      noise_mean = 0.0,
+      noise_stddev = spawner_args[spawner_keyword]['noise'],
+      mesh_file = 'model://mrs_robots_description/meshes/sensors/basler_dart.stl',
+      mesh_scale = '0.001 0.001 0.001',
+      color = 'DarkGrey',
+      visual_x = 0,
+      visual_y = 0,
+      visual_z = 0,
+      visual_roll = 0,
+      visual_pitch = 0,
+      visual_yaw = 0,
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+    <!--}-->
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
 
 {# ========================= UVDAR components ======================= #}
 
