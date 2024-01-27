@@ -3,14 +3,9 @@ project(mrs_uav_gazebo_simulation)
 
 set(CATKIN_DEPENDENCIES
   cmake_modules
-  gazebo_ros
-  mavlink_sitl_gazebo
   mavros_msgs
   message_runtime
-  mrs_gazebo_common_resources
   mrs_msgs
-  mrs_uav_px4_api
-  px4
   rospy
   std_msgs
   mrs_uav_testing
