@@ -26,10 +26,9 @@
   <depend>rospy</depend>
   <depend>std_msgs</depend>
   <depend>ignition-math6</depend>
+  <depend>mrs_uav_testing</depend>
   
   <depend>python3-jinja2</depend>
-
-  <test_depend>mrs_uav_testing</test_depend>
 
   <export>
     <!-- gazebo_ros_paths_plugin automatically adds these to

@@ -23,13 +23,14 @@
   <include file="$(find mrs_uav_testing)/launch/mrs_uav_system.launch">
     <arg name="automatic_start" default="true" />
     <arg name="platform_config" default="$(find mrs_uav_gazebo_simulation)/config/mrs_uav_system/$(arg UAV_TYPE).yaml" />
+    <arg name="custom_config" default="$(dirname)/config/custom_config.yaml" />
     <arg name="UAV_NAME" default="$(arg UAV_NAME)" />
   </include>
 
   <test pkg="$(arg package)" type="test_$(arg test_name)" test-name="$(arg test_name)" time-limit="120.0">
     <param name="test_name" value="$(arg test_name)" />
     <param name="uav_name" value="$(arg UAV_NAME)" />
-    <param name="gazebo_spawner_params" value="1 --$(arg UAV_TYPE) --enable-rangefinder" />
+    <param name="gazebo_spawner_params" value="1 --$(arg UAV_TYPE)" />
   </test>
 
 </launch>
