@@ -866,6 +866,50 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
+{# ultrasionic_sensor_macro (URM37) {--> #}
+{%- macro ultrasonic_sensor_macro(namespace, parent_link, suffix, x, y, z, roll, pitch, yaw) -%}
+  <link name="ultrasound{{ suffix }}_link">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    {{ zero_inertial_macro() }}
+    {{ visual_mesh_macro(
+      name = 'ultrasound' + suffix,
+      mesh_file = 'model://mrs_robots_description/meshes/sensors/ultrasonic_URM37.dae',
+      mesh_scale = '1 1 1',
+      color = 'DarkGrey',
+      x = 0,
+      y = 0,
+      z = 0,
+      roll = 0,
+      pitch = 0,
+      yaw = 0)
+    }}
+    {{ rangefinder_sensor_macro(
+      name = 'ultrasound' ~ suffix,
+      parent_frame_name = namespace ~ '/fcu',
+      sensor_frame_name = namespace ~ '/ultrasound' ~ suffix,
+      topic = '/' ~ namespace ~ '/ultrasound' ~ suffix ~ '/range',
+      update_rate = 40,
+      samples = 5,
+      fov = 0.698131701,
+      min_distance = 0.04,
+      max_distance = 5.0,
+      resolution = 0.01,
+      noise = 0.04,
+      x = x,
+      y = y,
+      z = z,
+      roll = roll,
+      pitch = pitch,
+      yaw = yaw)
+    }}
+  </link>
+  <joint name="ultrasound{{ suffix }}_joint" type="fixed">
+    <parent>{{ parent_link }}</parent>
+    <child>ultrasound{{ suffix }}_link</child>
+  </joint>
+{%- endmacro -%}
+{# <!--}--} #}
+
 {# ========================== gazebo plugins ========================= #}
 
 {# gazebo_gps_macro {--> #}

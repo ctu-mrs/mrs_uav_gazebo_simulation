@@ -39,52 +39,6 @@ limitations under the License.
 
 <!-- ======================= rangefinder sensors ======================-->
 
-{# TODO: make a component out of this #}
-<!-- Macro to add a URM37 ultrasound {-->
-{%- macro ultrasonic_sensor_macro(namespace, parent_link, suffix, x, y, z, roll, pitch, yaw) -%}
-<link name="ultrasound{{ suffix }}_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="visual">
-    <geometry>
-      <mesh>
-        <uri>model://mrs_robots_description/meshes/sensors/ultrasonic_URM37.dae</uri>
-        <scale>1 1 1</scale>
-      </mesh>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/DarkGrey</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-  {{ generic.rangefinder_sensor_macro(
-    name = "ultrasound" + suffix,
-    parent_frame_name = namespace + "/fcu",
-    rangefinder_frame_name = namespace + "/ultrasound" + suffix,
-    topic = "ultrasound" + suffix + "/range",
-    frame_rate = 40,
-    fov = 0.698131701,
-    min_distance = 0.04,
-    max_distance = 5,
-    resolution = 0.01,
-    noise = 0.04,
-    x = x,
-    y = y,
-    z = z,
-    roll = roll,
-    pitch = pitch,
-    yaw = yaw)
-  }}
-</link>
-
-<joint name="ultrasound{{ suffix }}_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>ultrasound{{ suffix }}_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
 
 <!-- ========================== other sensors ========================= -->
 
@@ -2186,7 +2140,7 @@ limitations under the License.
 {%- macro dual_uv_cameras_macro(parent_link, x1, y1, z1, roll1, pitch1, yaw1, x2, y2, z2, roll2, pitch2, yaw2, mount, spawner_args) -%}
 
   {%- set spawner_keyword = 'enable-dual-uv-cameras' -%}
-  {%- set spawner_description = 'Add right and left UV cameras to the vehicle. Requires param "calib_file" to be set' -%}
+  {%- set spawner_description = 'Add right and left UV cameras to the vehicle. Requires param "calib_file" to be set. Setting param "occlusions" to True requires a BEEFY computer.' -%}
   {%- set spawner_default_args = {'occlusions': False, 'calib_file': none, 'update_rate': 60} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
@@ -2946,7 +2900,7 @@ limitations under the License.
       <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
       {{ generic.zero_inertial_macro() }}
     </link>
-    
+
     <plugin name="safety_led_plugin" filename="libMrsGazeboCommonResources_SafetyLedPlugin.so">
       <model_name>safety_led</model_name>
       <failure_duration_threshold>{{ failure_duration_threshold }}</failure_duration_threshold>
@@ -2958,11 +2912,46 @@ limitations under the License.
       <pitch>{{ pitch }}</pitch>
       <yaw>{{ yaw }}</yaw>
     </plugin>
-    
+
     <joint name="safety_led_joint" type="fixed">
       <parent>{{ parent_link }}</parent>
       <child>safety_led_link</child>
     </joint>
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# omni_ultrasounds_macro {--> #}
+{%- macro omni_ultrasounds_macro(sensors_list, parent_link, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-omni-ultrasounds' -%}
+  {%- set spawner_description = 'Add omnidirectional ultrasonic sensors (up, down, 4 in horizontal plane)' -%}
+  {%- set spawner_default_args = none -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Omni ultrasonic sensors {-->
+
+    {%- for sensor in sensors_list -%}
+
+      <!-- Ultrasonic{{suffix}} {-->
+      {{ generic.ultrasonic_sensor_macro(
+        namespace = spawner_args['name'],
+        parent_link = parent_link,
+        suffix = sensor['suffix'],
+        x = sensor['x'],
+        y = sensor['y'],
+        z = sensor['z'],
+        roll = sensor['roll'],
+        pitch = sensor['pitch'],
+        yaw = sensor['yaw'])
+      }}
+      <!--}-->
+
+    {%- endfor -%}
     <!--}-->
 
   {%- endif -%}

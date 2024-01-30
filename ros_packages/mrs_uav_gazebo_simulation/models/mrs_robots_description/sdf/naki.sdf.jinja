@@ -510,94 +510,69 @@
     }}
     {# <!--}--> #}
 
-    {# TODO: !!! #}
     {# Ultrasonic sensors {--> #}
-    {% if enable_omni_ultrasounds %}
-
-    <!-- Ultrasonic Down {-->
-    {{ components.ultrasonic_sensor_macro(
-      namespace = namespace,
+    {%- set ultrasonic_sensors_list = [
+    {
+    'suffix': '_down',
+    'x': 0.02,
+    'y': 0,
+    'z': -0.1535,
+    'roll': 0,
+    'pitch': math.radians(90),
+    'yaw': 0
+    },
+    {
+    'suffix': '_up',
+    'x': -0.1686,
+    'y': 0,
+    'z': 0.001,
+    'roll': 0,
+    'pitch': math.radians(-90),
+    'yaw': 0
+    },
+    {
+    'suffix': '_fl',
+    'x': ultrasonic_x,
+    'y': ultrasonic_y,
+    'z': -0.019,
+    'roll': 0,
+    'pitch': 0,
+    'yaw': ultrasonic_yaw
+    },
+    {
+    'suffix': '_fr',
+    'x': ultrasonic_x,
+    'y': -ultrasonic_y,
+    'z': -0.019,
+    'roll': 0,
+    'pitch': 0,
+    'yaw': -ultrasonic_yaw
+    },
+    {
+    'suffix': '_bl',
+    'x': -ultrasonic_x,
+    'y': ultrasonic_y,
+    'z': -0.019,
+    'roll': 0,
+    'pitch': 0,
+    'yaw': ultrasonic_yaw + math.radians(90)
+    },
+    {
+    'suffix': '_br',
+    'x': -ultrasonic_x,
+    'y': -ultrasonic_y,
+    'z': -0.019,
+    'roll': 0,
+    'pitch': 0,
+    'yaw': -(ultrasonic_yaw + math.radians(90))
+    },
+    ]
+    -%}
+    {{ components.omni_ultrasounds_macro(
+      sensors_list = ultrasonic_sensors_list,
       parent_link = root,
-      suffix = "_down",
-      x = 0.02,
-      y = 0,
-      z = -0.1535,
-      roll = 0,
-      pitch = components.rad(90),
-      yaw = 0)
+      spawner_args = spawner_args)
     }}
-    <!--}-->
-
-    <!-- Ultrasonic Up {-->
-    {{ components.ultrasonic_sensor_macro(
-      namespace = namespace,
-      parent_link = root,
-      suffix = "_up",
-      x = -0.1686,
-      y = 0,
-      z = 0.001,
-      roll = 0,
-      pitch = components.rad(-90),
-      yaw = 0)
-    }}
-    <!--}-->
-
-    <!-- Ultrasonic Front Left {-->
-    {{ components.ultrasonic_sensor_macro(
-      namespace = namespace,
-      parent_link = root,
-      suffix = "_fl",
-      x = ultrasonic_x,
-      y = ultrasonic_y,
-      z = -0.019,
-      roll = 0,
-      pitch = 0,
-      yaw = ultrasonic_yaw)
-    }}
-    <!--}-->
-
-    <!-- Ultrasonic Front Right {-->
-    {{ components.ultrasonic_sensor_macro(
-      namespace = namespace,
-      parent_link = root,
-      suffix = "_fr",
-      x = ultrasonic_x,
-      y = -ultrasonic_y,
-      z = -0.019,
-      roll = 0,
-      pitch = 0,
-      yaw = -ultrasonic_yaw)
-    }}
-    <!--}-->
-
-    <!-- Ultrasonic Back Left {-->
-    {{ components.ultrasonic_sensor_macro(
-      namespace = namespace,
-      parent_link = root,
-      suffix = "_bl",
-      x = -ultrasonic_x,
-      y = ultrasonic_y,
-      z = -0.019,
-      roll = 0,
-      pitch = 0,
-      yaw = ultrasonic_yaw + components.rad90)
-    }}
-    <!--}-->
-
-    <!-- Ultrasonic Back Right {-->
-    {{ components.ultrasonic_sensor_macro(
-      namespace = namespace,
-      parent_link = root,
-      suffix = "_br",
-      x = -ultrasonic_x,
-      y = -ultrasonic_y,
-      z = -0.019,
-      roll = 0,
-      pitch = 0,
-      yaw = -(ultrasonic_yaw + components.rad90))
-    }}
-    <!--}-->
-    {% endif %}
     {# <!--}--> #}
 
     {# ========================== LIDAR sensors ========================= #}
