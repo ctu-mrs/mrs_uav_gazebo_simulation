@@ -1,7 +1,7 @@
 <?xml version="1.0"? encoding="utf-8">
 <sdf version="1.6">
 
-{%- import 'generic_components.sdf.jinja' as generic -%}
+{%- import 'mrs_robots_description/sdf/generic_components.sdf.jinja' as generic -%}
 
 {# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #}
 {# !! THIS DOCUMENT CONTAINS ONLY COMPLEX COMPONENT MACROS DESIGNED !! #}
@@ -31,104 +31,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-<!--}-->
-
-<!-- ================================================================== -->
-<!-- ||                      sensor definitions                      || -->
-<!-- ================================================================== -->
-
-<!-- ======================= rangefinder sensors ======================-->
-
-
-<!-- ========================== other sensors ========================= -->
-
-{# TODO: make a component out of this #}
-<!-- Macro to add a gps satelite blocking sensor {-->
-{%- macro gps_satelites_blocking_macro(parent_link) -%}
-{# not supported in the current version #}
-<link name="gps_blocking_link">
-  <pose>0 0 0 0 {{ -math.radians(90) }} 0</pose>
-  {{ generic.zero_inertial_macro() }}
-  <sensor name='gps_blocking_sensor' type='ray'>
-    <visualize>false</visualize>
-    <update_rate>2</update_rate>
-    <ray>
-      <scan>
-        <horizontal>
-          <samples>4</samples>
-          <resolution>1</resolution>
-          <min_angle>-1.1</min_angle>
-          <max_angle>1.1</max_angle>
-        </horizontal>
-        <vertical>
-          <samples>4</samples>
-          <resolution>1</resolution>
-          <min_angle>-0.9</min_angle>
-          <max_angle>0.9</max_angle>
-        </vertical>
-      </scan>
-      <range>
-        <min>0.5</min>
-        <max>50</max>
-        <resolution>0.5</resolution>
-      </range>
-    </ray>
-    <plugin name='gps_blocking_plugin' filename='libgazebo_ros_laser.so'>
-      <topicName>gps_sat_blocking</topicName>
-      <frameName>gps_blocking</frameName>
-    </plugin>
-  </sensor>
-</link>
-
-<joint name="gps_blocking_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>gps_blocking_link</child>
-</joint>
-{%- endmacro -%}
-<!--}-->
-
-
-<!-- ================================================================== -->
-<!-- ||         other equipment definitions (holders, boxes ...)     || -->
-<!-- ================================================================== -->
-
-{# TODO: make a component out of this #}
-<!-- Macro to add a parachute {-->
-{%- macro parachute_macro(parent_link, x, y, z, roll, pitch, yaw) -%}
-<link name="parachute_link">
-  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-  {{ generic.zero_inertial_macro() }}
-  <visual name="visual">
-    <pose>0 0 0 0 0 0</pose>
-    <geometry>
-      <cylinder>
-        <length>0.1</length>
-        <radius>0.048</radius>
-      </cylinder>
-    </geometry>
-    <material>
-      <script>
-        <name>Gazebo/DarkGrey</name>
-        <uri>file://media/materials/scripts/gazebo.material</uri>
-      </script>
-    </material>
-  </visual>
-</link>
-
-<plugin name="parachute_plugin" filename="libMrsGazeboCommonResources_ParachutePlugin.so">
-  <air_density>1.225</air_density>
-  <drag_coeff>500</drag_coeff>
-  <cross_section>0.25</cross_section>
-  <offset_x>0</offset_x>
-  <offset_y>0</offset_y>
-  <offset_z>-1.56</offset_z>
-</plugin>
-
-<joint name="parachute_joint" type="fixed">
-  <parent>{{ parent_link }}</parent>
-  <child>parachute_link</child>
-</joint>
-{%- endmacro -%}
 <!--}-->
 
 {# ================================================================== #}
@@ -261,7 +163,7 @@ limitations under the License.
 
 {# ======================= rangefinder sensors ====================== #}
 
-{# garmin_down_macro (through pixhawk) {--> #}
+{# garmin_down_macro (connected through pixhawk) {--> #}
 {%- macro garmin_down_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
 
   {%- set spawner_keyword = 'enable-rangefinder' -%}
@@ -1574,6 +1476,61 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
+{# bluefox_camera_front_macro {--> #}
+{%- macro bluefox_camera_front_macro(camera_name, parent_link, x, y, z, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-bluefox-camera-front' -%}
+  {%- set spawner_description = 'Add bluefox camera to the vehicle [752x480 @ 50hz], pointing forward' -%}
+  {%- set spawner_default_args = {'update_rate': 100, 'noise': 0.0} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- bluefox camera {-->
+
+    <!-- sensor {-->
+    {{ generic.camera_macro(
+      parent_link = parent_link,
+      camera_name = camera_name,
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      camera_frame_name = spawner_args['name'] + '/' + camera_name + '_optical',
+      sensor_base_frame_name = spawner_args['name'] + '/' + camera_name,
+      frame_rate = spawner_args[spawner_keyword]['update_rate'],
+      horizontal_fov = 2.1,
+      image_width = 752,
+      image_height = 480,
+      min_distance = 0.02,
+      max_distance = 80,
+      noise_mean = 0.0,
+      noise_stddev = spawner_args[spawner_keyword]['noise'],
+      mesh_file = 'model://mrs_robots_description/meshes/sensors/bluefox.dae',
+      mesh_scale = '1 1 1',
+      color = 'DarkGrey',
+      visual_x = 0,
+      visual_y = 0,
+      visual_z = 0,
+      visual_roll = math.radians(90),
+      visual_pitch = 0,
+      visual_yaw = 0,
+      x = x,
+      y = y,
+      z = z,
+      roll = 0,
+      pitch = 0,
+      yaw = 0)
+    }}
+    <!--}-->
+
+    <!-- mount {-->
+    {{ mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
 {# mobius_down_macro {-->#}
 {%- macro mobius_down_macro(camera_name, parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
 
@@ -2537,61 +2494,59 @@ limitations under the License.
 
 {# ==================== miscellaneous components ==================== #}
 
-{# TODO: UWB plugin is not core #}
-{# uwb_range_macro {--> #}
-{%- macro uwb_range_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+{# light_macro {--> #}
+{%- macro light_macro(parent_link, max_pitch_rate, x, y, z, roll, pitch, yaw, spawner_args) -%}
 
-  {%- set spawner_keyword = 'enable-uwb-range' -%}
-  {%- set spawner_description = 'Add Qorvo DW1000 UWB transceiver. Requires param "signal_id" to be set.' -%}
-  {%- set spawner_default_args = {'signal_id': none, 'update_rate': 10} -%}
+  {%- set spawner_keyword = 'enable-light' -%}
+  {%- set spawner_description = 'Add a light on a gimbal to the vehicle. Requires a Gazebo world with enabled shadows' -%}
+  {%- set spawner_default_args = {'update_rate': 30, 'compensate_tilt': True, 'initial_on': True} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
-
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
-    {%- if spawner_args[spawner_keyword]['signal_id'] is not none -%}
+    <!-- Light  {-->
+    <link name="light_macro_link">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+      {{ generic.zero_inertial_macro() }}
+      {{ generic.visual_colored_box_macro('light', 0.01, 0.01, 0.01, 'Yellow', 0, 0, 0, 0, 0, 0) }}
+    </link>
 
-      <!-- Qorvo DW1000 UWB {-->
-      <link name="uwb_range_link">
-        <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-        {{ generic.zero_inertial_macro() }}
-        <sensor name="uwb_range_sensor" type="wireless_transmitter">
-          <update_rate>{{ spawner_args[spawner_keyword]['update_rate'] }}</update_rate>
-          <always_on>1</always_on>
-          <plugin name="uwb_range_plugin" filename="libuwb_range.so">
-            <uwb_id>{{ spawner_args[spawner_keyword]['signal_id'] }}</uwb_id>
-            <publish_topic>/{{ spawner_args['name'] }}/uwb_range/range</publish_topic>
-            <frame_name>{{ spawner_args['name'] }}/uwb</frame_name>
-            <sensitivity>-150</sensitivity>
-            <stddev>0.1</stddev>
-          </plugin>
-          <transceiver>
-            <frequency>6489.6</frequency>
-            <min_frequency>6240.0</min_frequency>
-            <max_frequency>6739.2</max_frequency>
-            <power>14.5</power>
-            <gain>2.5</gain>
-          </transceiver>
-        </sensor>
-      </link>
-      <joint name="uwb_range_joint" type="fixed">
-        <parent>{{ parent_link }}</parent>
-        <child>uwb_range_link</child>
-        <disableFixedJointLumping>true</disableFixedJointLumping>
-        <preserveFixedJoint>true</preserveFixedJoint>
-      </joint>
+    <plugin name="light_plugin" filename="libMrsGazeboCommonResources_LightPlugin.so">
+      <offset_x>{{ x }}</offset_x>
+      <offset_y>{{ y }}</offset_y>
+      <offset_z>{{ z }}</offset_z>
+      <offset_roll>{{ roll }}</offset_roll>
+      <offset_pitch>{{ pitch }}</offset_pitch>
+      <offset_yaw>{{ yaw }}</offset_yaw>
+      <spawning_frame>{{ parent_link }}</spawning_frame>
+      <update_rate>{{ spawner_args[spawner_keyword]['update_rate'] }}</update_rate>
+      <max_pitch_rate>{{ max_pitch_rate }}</max_pitch_rate>
+      <initial_on>{{ spawner_args[spawner_keyword]['initial_on'] }}</initial_on>
+      <compensate_tilt>{{ spawner_args[spawner_keyword]['compensate_tilt'] }}</compensate_tilt>
+    </plugin>
 
-      <!-- mount {-->
-      {{ mount }}
-      <!--}-->
-
-      <!--}-->
-
-    {%- endif -%}
+    <joint name="light_macro_joint" type="revolute">
+      <parent>{{ parent_link }}</parent>
+      <child>light_macro_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-1.57</lower>
+          <upper>1.57</upper>
+          <effort>1</effort>
+          <velocity>10</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.0</damping>
+          <friction>0.0</friction>
+        </dynamics>
+      </axis>
+    </joint>
+    <!--}-->
 
   {%- endif -%}
 {%- endmacro -%}
-{# <!--}--> #}
+<!--}-->
 
 {# magnet_gripper_visualization_macro {--> #}
 {%- macro magnet_gripper_visualization_macro(parent_link, x, y, z, roll, pitch, yaw, spawner_args) -%}
@@ -2624,6 +2579,125 @@ limitations under the License.
     <joint name="magnet_gripper_visualization_joint" type="fixed">
       <parent>{{ parent_link }}</parent>
       <child>magnet_gripper_visualization_link</child>
+    </joint>
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# omni_ultrasounds_macro {--> #}
+{%- macro omni_ultrasounds_macro(sensors_list, parent_link, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-omni-ultrasounds' -%}
+  {%- set spawner_description = 'Add omnidirectional ultrasonic sensors (up, down, 4 in horizontal plane)' -%}
+  {%- set spawner_default_args = none -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Omni ultrasonic sensors {-->
+
+    {%- for sensor in sensors_list -%}
+
+      <!-- Ultrasonic{{suffix}} {-->
+      {{ generic.ultrasonic_sensor_macro(
+        namespace = spawner_args['name'],
+        parent_link = parent_link,
+        suffix = sensor['suffix'],
+        x = sensor['x'],
+        y = sensor['y'],
+        z = sensor['z'],
+        roll = sensor['roll'],
+        pitch = sensor['pitch'],
+        yaw = sensor['yaw'])
+      }}
+      <!--}-->
+
+    {%- endfor -%}
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
+{# pendulum_macro {--> #}
+{%- macro pendulum_macro(parent_link, x, y, z, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-pendulum' -%}
+  {%- set spawner_description = 'Add a pendulum to the vehicle. Specify the length and mass of the whole chain. Length and mass is uniformly distributed between the links' -%}
+  {%- set spawner_default_args = {'chain_length': 3.0, 'chain_mass': 0.5, 'num_links': 30, 'radius': 0.01} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Pendulum {-->
+    <!-- chain link 0 {-->
+    {{ generic.single_chain_pendulum_macro(
+      parent_link = parent_link,
+      id = 0,
+      link_mass = spawner_args[spawner_keyword]['chain_mass'] / spawner_args[spawner_keyword]['num_links'],
+      link_radius = spawner_args[spawner_keyword]['radius'],
+      link_length = spawner_args[spawner_keyword]['chain_length'] / spawner_args[spawner_keyword]['num_links'],
+      joint_offset_x = x,
+      joint_offset_y = y,
+      joint_offset_z = z)
+    }}
+    <!--}-->
+
+    {%- for id_ in range(1, spawner_args[spawner_keyword]['num_links'] | int) -%}
+
+      <!-- chain link {{id_}} {-->
+      {{ generic.single_chain_pendulum_macro(
+        parent_link = 'pendulum_chain_' + (id_ - 1)| string() + '_link',
+        id = id_,
+        link_mass = spawner_args[spawner_keyword]['chain_mass'] / spawner_args[spawner_keyword]['num_links'],
+        link_radius = spawner_args[spawner_keyword]['radius'],
+        link_length = spawner_args[spawner_keyword]['chain_length'] / spawner_args[spawner_keyword]['num_links'],
+        joint_offset_x = 0,
+        joint_offset_y = 0,
+        joint_offset_z = -0.5 * (spawner_args[spawner_keyword]['chain_length'] / spawner_args[spawner_keyword]['num_links']))
+      }}
+      <!--}-->
+
+    {%- endfor -%}
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+<!--}-->
+
+{# safety_led_macro {--> #}
+{%- macro safety_led_macro(parent_link, failure_duration_threshold, x, y, z, roll, pitch, yaw, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-safety-led' -%}
+  {%- set spawner_description = 'Add a safety LED' -%}
+  {%- set spawner_default_args = none -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- Safety LED {-->
+    <link name="safety_led_link">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+      {{ generic.zero_inertial_macro() }}
+    </link>
+
+    <plugin name="safety_led_plugin" filename="libMrsGazeboCommonResources_SafetyLedPlugin.so">
+      <model_name>safety_led</model_name>
+      <failure_duration_threshold>{{ failure_duration_threshold }}</failure_duration_threshold>
+      <model_spawn_delay>5.0</model_spawn_delay>
+      <x>{{ x }}</x>
+      <y>{{ y }}</y>
+      <z>{{ z }}}</z>
+      <roll>{{ roll }}</roll>
+      <pitch>{{ pitch }}</pitch>
+      <yaw>{{ yaw }}</yaw>
+    </plugin>
+
+    <joint name="safety_led_joint" type="fixed">
+      <parent>{{ parent_link }}</parent>
+      <child>safety_led_link</child>
     </joint>
     <!--}-->
 
@@ -2702,136 +2776,61 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-{# whycon_box_macro {--> #}
-{%- macro whycon_box_macro(parent_link, x, y, z, roll, pitch, yaw, spawner_args) -%}
+{# TODO: UWB plugin is not core #}
+{# uwb_range_macro {--> #}
+{%- macro uwb_range_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
 
-  {%- set spawner_keyword = 'enable-whycon-box' -%}
-  {%- set spawner_description = 'Add a Whycon box for relative localization using visual markers' -%}
-  {%- set spawner_default_args = none -%}
-
-  {%- if spawner_keyword in spawner_args.keys() -%}
-    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
-
-    {%- set mesh_file = 'model://mrs_robots_description/meshes/sensors/whycon_box.dae' -%}
-    {%- set mesh_scale = '1 1 1' -%}
-
-    <!-- Whycon Box {-->
-    <link name="whycon_box_link">
-      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-      {{ generic.zero_inertial_macro() }}
-      {{ generic.visual_mesh_textured_macro("whycon_box", mesh_file, mesh_scale, x, y, z, roll, pitch, yaw) }}
-    </link>
-
-    <joint name="whycon_box_joint" type="fixed">
-      <parent>{{ parent_link }}</parent>
-      <child>whycon_box_link</child>
-    </joint>
-    <!--}-->
-
-  {%- endif -%}
-
-{%- endmacro -%}
-<!--}-->
-
-{# light_macro {--> #}
-{%- macro light_macro(parent_link, max_pitch_rate, x, y, z, roll, pitch, yaw, spawner_args) -%}
-
-  {%- set spawner_keyword = 'enable-light' -%}
-  {%- set spawner_description = 'Add a light on a gimbal to the vehicle. Requires a Gazebo world with enabled shadows' -%}
-  {%- set spawner_default_args = {'update_rate': 30, 'compensate_tilt': True, 'initial_on': True} -%}
+  {%- set spawner_keyword = 'enable-uwb-range' -%}
+  {%- set spawner_description = 'Add Qorvo DW1000 UWB transceiver. Requires param "signal_id" to be set.' -%}
+  {%- set spawner_default_args = {'signal_id': none, 'update_rate': 10} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
+
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
-    <!-- Light  {-->
-    <link name="light_macro_link">
-      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-      {{ generic.zero_inertial_macro() }}
-      {{ generic.visual_colored_box_macro('light', 0.01, 0.01, 0.01, 'Yellow', 0, 0, 0, 0, 0, 0) }}
-    </link>
+    {%- if spawner_args[spawner_keyword]['signal_id'] is not none -%}
 
-    <plugin name="light_plugin" filename="libMrsGazeboCommonResources_LightPlugin.so">
-      <offset_x>{{ x }}</offset_x>
-      <offset_y>{{ y }}</offset_y>
-      <offset_z>{{ z }}</offset_z>
-      <offset_roll>{{ roll }}</offset_roll>
-      <offset_pitch>{{ pitch }}</offset_pitch>
-      <offset_yaw>{{ yaw }}</offset_yaw>
-      <spawning_frame>{{ parent_link }}</spawning_frame>
-      <update_rate>{{ spawner_args[spawner_keyword]['update_rate'] }}</update_rate>
-      <max_pitch_rate>{{ max_pitch_rate }}</max_pitch_rate>
-      <initial_on>{{ spawner_args[spawner_keyword]['initial_on'] }}</initial_on>
-      <compensate_tilt>{{ spawner_args[spawner_keyword]['compensate_tilt'] }}</compensate_tilt>
-    </plugin>
+      <!-- Qorvo DW1000 UWB {-->
+      <link name="uwb_range_link">
+        <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+        {{ generic.zero_inertial_macro() }}
+        <sensor name="uwb_range_sensor" type="wireless_transmitter">
+          <update_rate>{{ spawner_args[spawner_keyword]['update_rate'] }}</update_rate>
+          <always_on>1</always_on>
+          <plugin name="uwb_range_plugin" filename="libuwb_range.so">
+            <uwb_id>{{ spawner_args[spawner_keyword]['signal_id'] }}</uwb_id>
+            <publish_topic>/{{ spawner_args['name'] }}/uwb_range/range</publish_topic>
+            <frame_name>{{ spawner_args['name'] }}/uwb</frame_name>
+            <sensitivity>-150</sensitivity>
+            <stddev>0.1</stddev>
+          </plugin>
+          <transceiver>
+            <frequency>6489.6</frequency>
+            <min_frequency>6240.0</min_frequency>
+            <max_frequency>6739.2</max_frequency>
+            <power>14.5</power>
+            <gain>2.5</gain>
+          </transceiver>
+        </sensor>
+      </link>
+      <joint name="uwb_range_joint" type="fixed">
+        <parent>{{ parent_link }}</parent>
+        <child>uwb_range_link</child>
+        <disableFixedJointLumping>true</disableFixedJointLumping>
+        <preserveFixedJoint>true</preserveFixedJoint>
+      </joint>
 
-    <joint name="light_macro_joint" type="revolute">
-      <parent>{{ parent_link }}</parent>
-      <child>light_macro_link</child>
-      <axis>
-        <xyz>0 1 0</xyz>
-        <limit>
-          <lower>-1.57</lower>
-          <upper>1.57</upper>
-          <effort>1</effort>
-          <velocity>10</velocity>
-        </limit>
-        <dynamics>
-          <damping>0.0</damping>
-          <friction>0.0</friction>
-        </dynamics>
-      </axis>
-    </joint>
-    <!--}-->
-
-  {%- endif -%}
-{%- endmacro -%}
-<!--}-->
-
-{# pendulum_macro {--> #}
-{%- macro pendulum_macro(parent_link, x, y, z, spawner_args) -%}
-
-  {%- set spawner_keyword = 'enable-pendulum' -%}
-  {%- set spawner_description = 'Add a pendulum to the vehicle. Specify the length and mass of the whole chain. Length and mass is uniformly distributed between the links' -%}
-  {%- set spawner_default_args = {'chain_length': 3.0, 'chain_mass': 0.5, 'num_links': 30, 'radius': 0.01} -%}
-
-  {%- if spawner_keyword in spawner_args.keys() -%}
-    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
-
-    <!-- Pendulum {-->
-    <!-- chain link 0 {-->
-    {{ generic.single_chain_pendulum_macro(
-      parent_link = parent_link,
-      id = 0,
-      link_mass = spawner_args[spawner_keyword]['chain_mass'] / spawner_args[spawner_keyword]['num_links'],
-      link_radius = spawner_args[spawner_keyword]['radius'],
-      link_length = spawner_args[spawner_keyword]['chain_length'] / spawner_args[spawner_keyword]['num_links'],
-      joint_offset_x = x,
-      joint_offset_y = y,
-      joint_offset_z = z)
-    }}
-    <!--}-->
-
-    {%- for id_ in range(1, spawner_args[spawner_keyword]['num_links'] | int) -%}
-
-      <!-- chain link {{id_}} {-->
-      {{ generic.single_chain_pendulum_macro(
-        parent_link = 'pendulum_chain_' + (id_ - 1)| string() + '_link',
-        id = id_,
-        link_mass = spawner_args[spawner_keyword]['chain_mass'] / spawner_args[spawner_keyword]['num_links'],
-        link_radius = spawner_args[spawner_keyword]['radius'],
-        link_length = spawner_args[spawner_keyword]['chain_length'] / spawner_args[spawner_keyword]['num_links'],
-        joint_offset_x = 0,
-        joint_offset_y = 0,
-        joint_offset_z = -0.5 * (spawner_args[spawner_keyword]['chain_length'] / spawner_args[spawner_keyword]['num_links']))
-      }}
+      <!-- mount {-->
+      {{ mount }}
       <!--}-->
 
-    {%- endfor -%}
-    <!--}-->
+      <!--}-->
+
+    {%- endif -%}
 
   {%- endif -%}
 {%- endmacro -%}
-<!--}-->
+{# <!--}--> #}
 
 {# water_gun_macro {--> #}
 {%- macro water_gun_macro(parent_link, nozzle_offset_x, nozzle_offset_y, nozzle_offset_z, x, y, z, roll, pitch, yaw, spawner_args) -%}
@@ -2885,76 +2884,125 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
-{# safety_led_macro {--> #}
-{%- macro safety_led_macro(parent_link, failure_duration_threshold, x, y, z, roll, pitch, yaw, spawner_args) -%}
+{# whycon_box_macro {--> #}
+{%- macro whycon_box_macro(parent_link, x, y, z, roll, pitch, yaw, spawner_args) -%}
 
-  {%- set spawner_keyword = 'enable-safety-led' -%}
-  {%- set spawner_description = 'Add a safety LED' -%}
+  {%- set spawner_keyword = 'enable-whycon-box' -%}
+  {%- set spawner_description = 'Add a Whycon box for relative localization using visual markers' -%}
   {%- set spawner_default_args = none -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
-    <!-- Safety LED {-->
-    <link name="safety_led_link">
+    {%- set mesh_file = 'model://mrs_robots_description/meshes/sensors/whycon_box.dae' -%}
+    {%- set mesh_scale = '1 1 1' -%}
+
+    <!-- Whycon Box {-->
+    <link name="whycon_box_link">
       <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
       {{ generic.zero_inertial_macro() }}
+      {{ generic.visual_mesh_textured_macro("whycon_box", mesh_file, mesh_scale, x, y, z, roll, pitch, yaw) }}
     </link>
 
-    <plugin name="safety_led_plugin" filename="libMrsGazeboCommonResources_SafetyLedPlugin.so">
-      <model_name>safety_led</model_name>
-      <failure_duration_threshold>{{ failure_duration_threshold }}</failure_duration_threshold>
-      <model_spawn_delay>5.0</model_spawn_delay>
-      <x>{{ x }}</x>
-      <y>{{ y }}</y>
-      <z>{{ z }}}</z>
-      <roll>{{ roll }}</roll>
-      <pitch>{{ pitch }}</pitch>
-      <yaw>{{ yaw }}</yaw>
-    </plugin>
-
-    <joint name="safety_led_joint" type="fixed">
+    <joint name="whycon_box_joint" type="fixed">
       <parent>{{ parent_link }}</parent>
-      <child>safety_led_link</child>
+      <child>whycon_box_link</child>
     </joint>
     <!--}-->
 
   {%- endif -%}
+
 {%- endmacro -%}
-{# <!--}--> #}
+<!--}-->
 
-{# omni_ultrasounds_macro {--> #}
-{%- macro omni_ultrasounds_macro(sensors_list, parent_link, spawner_args) -%}
+{# ==================== Unsupported components ==================== #}
 
-  {%- set spawner_keyword = 'enable-omni-ultrasounds' -%}
-  {%- set spawner_description = 'Add omnidirectional ultrasonic sensors (up, down, 4 in horizontal plane)' -%}
-  {%- set spawner_default_args = none -%}
+{# TODO: not supported in the current version #}
+{# TODO: not used #}
+{# gps_satelites_blocking_macro {--> #}
+{%- macro gps_satelites_blocking_macro(parent_link) -%}
+<link name="gps_blocking_link">
+  <pose>0 0 0 0 {{ -math.radians(90) }} 0</pose>
+  {{ generic.zero_inertial_macro() }}
+  <sensor name='gps_blocking_sensor' type='ray'>
+    <visualize>false</visualize>
+    <update_rate>2</update_rate>
+    <ray>
+      <scan>
+        <horizontal>
+          <samples>4</samples>
+          <resolution>1</resolution>
+          <min_angle>-1.1</min_angle>
+          <max_angle>1.1</max_angle>
+        </horizontal>
+        <vertical>
+          <samples>4</samples>
+          <resolution>1</resolution>
+          <min_angle>-0.9</min_angle>
+          <max_angle>0.9</max_angle>
+        </vertical>
+      </scan>
+      <range>
+        <min>0.5</min>
+        <max>50</max>
+        <resolution>0.5</resolution>
+      </range>
+    </ray>
+    <plugin name='gps_blocking_plugin' filename='libgazebo_ros_laser.so'>
+      <topicName>gps_sat_blocking</topicName>
+      <frameName>gps_blocking</frameName>
+    </plugin>
+  </sensor>
+</link>
 
-  {%- if spawner_keyword in spawner_args.keys() -%}
-    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+<joint name="gps_blocking_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>gps_blocking_link</child>
+</joint>
+{%- endmacro -%}
+<!--}-->
 
-    <!-- Omni ultrasonic sensors {-->
+{# TODO: not supported in the current version #}
+{# TODO: not used #}
+{# parachute_macro {--> #}
+{%- macro parachute_macro(parent_link, x, y, z, roll, pitch, yaw) -%}
 
-    {%- for sensor in sensors_list -%}
+  <!-- parachute {-->
+  <link name="parachute_link">
+    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+    {{ generic.zero_inertial_macro() }}
+    <visual name="visual">
+      <pose>0 0 0 0 0 0</pose>
+      <geometry>
+        <cylinder>
+          <length>0.1</length>
+          <radius>0.048</radius>
+        </cylinder>
+      </geometry>
+      <material>
+        <script>
+          <name>Gazebo/DarkGrey</name>
+          <uri>file://media/materials/scripts/gazebo.material</uri>
+        </script>
+      </material>
+    </visual>
+  </link>
 
-      <!-- Ultrasonic{{suffix}} {-->
-      {{ generic.ultrasonic_sensor_macro(
-        namespace = spawner_args['name'],
-        parent_link = parent_link,
-        suffix = sensor['suffix'],
-        x = sensor['x'],
-        y = sensor['y'],
-        z = sensor['z'],
-        roll = sensor['roll'],
-        pitch = sensor['pitch'],
-        yaw = sensor['yaw'])
-      }}
-      <!--}-->
+  <plugin name="parachute_plugin" filename="libMrsGazeboCommonResources_ParachutePlugin.so">
+    <air_density>1.225</air_density>
+    <drag_coeff>500</drag_coeff>
+    <cross_section>0.25</cross_section>
+    <offset_x>0</offset_x>
+    <offset_y>0</offset_y>
+    <offset_z>-1.56</offset_z>
+  </plugin>
 
-    {%- endfor -%}
-    <!--}-->
+  <joint name="parachute_joint" type="fixed">
+    <parent>{{ parent_link }}</parent>
+    <child>parachute_link</child>
+  </joint>
+  <!--}-->
 
-  {%- endif -%}
 {%- endmacro -%}
 {# <!--}--> #}
 

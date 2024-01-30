@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <sdf version='1.6'>
 
-  {%- import 'component_snippets.sdf.jinja' as components -%}
-  {%- import 'generic_components.sdf.jinja' as generic -%}
+  {%- import 'mrs_robots_description/sdf/component_snippets.sdf.jinja' as components -%}
+  {%- import 'mrs_robots_description/sdf/generic_components.sdf.jinja' as generic -%}
 
   {# ================================================================== #}
   {# ||                    parameters definition                     || #}
@@ -636,7 +636,7 @@
       camera_frame_name = spawner_args['name'] + '/servo_camera_optical',
       sensor_base_frame_name = spawner_args['name'] + '/servo_camera',
       offset_pitch_link_x = 0.12928,
-      offset_pitch_link_y = "7.605e-5",
+      offset_pitch_link_y = '7.605e-5',
       offset_pitch_link_z = -0.006051,
       offset_pitch_link_roll = 0.0,
       offset_pitch_link_yaw = 0.0,

@@ -119,7 +119,7 @@ class MrsDroneSpawner:
 
         resource_paths = []
         rospack = rospkg.RosPack()
-        resource_paths.append(os.path.join(rospack.get_path('mrs_uav_gazebo_simulation'), 'models', 'mrs_robots_description', 'sdf'))
+        resource_paths.append(os.path.join(rospack.get_path('mrs_uav_gazebo_simulation'), 'models'))
 
         # # #{ load required params
         try:
