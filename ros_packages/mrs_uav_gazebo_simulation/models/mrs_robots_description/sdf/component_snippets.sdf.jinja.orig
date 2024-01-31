@@ -1927,7 +1927,7 @@ limitations under the License.
     </link>
 
     <plugin name="servo_camera_plugin" filename="libMrsGazeboCommonResources_ServoCameraPlugin.so">
-      <update_rate>{{ tilt_update_rate }}</update_rate>
+      <tilt_update_rate>{{ tilt_update_rate }}</tilt_update_rate>
       <max_pitch_rate>{{ max_pitch_rate }}</max_pitch_rate>
       <max_pitch>{{ max_pitch }}</max_pitch>
       <min_pitch>{{ min_pitch }}</min_pitch>
@@ -2765,6 +2765,7 @@ limitations under the License.
       <sensor_suffix>{{ sensor_suffix }}</sensor_suffix>                                                  <!-- string -->
     </plugin>
 
+<<<<<<< HEAD
     <joint name="{{ name }}_joint" type="fixed">
       <parent>{{ parent_link }}</parent>
       <child>{{ sensor_name }}_link</child>
@@ -2823,6 +2824,42 @@ limitations under the License.
       <!-- mount {-->
       {{ mount }}
       <!--}-->
+=======
+<plugin name="servo_camera_plugin" filename="libMrsGazeboCommonResources_ServoCameraPlugin.so">
+  <update_rate>{{ tilt_update_rate }}</update_rate>
+  <max_pitch_rate>{{ max_pitch_rate }}</max_pitch_rate>
+  <max_pitch>{{ max_pitch }}</max_pitch>
+  <min_pitch>{{ min_pitch }}</min_pitch>
+  <max_roll_rate>{{ max_roll_rate }}</max_roll_rate>
+  <max_roll>{{ max_roll }}</max_roll>
+  <min_roll>{{ min_roll }}</min_roll>
+  <joint_name_pitch>servo_camera_pitch_joint</joint_name_pitch>
+  <joint_name_roll>servo_camera_roll_joint</joint_name_roll>
+  <parent_link_pitch>servo_camera_gimbal_link</parent_link_pitch>
+  <parent_link_roll>{{ parent }}</parent_link_roll>
+  <compensate_tilt_roll>{{ compensate_tilt_roll }}</compensate_tilt_roll>
+  <compensate_tilt_pitch>{{ compensate_tilt_pitch }}</compensate_tilt_pitch>
+</plugin>
+
+<joint name="servo_camera_roll_joint" type="revolute">
+  <parent>{{ parent }}</parent>
+  <child>servo_camera_gimbal_link</child>
+  <pose relative_to = "{{ parent }}">{{ offset_roll_link_x }} {{ offset_roll_link_y }} {{ offset_roll_link_z }} {{ offset_roll_link_roll }} {{ offset_roll_link_pitch }} {{ offset_roll_link_yaw }}</pose>
+  <axis>
+    <xyz>1 0 0</xyz>
+    <limit>
+      <lower>-0.5</lower>
+      <upper>0.5</upper>
+      <effort>1</effort>
+      <velocity>10</velocity>
+    </limit>
+    <dynamics>
+      <damping>0.0</damping>
+      <friction>0.0</friction>
+    </dynamics>
+  </axis>
+</joint>
+>>>>>>> master
 
       <!--}-->
 
