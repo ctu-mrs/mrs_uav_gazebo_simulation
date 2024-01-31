@@ -532,15 +532,15 @@ class MrsDroneSpawner:
             finally:
                 del input_dict['pos']
 
-        elif 'pos_file' in input_dict.keys():
+        elif 'pos-file' in input_dict.keys():
             try:
-                input_dict['spawn_poses'] = self.get_spawn_poses_from_file(input_dict['pos_file'][0], input_dict['ids'])
+                input_dict['spawn_poses'] = self.get_spawn_poses_from_file(input_dict['pos-file'][0], input_dict['ids'])
             except (FileNotFoundError, SuffixError, FormattingError, WrongNumberOfArguments, ValueError) as err:
-                rospy.logerr(f'[MrsDroneSpawner]: While parsing args for "--pos_file": {err}')
+                rospy.logerr(f'[MrsDroneSpawner]: While parsing args for "--pos-file": {err}')
                 rospy.logwarn(f'[MrsDroneSpawner]: Assigning random spawn poses instead')
                 input_dict['spawn_poses'] = self.get_randomized_spawn_poses(input_dict['ids'])
             finally:
-                del input_dict['pos_file']
+                del input_dict['pos-file']
 
         else:
             input_dict['spawn_poses'] = self.get_randomized_spawn_poses(input_dict['ids'])

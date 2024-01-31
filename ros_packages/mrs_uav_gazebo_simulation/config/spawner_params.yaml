@@ -16,3 +16,5 @@ gazebo_models:
 jinja_templates:
   save_rendered_sdf: true
   suffix: '.sdf.jinja'
+
+extra_resource_paths: []

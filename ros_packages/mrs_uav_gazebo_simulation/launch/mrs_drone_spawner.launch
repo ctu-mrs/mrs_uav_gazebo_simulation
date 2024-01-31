@@ -1,11 +1,11 @@
 <launch>
   
-  <arg name="config_file" default="" />
+  <arg name="spawner_config" default="" />
 
   <node name="mrs_drone_spawner" pkg="mrs_uav_gazebo_simulation" type="mrs_drone_spawner.py" output="screen" args="verbose">
 
     <rosparam file="$(find mrs_uav_gazebo_simulation)/config/spawner_params.yaml" />
-    <rosparam if="$(eval not arg('config_file') == '')" file="$(arg config_file)" />
+    <rosparam if="$(eval not arg('spawner_config') == '')" file="$(arg spawner_config)" />
       
     <remap from="~gazebo_model_states" to="/gazebo/model_states" />
     <remap from="~gazebo_spawn_model" to="/gazebo/spawn_sdf_model" />

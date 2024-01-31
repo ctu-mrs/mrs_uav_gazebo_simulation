@@ -41,7 +41,7 @@
 
   <!-- start drone spawner -->
   <include file="$(find mrs_uav_gazebo_simulation)/launch/mrs_drone_spawner.launch">
-    <arg name="config_file" value="$(arg spawner_config)"/>
+    <arg name="spawner_config" value="$(arg spawner_config)"/>
   </include>
 
   <!-- start gazebo server-->
