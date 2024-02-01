@@ -1,0 +1,3 @@
+add_subdirectory(takeoff_gps_garmin)
+
+add_subdirectory(takeoff_gps_baro)
