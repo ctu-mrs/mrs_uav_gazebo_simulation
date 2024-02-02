@@ -2250,12 +2250,12 @@ limitations under the License.
     {%- if led1 is not none and led2 is not none and led3 is not none and led4 is not none -%}
 
       {# -- leds configuration -- (id, signal_id, x, y, z, roll, pitch, yaw) #}
-      {%- set uv_leds_macro_parameters = [(1, led1,  x1,  y1, z, 0.0, math.radians(90),  0.0),
-                                          (2, led1,  x2,  y2, z, 0.0, math.radians(90),  math.radians(90)),
-                                          (3, led2,  x2, -y2, z, 0.0, math.radians(90), -math.radians(90)),
-                                          (4, led2,  x1, -y1, z, 0.0, math.radians(90),  0.0),
-                                          (5, led3, -x2,  y2, z, 0.0, math.radians(90),  math.radians(90)),
-                                          (6, led3, -x1,  y1, z, 0.0, math.radians(90),  math.radians(180)),
+      {%- set uv_leds_macro_parameters = [(1, led3,  x1,  y1, z, 0.0, math.radians(90),  0.0),
+                                          (2, led3,  x2,  y2, z, 0.0, math.radians(90),  math.radians(90)),
+                                          (3, led1,  x2, -y2, z, 0.0, math.radians(90), -math.radians(90)),
+                                          (4, led1,  x1, -y1, z, 0.0, math.radians(90),  0.0),
+                                          (5, led2, -x2,  y2, z, 0.0, math.radians(90),  math.radians(90)),
+                                          (6, led2, -x1,  y1, z, 0.0, math.radians(90),  math.radians(180)),
                                           (7, led4, -x1, -y1, z, 0.0, math.radians(90), -math.radians(180)),
                                           (8, led4, -x2, -y2, z, 0.0, math.radians(90), -math.radians(90))] -%}
 
