@@ -2,4 +2,5 @@
 *.swp
 
 ros_packages/.gitman
+.gitman
 __pycache__
