@@ -9,7 +9,7 @@ sources:
       -
     links:
       - source: ''
-        target: ros_packages/mrs_gazebo_common_resources
+        target: mrs_gazebo_common_resources
     scripts:
       - git submodule update --init --recursive
   - repo: https://github.com/ctu-mrs/px4_firmware.git
@@ -21,7 +21,7 @@ sources:
       -
     links:
       - source: ''
-        target: ros_packages/px4_firmware
+        target: px4_firmware
     scripts:
       - git submodule update --init --recursive
   - repo: https://github.com/ctu-mrs/px4_sitl_gazebo.git
@@ -33,6 +33,6 @@ sources:
       -
     links:
       - source: ''
-        target: ros_packages/mavlink_sitl_gazebo
+        target: mavlink_sitl_gazebo
     scripts:
       - git submodule update --init --recursive
