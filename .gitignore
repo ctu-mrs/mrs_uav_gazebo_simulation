@@ -1,5 +1,5 @@
 *.swo
 *.swp
 
-.gitman
+ros_packages/.gitman
 __pycache__
