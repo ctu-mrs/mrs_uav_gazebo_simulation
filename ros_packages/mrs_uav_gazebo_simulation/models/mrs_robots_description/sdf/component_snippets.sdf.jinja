@@ -70,7 +70,7 @@ limitations under the License.
 {# <!--}--> #}
 
 {# propellers_macro {--> #}
-{%- macro propellers_macro(prop_list, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, time_constant_up, time_constant_down, max_rot_velocity, rotor_drag_coefficient, rolling_moment_coefficient, meshes_z_offset, prop_ixx, prop_ixy, prop_ixz, prop_iyy, prop_iyz, prop_izz, spawner_args) -%}
+{%- macro propellers_macro(prop_list, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, time_constant_up, time_constant_down, max_rot_velocity, rotor_drag_coefficient, rolling_moment_coefficient, meshes_z_offset, use_mrs_plugin, prop_ixx, prop_ixy, prop_ixz, prop_iyy, prop_iyz, prop_izz, spawner_args) -%}
 
   {%- set spawner_keyword = 'disable-motor-crash' -%}
   {%- set spawner_description = 'Disables motor failure after a crash with the environment.' -%}
@@ -79,6 +79,12 @@ limitations under the License.
   {%- set enable_motor_crash = spawner_args[spawner_keyword] is undefined -%}
 
   {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+  {%- if use_mrs_plugin -%}
+    {%- set motor_plugin_filename = "libMrsGazeboCommonResources_MotorPropModelPlugin.so" -%}
+  {%- else -%}
+    {%- set motor_plugin_filename = "libgazebo_motor_model.so" -%}
+  {%- endif -%}
 
   <!-- Propellers {-->
   {%- for prop_params in prop_list -%}
@@ -103,6 +109,7 @@ limitations under the License.
         color = prop_params['color'],
         mesh_file = prop_params['mesh_files'][0],
         mesh_scale = prop_params['mesh_scale'],
+        motor_plugin_filename = motor_plugin_filename,
         x = prop_params['x'],
         y = prop_params['y'],
         z = prop_params['z'],
@@ -139,6 +146,7 @@ limitations under the License.
         mesh_file_2 = prop_params['mesh_files'][1],
         meshes_z_offset = meshes_z_offset,
         mesh_scale = prop_params['mesh_scale'],
+        motor_plugin_filename = motor_plugin_filename,
         x = prop_params['x'],
         y = prop_params['y'],
         z = prop_params['z'],
