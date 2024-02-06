@@ -562,7 +562,7 @@ limitations under the License.
 
 {# TODO: UNUSED #}
 {# mrs_motor_plugins_macro {--> #}
-{%- macro motor_plugins_macro(motor_number, direction, time_constant_up, time_constant_down, max_rot_velocity, motor_constant, moment_constant, rotor_drag_coefficient, rolling_moment_coefficient, rotor_velocity_slowdown_sim, enable_motor_crash) -%}
+{%- macro mrs_motor_plugins_macro(motor_number, direction, time_constant_up, time_constant_down, max_rot_velocity, motor_constant, moment_constant, rotor_drag_coefficient, rolling_moment_coefficient, rotor_velocity_slowdown_sim, enable_motor_crash) -%}
   <plugin name="motor{{ motor_number }}_plugin" filename="libMrsGazeboCommonResources_MotorPropModelPlugin.so">
     <robotNamespace/>
     <jointName>prop_{{ motor_number }}_joint</jointName>
