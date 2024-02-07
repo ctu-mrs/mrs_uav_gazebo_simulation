@@ -140,13 +140,35 @@
       <!--}-->
 
       <!-- Legs {-->
-      {{ generic.visual_mesh_textured_with_collision_macro(
+      {{ generic.visual_mesh_textured_macro(
         name = 'legs',
         mesh_file = legs_mesh_file,
         mesh_scale = mesh_scale,
         x = 0,
         y = 0,
         z = 0,
+        roll = 0,
+        pitch = 0,
+        yaw = 0)
+      }}
+      {{ generic.collision_cylinder_macro(
+        name = 'left_leg',
+        collision_length = 0.17,
+        collision_radius = 0.07,
+        x = 0,
+        y = -0.2,
+        z = -0.17,
+        roll = 0,
+        pitch = 0,
+        yaw = 0)
+      }}
+      {{ generic.collision_cylinder_macro(
+        name = 'right_leg',
+        collision_length = 0.17,
+        collision_radius = 0.07,
+        x = 0,
+        y = 0.2,
+        z = -0.17,
         roll = 0,
         pitch = 0,
         yaw = 0)
