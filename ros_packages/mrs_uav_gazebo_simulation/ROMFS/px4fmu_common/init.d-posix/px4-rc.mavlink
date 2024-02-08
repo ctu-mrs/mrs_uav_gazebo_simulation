@@ -13,6 +13,7 @@ mavlink stream -r 100 -s ATTITUDE_QUATERNION -u $udp_offboard_port_local # /mavr
 mavlink stream -r 100 -s ATTITUDE_TARGET -u $udp_offboard_port_local
 mavlink stream -r 100 -s HIGHRES_IMU -u $udp_offboard_port_local # /mavros/imu/data_raw
 mavlink stream -r 100 -s LOCAL_POSITION_NED -u $udp_offboard_port_local
+mavlink stream -r 100 -s ODOMETRY -u $udp_offboard_port_local
 mavlink stream -r 100 -s GLOBAL_POSITION_INT -u $udp_offboard_port_local
 mavlink stream -r 10 -s RC_CHANNELS -u $udp_offboard_port_local
 mavlink stream -r 10 -s SYS_STATUS -u $udp_offboard_port_local
