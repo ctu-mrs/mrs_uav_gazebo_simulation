@@ -4,6 +4,7 @@
   <arg name="ID"/>
   <arg name="PX4_SIM_MODEL"/>
   <arg name="PX4_ESTIMATOR" default="ekf2"/>
+  <arg name="ROMFS_PATH" default="$(find mrs_uav_gazebo_simulation)/ROMFS"/>
   
   <!-- PX4 configs -->
   <arg name="interactive" default="false"/>
@@ -19,7 +20,7 @@
     <env name="PX4_ESTIMATOR" value="$(arg PX4_ESTIMATOR)" />
 
     <!-- PX4 SITL -->
-    <node name="sitl_uav$(arg ID)" pkg="px4" type="px4" output="screen" args="$(find mrs_uav_gazebo_simulation)/ROMFS/px4fmu_common -s etc/init.d-posix/rcS $(arg px4_interactive_mode) -i $(arg ID) -w sitl_uav$(arg ID)"/>
+    <node name="sitl_uav$(arg ID)" pkg="px4" type="px4" output="screen" args="$(arg ROMFS_PATH)/px4fmu_common -s etc/init.d-posix/rcS $(arg px4_interactive_mode) -i $(arg ID) -w sitl_uav$(arg ID)"/>
   
   </group>
 </launch>

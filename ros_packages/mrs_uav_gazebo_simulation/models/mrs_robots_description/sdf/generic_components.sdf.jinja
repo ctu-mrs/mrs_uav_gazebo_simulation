@@ -327,21 +327,6 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
-{# visual_mesh_textured_with_collision_macro {--> #}
-{%- macro visual_mesh_textured_with_collision_macro(name, mesh_file, mesh_scale, x, y, z, roll, pitch, yaw) -%}
-  {{ visual_mesh_textured_macro(name, mesh_file, mesh_scale, x, y, z, roll, pitch, yaw) }}
-  <collision name="{{ name }}_collision">
-    <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
-    <geometry>
-      <mesh>
-        <uri>{{ mesh_file }}</uri>
-        <scale>{{ mesh_scale }}</scale>
-      </mesh>
-    </geometry>
-  </collision>
-{%- endmacro -%}
-{# <!--}--> #}
-
 {# visual_colored_box_macro {--> #}
 {%- macro visual_colored_box_macro(name, size_x, size_y, size_z, color, x, y, z, roll, pitch, yaw) -%}
 <visual name="{{ name }}_visual">

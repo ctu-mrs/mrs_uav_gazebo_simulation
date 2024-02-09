@@ -9,6 +9,7 @@
       
     <remap from="~gazebo_model_states" to="/gazebo/model_states" />
     <remap from="~gazebo_spawn_model" to="/gazebo/spawn_sdf_model" />
+    <remap from="~gazebo_delete_model" to="/gazebo/delete_model" />
 
   </node>
 

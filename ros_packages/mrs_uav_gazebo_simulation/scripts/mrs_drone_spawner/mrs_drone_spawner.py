@@ -30,6 +30,7 @@ from mrs_msgs.srv import StringRequest as StringSrvRequest
 from mrs_msgs.msg import GazeboSpawnerDiagnostics
 from gazebo_msgs.msg import ModelStates
 from gazebo_msgs.srv import SpawnModel as SpawnModelSrv
+from gazebo_msgs.srv import DeleteModel as DeleteModelSrv
 from geometry_msgs.msg import Pose
 
 glob_running_processes = []
@@ -45,6 +46,12 @@ class NoFreeIDAvailable(RuntimeError):
 # #{ NoValidIDGiven(RuntimeError)
 class NoValidIDGiven(RuntimeError):
     '''Indicate that the user has provided only invalid IDs (non-integers, or all are already assigned)'''
+    pass
+# #}
+
+# #{ CouldNotLaunch(RuntimeError)
+class CouldNotLaunch(RuntimeError):
+    '''Indicate that a subprocess could not be launched'''
     pass
 # #}
 
@@ -78,6 +85,15 @@ def dummy_function():
 def filter_templates(template_name, suffix):
     '''Comparator used to load files with given suffix'''
     return template_name.endswith(suffix)
+# #}
+
+# #{ get_ros_package_name(filepath)
+def get_ros_package_name(filepath):
+    '''Return the name of a ros package that contains a given filepath'''
+    tmp_filepath = copy.copy(filepath)
+    while rospkg.get_package_name(tmp_filepath) is None:
+        tmp_filepath = os.path.dirname(tmp_filepath)
+    return rospkg.get_package_name(tmp_filepath)
 # #}
 
 # #{ exit_handler()
@@ -118,8 +134,8 @@ class MrsDroneSpawner:
         rospy.init_node('mrs_drone_spawner', anonymous=True)
 
         resource_paths = []
-        rospack = rospkg.RosPack()
-        resource_paths.append(os.path.join(rospack.get_path('mrs_uav_gazebo_simulation'), 'models'))
+        self.rospack = rospkg.RosPack()
+        resource_paths.append(os.path.join(self.rospack.get_path('mrs_uav_gazebo_simulation'), 'models'))
 
         # # #{ load required params
         try:
@@ -147,7 +163,7 @@ class MrsDroneSpawner:
             if os.path.exists(elem):
                 rpath = elem
             else:
-                rpath = rospack.get_path(elem)
+                rpath = self.rospack.get_path(elem)
             rospy.loginfo(f'[MrsDroneSpawner]: Adding extra resources from {rpath}')
             resource_paths.append(rpath)
 
@@ -155,8 +171,8 @@ class MrsDroneSpawner:
         # # #}
 
         # # #{ find launchfiles for mavros and px4_firmware
-        gazebo_simulation_path = rospack.get_path('mrs_uav_gazebo_simulation')
-        px4_api_path = rospack.get_path('mrs_uav_px4_api')
+        gazebo_simulation_path = self.rospack.get_path('mrs_uav_gazebo_simulation')
+        px4_api_path = self.rospack.get_path('mrs_uav_px4_api')
         self.mavros_launch_path = px4_api_path + os.sep + 'launch' + os.sep + 'mavros_gazebo_simulation.launch'
         self.px4_fimrware_launch_path = gazebo_simulation_path + os.sep + 'launch' + os.sep + 'run_simulation_firmware.launch'
         # # #}
@@ -180,6 +196,7 @@ class MrsDroneSpawner:
         self.action_timer = rospy.Timer(rospy.Duration(0.1), self.callback_action_timer)
 
         self.gazebo_spawn_proxy = rospy.ServiceProxy('~gazebo_spawn_model', SpawnModelSrv)
+        self.gazebo_delete_proxy = rospy.ServiceProxy('~gazebo_delete_model', DeleteModelSrv)
         # # #}
 
         # #{ setup system variables
@@ -336,7 +353,8 @@ class MrsDroneSpawner:
         for name, template in all_templates:
             imports = self.get_template_imports(template)
             components = self.get_spawner_components_from_template(template)
-            wrapper = TemplateWrapper(template, imports, components)
+            package_name = get_ros_package_name(template.filename)
+            wrapper = TemplateWrapper(template, imports, components, package_name)
             template_wrappers[name] = wrapper
 
         rospy.loginfo('[MrsDroneSpawner]: Reindexing imported templates')
@@ -761,30 +779,34 @@ class MrsDroneSpawner:
             orig_signal_handler = roslaunch.pmon._init_signal_handlers
             roslaunch.pmon._init_signal_handlers = dummy_function
 
-            model_spawned = self.spawn_gazebo_model(robot_params)
-            if not model_spawned:
-                rospy.logerr(f'[MrsDroneSpawner]: Could not spawn Gazebo model for {robot_params["name"]}')
-                # self.queue_mutex.acquire()
-                # self.vehicle_queue.append(robot_params)
-                # self.queue_mutex.release()
-                return
+            model_spawned = False
+            firmware_process = None
+            mavros_process = None
 
-            firmware_process = self.launch_px4_firmware(robot_params)
-            mavros_process  = self.launch_mavros(robot_params)
-            roslaunch.pmon._init_signal_handlers = orig_signal_handler
+            try:
+                model_spawned = self.spawn_gazebo_model(robot_params)
+                firmware_process = self.launch_px4_firmware(robot_params)
+                mavros_process  = self.launch_mavros(robot_params)
 
-            # One of the processes did not start -> shutdown the rest and try again later
-            if None in (firmware_process, mavros_process):
-                for p in (firmware_process, mavros_process):
+            except:
+                # one of the subprocesses failed, perform cleanup
+                if model_spawned:
+                    self.delete_gazebo_model(robot_params['name'])
+                if firmware_process is not None:
                     try:
-                        p.shutdown()
+                        firmware_process.shutdown()
                     except:
                         pass
-                self.queue_mutex.acquire()
-                self.vehicle_queue.append(robot_params)
-                self.queue_mutex.release()
+                if mavros_process is not None:
+                    try:
+                        mavros_process.shutdown()
+                    except:
+                        pass
+                self.assigned_ids.remove(robot_params['ID'])
+                roslaunch.pmon._init_signal_handlers = orig_signal_handler
                 return
 
+            roslaunch.pmon._init_signal_handlers = orig_signal_handler
             glob_running_processes.append(firmware_process)
             glob_running_processes.append(mavros_process)
 
@@ -984,7 +1006,7 @@ class MrsDroneSpawner:
     def get_mavlink_config_for_robot(self, ID):
         '''Creates a mavlink port configuration based on default values offset by ID
 
-        NOTE: The offsets have to match values assigned in px4-rc.* files located in mrs_uav_gazebo_simulation/ROMFS/px4fmu_common/init.d-posix!!
+        NOTE: The offsets have to match values assigned in px4-rc.* files located in package_root/ROMFS/px4fmu_common/init.d-posix!!
 
         '''
         mavlink_config = {}
@@ -1016,9 +1038,18 @@ class MrsDroneSpawner:
         uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
         roslaunch.configure_logging(uuid)
 
+        # find PX4 ROMFS path
+        package_name = self.jinja_templates[robot_params['model']].package_name
+        package_path = self.rospack.get_path(package_name)
+        romfs_path = os.path.join(str(package_path), 'ROMFS')
+        if not os.path.exists(romfs_path) or not os.path.isdir(romfs_path):
+            rospy.logerr(f'[MrsDroneSpawner]: Could not start PX4 firmware for {name}. ROMFS folder not found')
+            raise CouldNotLaunch('ROMFS folder not found')
+
         roslaunch_args = [
             'ID:=' + str(robot_params['ID']),
-            'PX4_SIM_MODEL:=' + str(robot_params['model'])
+            'PX4_SIM_MODEL:=' + str(robot_params['model']),
+            'ROMFS_PATH:=' + str(romfs_path)
         ]
         roslaunch_sequence = [(self.px4_fimrware_launch_path, roslaunch_args)]
 
@@ -1027,8 +1058,8 @@ class MrsDroneSpawner:
         try:
             firmware_process.start()
         except:
-            rospy.logerr(f'[MrsDroneSpawner]: Could not launch PX4 firmware for {name}')
-            return None
+            rospy.logerr(f'[MrsDroneSpawner]: Could not start PX4 firmware for {name}. Node failed to launch')
+            raise CouldNotLaunch('PX4 failed to launch')
 
         rospy.loginfo(f'[MrsDroneSpawner]: PX4 firmware for {name} launched')
 
@@ -1055,8 +1086,8 @@ class MrsDroneSpawner:
         try:
             mavros_process.start()
         except:
-            rospy.logerr(f'[MrsDroneSpawner]: Could not launch mavros for {name}')
-            return None
+            rospy.logerr(f'[MrsDroneSpawner]: Could not start mavros for {name}. Node failed to launch')
+            raise CouldNotLaunch('Mavros failed to launch')
 
         rospy.loginfo(f'[MrsDroneSpawner]: Mavros for {name} launched')
 
@@ -1069,7 +1100,7 @@ class MrsDroneSpawner:
         sdf_content = self.render(robot_params)
 
         if sdf_content is None:
-            return False
+            raise CouldNotLaunch('Template did not render')
 
         if self.save_sdf_files:
             fd, filepath = tempfile.mkstemp(prefix='mrs_drone_spawner_' + datetime.datetime.now().strftime("%Y_%m_%d__%H_%M_%S_"), suffix='_' + str(robot_params['model']) + '_' + str(name) + '.sdf')
@@ -1091,12 +1122,27 @@ class MrsDroneSpawner:
             response = self.gazebo_spawn_proxy(name, sdf_content, name, spawn_pose, "")
             if not response.success:
                 rospy.logerr(f'MrsDroneSpawner]: While calling {self.gazebo_spawn_proxy.resolved_name}: {response.status_message}')
-                return False
+                raise CouldNotLaunch(response.status_message)
         except rospy.service.ServiceException as e:
                 rospy.logerr(f'[MrsDroneSpawner]: While calling {self.gazebo_spawn_proxy.resolved_name}: {e}')
-                return False
+                raise CouldNotLaunch(e)
 
         return True
+    # #}
+
+    # #{ delete_gazebo_model(self, name)
+    def delete_gazebo_model(self, name):
+        rospy.loginfo(f'[MrsDroneSpawner]: Deleting gazebo model {name}')
+        try:
+            response = self.gazebo_delete_proxy(name)
+            if not response.success:
+                rospy.logerr(f'MrsDroneSpawner]: While calling {self.gazebo_delete_proxy.resolved_name}: {response.status_message}')
+                return
+        except rospy.service.ServiceException as e:
+                rospy.logerr(f'[MrsDroneSpawner]: While calling {self.gazebo_delete_proxy.resolved_name}: {e}')
+                return
+
+        rospy.loginfo(f'[MrsDroneSpawner]: Model {name} deleted')
     # #}
 
 if __name__ == '__main__':
