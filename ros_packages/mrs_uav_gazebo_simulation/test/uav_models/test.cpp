@@ -10,8 +10,21 @@ public:
 
 bool Tester::test() {
 
+  std::shared_ptr<mrs_uav_testing::UAVHandler> uh;
+
   {
-    auto [success, message] = spawnGazeboUav();
+    auto [uhopt, message] = getUAVHandler(_uav_name_);
+
+    if (!uhopt) {
+      ROS_ERROR("[%s]: Failed obtain handler for '%s': '%s'", ros::this_node::getName().c_str(), _uav_name_.c_str(), message.c_str());
+      return false;
+    }
+
+    uh = uhopt.value();
+  }
+
+  {
+    auto [success, message] = uh->spawnGazeboUAV(_gazebo_spawner_params_);
 
     if (!success) {
       ROS_ERROR("[%s]: gazebo UAV spawning failed with message: '%s'", ros::this_node::getName().c_str(), message.c_str());
@@ -20,7 +33,7 @@ bool Tester::test() {
   }
 
   {
-    auto [success, message] = takeoff();
+    auto [success, message] = uh->takeoff();
 
     if (!success) {
       ROS_ERROR("[%s]: takeoff failed with message: '%s'", ros::this_node::getName().c_str(), message.c_str());
@@ -30,7 +43,7 @@ bool Tester::test() {
 
   this->sleep(5.0);
 
-  if (this->isFlyingNormally()) {
+  if (uh->isFlyingNormally()) {
     return true;
   } else {
     ROS_ERROR("[%s]: not flying normally", ros::this_node::getName().c_str());
