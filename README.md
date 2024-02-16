@@ -2,7 +2,7 @@
 
 ![](.fig/thumbnail.jpg)
 
-Metapackage for the MRS UAV Gazebo simulation pipeline.
+A metapackage for the MRS UAV Gazebo + PX4 SITL simulation pipeline.
 
 ## Installation
 
@@ -19,6 +19,8 @@ Metapackage for the MRS UAV Gazebo simulation pipeline.
 
 ## Unmanned Aerial Vehicles
 
+### Pre-defined UAVs
+
 | Model         | Spawn argument | Simulation                    |
 |---------------|----------------|-------------------------------|
 | DJI f330      | `--f330`       | ![](.fig/f330_simulation.jpg) |
@@ -28,6 +30,12 @@ Metapackage for the MRS UAV Gazebo simulation pipeline.
 | Tarot t650    | `--t650`       | ![](.fig/t650_simulation.jpg) |
 | T-Drones m690 | `--m690`       | ![](.fig/m690_simulation.jpg) |
 | NAKI II       | `--naki`       | ![](.fig/naki_simulation.jpg) |
+
+### Adding a custom UAV
+
+A custom drone model can be added from an external package.
+Please look at [mrs_gazebo_custom_drone_example](https://github.com/ctu-mrs/mrs_gazebo_custom_drone_example) for an example.
+The wiki page [https://ctu-mrs.github.io/docs/simulation/gazebo/gazebo/custom_drone.html](https://ctu-mrs.github.io/docs/simulation/gazebo/gazebo/custom_drone.html) contains a detailed description of all the important steps and configuration parts. 
 
 ## Starting the simulation
 
