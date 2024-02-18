@@ -14,6 +14,7 @@ set(CATKIN_DEPENDENCIES
   rospy
   std_msgs
   mrs_uav_testing
+  mrs_uav_gazebo_testing
   )
 
 find_package(catkin REQUIRED COMPONENTS

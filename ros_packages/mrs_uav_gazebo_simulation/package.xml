@@ -26,6 +26,7 @@
   <depend>rospy</depend>
   <depend>std_msgs</depend>
   <depend>mrs_uav_testing</depend>
+  <depend>mrs_uav_gazebo_testing</depend>
 
   <depend>python3-jinja2</depend>
 
