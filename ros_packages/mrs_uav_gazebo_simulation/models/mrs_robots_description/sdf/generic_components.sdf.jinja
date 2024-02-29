@@ -78,7 +78,7 @@ limitations under the License.
 {# <!--}--> #}
 
 {# multirotor_physics_macro {--> #}
-{%- macro multirotor_physics_macro(mass, body_radius, body_height, rotor_velocity_slowdown_sim, ixx, ixy, ixz, iyy, iyz, izz) -%}
+{%- macro multirotor_physics_macro(mass, body_radius, body_height, collision_bitmask, rotor_velocity_slowdown_sim, ixx, ixy, ixz, iyy, iyz, izz) -%}
   <inertial>
     <mass>{{ mass }}</mass>
     <inertia>
@@ -111,6 +111,7 @@ limitations under the License.
           <min_depth>0.001</min_depth>
           <max_vel>0.0</max_vel>
         </ode>
+        <collide_bitmask>{{ collision_bitmask }}</collide_bitmask>
       </contact>
       <friction>
         <ode/>
@@ -127,7 +128,7 @@ limitations under the License.
 {# <!--}--> #}
 
 {# collision_cylinder_macro {--> #}
-{%- macro collision_cylinder_macro(name, collision_length, collision_radius, x, y, z, roll, pitch, yaw) -%}
+{%- macro collision_cylinder_macro(name, collision_length, collision_radius, collision_bitmask, x, y, z, roll, pitch, yaw) -%}
   <collision name="{{ name }}_collision">
     <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
     <geometry>
@@ -142,6 +143,7 @@ limitations under the License.
           <min_depth>0.01</min_depth>
           <max_vel>0.0</max_vel>
         </ode>
+        <collide_bitmask>{{ collision_bitmask }}</collide_bitmask>
       </contact>
       <friction>
         <ode/>
@@ -313,7 +315,7 @@ limitations under the License.
 {# <!--}--> #}
 
 {# visual_mesh_with_collision_macro {--> #}
-{%- macro visual_mesh_with_collision_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw) -%}
+{%- macro visual_mesh_with_collision_macro(name, mesh_file, mesh_scale, collision_bitmask, color, x, y, z, roll, pitch, yaw) -%}
   {{ visual_mesh_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw) }}
   <collision name="{{ name }}_collision">
     <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
@@ -323,6 +325,12 @@ limitations under the License.
         <scale>{{ mesh_scale }}</scale>
       </mesh>
     </geometry>
+
+    <surface>
+      <contact>
+        <collide_bitmask>{{ collision_bitmask }}</collide_bitmask>
+      </contact>
+    </surface>
   </collision>
 {%- endmacro -%}
 {# <!--}--> #}
@@ -347,7 +355,7 @@ limitations under the License.
 {# <!--}--> #}
 
 {# visual_colored_box_with_collision_macro {--> #}
-{%- macro visual_colored_box_with_collision_macro(name, size_x, size_y, size_z, color, x, y, z, roll, pitch, yaw) -%}
+{%- macro visual_colored_box_with_collision_macro(name, size_x, size_y, size_z, collision_bitmask, color, x, y, z, roll, pitch, yaw) -%}
   {{ visual_colored_box_macro(name, size_x, size_y, size_z, color, x, y, z, roll, pitch, yaw) }}
   <collision name="{{ name }}_collision">
     <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
@@ -356,6 +364,12 @@ limitations under the License.
         <size>{{ size_x }} {{ size_y }} {{ size_z }}</size>
       </box>
     </geometry>
+
+    <surface>
+      <contact>
+        <collide_bitmask>{{ collision_bitmask }}</collide_bitmask>
+      </contact>
+    </surface>
   </collision>
 {%- endmacro -%}
 {# <!--}--> #}
@@ -363,7 +377,7 @@ limitations under the License.
 {# ============================ drone legs =========================== #}
 
 {# leg_macro {--> #}
-{%- macro leg_macro(name, mesh_file, mesh_scale, color, parent, x, y, z, roll, pitch, yaw, collision_height, collision_radius) -%}
+{%- macro leg_macro(name, mesh_file, mesh_scale, color, parent, x, y, z, roll, pitch, yaw, collision_height, collision_radius, collision_bitmask) -%}
   {{ visual_mesh_macro(
     name = name,
     mesh_file = mesh_file,
@@ -380,6 +394,7 @@ limitations under the License.
     name = name,
     collision_length = collision_height,
     collision_radius = collision_radius,
+    collision_bitmask = collision_bitmask,
     x = x,
     y = y,
     z = z,
@@ -391,7 +406,7 @@ limitations under the License.
 {# <!--}--> #}
 
 {# leg_collision_offset_macro {--> #}
-{%- macro leg_collision_offset_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw, collision_height, collision_radius, offset_x, offset_y, offset_z) -%}
+{%- macro leg_collision_offset_macro(name, mesh_file, mesh_scale, color, x, y, z, roll, pitch, yaw, collision_height, collision_radius, collision_bitmask, offset_x, offset_y, offset_z) -%}
   {{ visual_mesh_macro(
     name = name,
     mesh_file = mesh_file,
@@ -408,6 +423,7 @@ limitations under the License.
     name = name,
     collision_length = collision_height,
     collision_radius = collision_radius,
+    collision_bitmask = collision_bitmask,
     x = x + offset_x,
     y = y + offset_y,
     z = z + offset_z,
@@ -449,7 +465,7 @@ limitations under the License.
 {# <!--}--> #}
 
 {# prop_macro {--> #}
-{%- macro prop_macro(direction, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, time_constant_up, time_constant_down, max_rot_velocity, motor_number, rotor_drag_coefficient, rolling_moment_coefficient, enable_motor_crash, color, mesh_file, mesh_scale, motor_plugin_filename, x, y, z, roll, pitch, yaw, ixx, ixy, ixz, iyy, iyz, izz) -%}
+{%- macro prop_macro(direction, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, collision_bitmask, time_constant_up, time_constant_down, max_rot_velocity, motor_number, rotor_drag_coefficient, rolling_moment_coefficient, enable_motor_crash, color, mesh_file, mesh_scale, motor_plugin_filename, x, y, z, roll, pitch, yaw, ixx, ixy, ixz, iyy, iyz, izz) -%}
   <link name="prop_{{ motor_number }}_link">
     <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
     <inertial>
@@ -468,6 +484,7 @@ limitations under the License.
       name = "prop_{{ motor_number }}_link",
       collision_length = 2 * radius,
       collision_radius = 0.01,
+      collision_bitmask = collision_bitmask,
       x = 0,
       y = 0,
       z = 0,
@@ -497,7 +514,7 @@ limitations under the License.
 {# <!--}--> #}
 
 {# prop_macro_2_meshes {--> #}
-{%- macro prop_macro_2_meshes(direction, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, time_constant_up, time_constant_down, max_rot_velocity, motor_number, rotor_drag_coefficient, rolling_moment_coefficient, enable_motor_crash, color, mesh_file_1, mesh_file_2, meshes_z_offset, mesh_scale, motor_plugin_filename, x, y, z, roll, pitch, yaw, ixx, ixy, ixz, iyy, iyz, izz) -%}
+{%- macro prop_macro_2_meshes(direction, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, collision_bitmask, time_constant_up, time_constant_down, max_rot_velocity, motor_number, rotor_drag_coefficient, rolling_moment_coefficient, enable_motor_crash, color, mesh_file_1, mesh_file_2, meshes_z_offset, mesh_scale, motor_plugin_filename, x, y, z, roll, pitch, yaw, ixx, ixy, ixz, iyy, iyz, izz) -%}
   <link name="prop_{{ motor_number }}_link">
     <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
     <inertial>
@@ -517,6 +534,7 @@ limitations under the License.
       name = "prop_{{ motor_number }}_link",
       collision_length = 2 * radius,
       collision_radius = 0.01,
+      collision_bitmask = collision_bitmask,
       x = 0,
       y = 0,
       z = 0,

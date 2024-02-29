@@ -70,7 +70,7 @@ limitations under the License.
 {# <!--}--> #}
 
 {# propellers_macro {--> #}
-{%- macro propellers_macro(prop_list, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, time_constant_up, time_constant_down, max_rot_velocity, rotor_drag_coefficient, rolling_moment_coefficient, meshes_z_offset, use_mrs_plugin, prop_ixx, prop_ixy, prop_ixz, prop_iyy, prop_iyz, prop_izz, spawner_args) -%}
+{%- macro propellers_macro(prop_list, rotor_velocity_slowdown_sim, motor_constant, moment_constant, parent, mass, radius, collision_bitmask, time_constant_up, time_constant_down, max_rot_velocity, rotor_drag_coefficient, rolling_moment_coefficient, meshes_z_offset, use_mrs_plugin, prop_ixx, prop_ixy, prop_ixz, prop_iyy, prop_iyz, prop_izz, spawner_args) -%}
 
   {%- set spawner_keyword = 'disable-motor-crash' -%}
   {%- set spawner_description = 'Disables motor failure after a crash with the environment.' -%}
@@ -99,6 +99,7 @@ limitations under the License.
         parent = parent,
         mass = mass,
         radius = radius,
+        collision_bitmask = collision_bitmask,
         time_constant_up = time_constant_up,
         time_constant_down = time_constant_down,
         max_rot_velocity = max_rot_velocity,
@@ -134,6 +135,7 @@ limitations under the License.
         parent = parent,
         mass = mass,
         radius = radius,
+        collision_bitmask = collision_bitmask,
         time_constant_up = time_constant_up,
         time_constant_down = time_constant_down,
         max_rot_velocity = max_rot_velocity,
