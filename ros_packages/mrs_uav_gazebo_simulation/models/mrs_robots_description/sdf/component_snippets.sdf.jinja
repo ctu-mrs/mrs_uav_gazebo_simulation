@@ -2160,7 +2160,7 @@ limitations under the License.
       </noise>
     </camera>
     <always_on>1</always_on>
-    <update_rate>60</update_rate>
+    <update_rate>30</update_rate>
     <visualize>0</visualize>
   </sensor>
   <!--}-->
@@ -2264,7 +2264,7 @@ limitations under the License.
       </noise>
     </camera>
     <always_on>1</always_on>
-    <update_rate>60</update_rate>
+    <update_rate>30</update_rate>
     <visualize>0</visualize>
   </sensor>
   <!--}-->
@@ -2298,8 +2298,10 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
-<!-- Test Macro to add a picoflexx2 ToF camera {-->
-{%- macro picoflexx_macro(namespace, camera_name, camera_suffix, parent_link, enable_realistic_picoflexx, x, y, z, roll, pitch, yaw) -%}
+<!--}-->
+
+<!-- Test Macro to add a picoflexx ToF camera {-->
+{%- macro picoflexx_macro(namespace, camera_name, camera_suffix, parent_link, enable_realistic_picoflexx, x, y, z, roll, pitch, yaw, update_rate ) -%}
 {# -- frame names -- #}
 {%- set frame_fcu = namespace + "/fcu" -%}
 
@@ -2323,6 +2325,7 @@ limitations under the License.
   </visual>
 
   <!-- sensors {-->
+
   <!-- IR camera {-->
   <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_infra" type="camera">
     {# <pose>0 -0.046 0.004 0 0 0</pose> #}
@@ -2347,7 +2350,7 @@ limitations under the License.
       </noise>
     </camera>
     <always_on>1</always_on>
-    <update_rate>60</update_rate>
+    <update_rate>{{ update_rate }}</update_rate>
     <visualize>0</visualize>
   </sensor>
   <!--}-->
@@ -2378,9 +2381,11 @@ limitations under the License.
     <!--   <always_on>1</always_on> -->
     <!--   <update_rate>60</update_rate> -->
     <!--   <visualize>0</visualize> -->
-      <!-- </sensor> -->
-      <!--}-->
+    <!-- </sensor> -->
 
+
+      <!--}-->
+  
   <!-- ToF depth camera {-->
   <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_tof_depth" type="depth">
     <pose>0 -0.0115 0.0 0 0 0</pose>
@@ -2407,9 +2412,11 @@ limitations under the License.
       </noise>
     </camera>
     <always_on>1</always_on>
-    <update_rate>60</update_rate>
+    <update_rate>{{ update_rate }}</update_rate>
     <visualize>0</visualize>
   </sensor>
+  <!--}-->
+  
   <!--}-->
 
 </link>
@@ -2440,7 +2447,6 @@ limitations under the License.
 </joint>
 {%- endmacro -%}
 <!--}-->
-
 
 <!-- Macro to add a OAK-D W Pro Camera {-->
 {%- macro oakd_macro(namespace, camera_name, camera_suffix, parent_link, enable_realistic_oakd, x, y, z, roll, pitch, yaw) -%}
@@ -2492,7 +2498,7 @@ limitations under the License.
       </noise>
     </camera>
     <always_on>1</always_on>
-    <update_rate>60</update_rate>
+    <update_rate>30</update_rate>
     <visualize>0</visualize>
   </sensor>
   <!--}-->
@@ -2601,7 +2607,7 @@ limitations under the License.
       </noise>
     </camera>
     <always_on>1</always_on>
-    <update_rate>60</update_rate>
+    <update_rate>30</update_rate>
     <visualize>0</visualize>
   </sensor>
   <!--}-->
@@ -2633,6 +2639,8 @@ limitations under the License.
   <child>{{ camera_name }}_link</child>
 </joint>
 {%- endmacro -%}
+
+<!--}-->
 
 <!-- Macro to add a Bluefox camera {-->
 {%- macro bluefox_camera_macro(namespace, camera_name, parent_link, frame_rate, hfov, noise, x, y, z, roll, pitch, yaw) -%}
