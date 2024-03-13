@@ -2332,11 +2332,13 @@ limitations under the License.
     {# <pose>0 0 -0.0115 0 0 0</pose> #}
     <pose>0 0 0.0 0 0 0</pose>
       <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_infra">
-      {# <horizontal_fov>1.211259</horizontal_fov> #}
-      <horizontal_fov>0.977384</horizontal_fov>
+      <!-- 106 deg hfov -->
+      <horizontal_fov>1.85005</horizontal_fov>
+      <!-- 86 deg vfov -->
+      <vertical_fov>1.50098</vertical_fov>
       <image>
-        <width>224</width>
-        <height>172</height>
+        <width>240</width>
+        <height>180</height>
         <format>L_INT8</format>
       </image>
       <clip>
@@ -2391,19 +2393,23 @@ limitations under the License.
     <pose>0 -0.0115 0.0 0 0 0</pose>
     <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_tof_depth">
       <!-- 56 deg hfov -->
-      <horizontal_fov>0.977384</horizontal_fov>
+      <!-- <horizontal_fov>0.977384</horizontal_fov> -->
+      <!-- 106 deg hfov -->
+      <horizontal_fov>1.85005</horizontal_fov>
+      <!-- 86 deg vfov -->
+      <vertical_fov>1.50098</vertical_fov>
       <image>
         {% if enable_realistic_picoflexx %}
-          <width>224</width>
-          <height>172</height>
+          <width>240</width>
+          <height>180</height>
         {% else %}
-          <width>224</width>
-          <height>172</height>
+          <width>240</width>
+          <height>180</height>
         {% endif %}
       </image>
       <clip>
         <near>0.1</near>
-        <far>7</far>
+        <far>10</far>
       </clip>
       <noise>
         <type>gaussian</type>

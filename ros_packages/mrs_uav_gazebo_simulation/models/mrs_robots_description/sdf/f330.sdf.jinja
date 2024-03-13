@@ -69,6 +69,10 @@
   {%- set compton_mount_mesh = "model://mrs_robots_description/meshes/dji/f330/f330_compton_holder.dae" -%}
   {# <!--}--> #}
 
+  {# Propeller guards {--> #}
+  {%- set prop_guard_mesh = "model://mrs_robots_description/meshes/dji/f330/f330_prop_guard.stl" -%}
+  {# <!--}--> #}
+
   {# Scales {--> #}
   {%- set mesh_scale = "1 1 1" -%}
   {%- set mesh_scale_prop_ccw = "1 1 1" -%}
@@ -118,6 +122,22 @@
       <!--}-->
 
       <!-- Body visuals {-->
+
+      <!-- Frame guard {-->
+      {{ components.visual_mesh_macro(
+        name = "prop_guard",
+        mesh_file = prop_guard_mesh,
+        mesh_scale = mesh_scale_milimeters,
+        color = "Grey",
+        x = 0,
+        y = 0,
+        z = -0.01,
+        roll = 0,
+        pitch = 0,
+        yaw = components.rad(180))
+      }}
+
+      <!--}-->
 
       <!-- Boards {-->
       {{ components.visual_mesh_macro(
@@ -706,7 +726,7 @@
       z = -0.025,
       roll = -components.rad90,
       pitch = components.rad20,
-      yaw = components.rad120,
+      yaw = components.rad70,
       update_rate = 5)
     }}
     <!--}-->
@@ -723,7 +743,7 @@
       z = -0.025,
       roll = -components.rad90,
       pitch = components.rad20,
-      yaw = -components.rad120,
+      yaw = -components.rad70,
       update_rate = 5)
     }}
     <!--}-->
