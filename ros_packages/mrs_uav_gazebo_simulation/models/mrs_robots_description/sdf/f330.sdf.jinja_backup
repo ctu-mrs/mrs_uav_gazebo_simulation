@@ -722,12 +722,12 @@
       camera_suffix="",
       parent_link = root,
       enable_realistic_picoflexx = enable_realistic_picoflexx,
-      x = -0.033,
-      y = 0.035,
+      x = 0.023,
+      y = 0.055,
       z = -0.005,
       roll = -components.rad180,
       pitch = components.rad20,
-      yaw = components.rad100,
+      yaw = components.rad60,
       update_rate = 5)
     }}
     <!--}-->
@@ -740,19 +740,19 @@
       camera_suffix="",
       parent_link = root,
       enable_realistic_picoflexx = enable_realistic_picoflexx,
-      x = -0.043,
-      y = -0.035,
+      x = 0.02,
+      y = -0.055,
       z = -0.005,
       roll = -0,
       pitch = components.rad20,
-      yaw = -components.rad100,
+      yaw = -components.rad60,
       update_rate = 5)
     }}
     <!--}-->
 
     <!-- picoflexx back {-->
     {{ components.picoflexx_macro(
-      version = "flexx2",
+      version = "flexx2_wide",
       namespace = namespace,
       camera_name = "picoflexx_back",
       camera_suffix="",
@@ -761,8 +761,8 @@
       x = -0.07,
       y = 0.025,
       z = 0.02,
-      roll = 0,
-      pitch = components.rad0,
+      roll =  components.rad90,
+      pitch = components.rad20,
       yaw = components.rad180,
       update_rate = 5)
     }}
@@ -776,12 +776,12 @@
       camera_suffix="",
       parent_link = root,
       enable_realistic_picoflexx = enable_realistic_picoflexx,
-      x = 0.045,
-      y = 0.01,
-      z = 0.01,
+      x = 0.03,
+      y = 0.03,
+      z = 0.09,
       roll =  0,
-      pitch = -components.rad0,
-      yaw = components.rad0,
+      pitch = -components.rad150,
+      yaw = components.rad180,
       update_rate = 5)
     }}
     <!--}-->
@@ -806,6 +806,7 @@
     <!--}-->
       
     <!-- realsense up {-->
+    {% if enable_realsense_up %}
     {{ components.realsense_macro(
       namespace = namespace,
       camera_name = "rgbd",
@@ -819,6 +820,7 @@
       pitch = -components.rad90,
       yaw = 0)
     }}
+    {% endif %}
     <!--}-->
 
     <!-- basler down {-->
@@ -856,7 +858,7 @@
       imu_noise_mean = 0.0,
       x = 0.107,
       y = 0,
-      z = 0.09,
+      z = -0.002,
       roll = 0,
       pitch = 0,
       yaw = 0)

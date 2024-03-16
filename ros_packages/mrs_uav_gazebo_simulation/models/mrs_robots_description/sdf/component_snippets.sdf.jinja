@@ -49,6 +49,7 @@ limitations under the License.
 {%- set rad85 = 85 * pi / 180 -%}
 {%- set rad90 = 90 * pi / 180 -%}
 {%- set rad95 = 95 * pi / 180 -%}
+{%- set rad100 = 100 * pi / 180 -%}
 {%- set rad115 = 115 * pi / 180 -%}
 {%- set rad120 = 120 * pi / 180 -%}
 {%- set rad135 = 135 * pi / 180 -%}
@@ -2301,7 +2302,7 @@ limitations under the License.
 <!--}-->
 
 <!-- Test Macro to add a picoflexx ToF camera {-->
-{%- macro picoflexx_macro(namespace, camera_name, camera_suffix, parent_link, enable_realistic_picoflexx, x, y, z, roll, pitch, yaw, update_rate ) -%}
+{%- macro picoflexx_macro(namespace, camera_name, camera_suffix, parent_link, enable_realistic_picoflexx, x, y, z, roll, pitch, yaw, update_rate, version) -%}
 {# -- frame names -- #}
 {%- set frame_fcu = namespace + "/fcu" -%}
 
@@ -2332,19 +2333,66 @@ limitations under the License.
     {# <pose>0 0 -0.0115 0 0 0</pose> #}
     <pose>0 0 0.0 0 0 0</pose>
       <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_infra">
-      <!-- 106 deg hfov -->
-      <horizontal_fov>1.85005</horizontal_fov>
-      <!-- 86 deg vfov -->
-      <vertical_fov>1.50098</vertical_fov>
-      <image>
-        <width>240</width>
-        <height>180</height>
-        <format>L_INT8</format>
-      </image>
-      <clip>
-        <near>0.1</near>
-        <far>7</far>
-      </clip>
+      {% if version == 'flexx2_wide' %}
+        <!-- flexx2 wide {-->
+          <!-- 106 deg hfov -->
+          <horizontal_fov>1.85005</horizontal_fov>
+          <!-- 86 deg vfov -->
+          <vertical_fov>1.50098</vertical_fov>
+          <image>
+              <width>240</width>
+              <height>180</height>
+              <format>L_INT8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>10</far>
+          </clip>
+        <!--}-->
+      {% elif version == 'flexx2' %}
+        <!-- flexx2 {-->
+          <!-- 56 deg hfov -->
+          <horizontal_fov>0.977384</horizontal_fov>
+          <vertical_fov>1.11701</vertical_fov>
+          <image>
+              <width>224</width>
+              <height>172</height>
+              <format>L_INT8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>7</far>
+          </clip>
+        <!--}-->
+      {% elif version == "flexx2_VGA" %}
+        <!-- flexx2 VGA {-->
+          <horizontal_fov>1.11701</horizontal_fov>
+          <!-- 50 deg vfov -->
+          <vertical_fov>0.87266</vertical_fov>
+          <image>
+              <width>640</width>
+              <height>480</height>
+              <format>L_INT8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>8.5</far>
+          </clip>
+        <!--}-->
+      {% elif version == 'flexx' %}
+        <!-- flexx old {-->
+          <horizontal_fov>0.977384</horizontal_fov>
+          <image>
+              <width>224</width>
+              <height>172</height>
+              <format>L_INT8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>7</far>
+          </clip>
+        <!--}-->
+      {% endif %}
       <noise>
         <type>gaussian</type>
         <mean>0.0</mean>
@@ -2392,25 +2440,63 @@ limitations under the License.
   <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_tof_depth" type="depth">
     <pose>0 -0.0115 0.0 0 0 0</pose>
     <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_tof_depth">
-      <!-- 56 deg hfov -->
-      <!-- <horizontal_fov>0.977384</horizontal_fov> -->
-      <!-- 106 deg hfov -->
-      <horizontal_fov>1.85005</horizontal_fov>
-      <!-- 86 deg vfov -->
-      <vertical_fov>1.50098</vertical_fov>
-      <image>
-        {% if enable_realistic_picoflexx %}
-          <width>240</width>
-          <height>180</height>
-        {% else %}
-          <width>240</width>
-          <height>180</height>
-        {% endif %}
-      </image>
-      <clip>
-        <near>0.1</near>
-        <far>10</far>
-      </clip>
+
+      {% if version == 'flexx2_wide' %}
+        <!-- flexx2 wide {-->
+          <!-- 106 deg hfov -->
+          <horizontal_fov>1.85005</horizontal_fov>
+          <!-- 86 deg vfov -->
+          <vertical_fov>1.50098</vertical_fov>
+          <image>
+              <width>240</width>
+              <height>180</height>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>10</far>
+          </clip>
+        <!--}-->
+      {% elif version == 'flexx2' %}
+        <!-- flexx2 {-->
+          <!-- 56 deg hfov -->
+          <horizontal_fov>0.977384</horizontal_fov>
+          <vertical_fov>1.11701</vertical_fov>
+          <image>
+              <width>224</width>
+              <height>172</height>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>7</far>
+          </clip>
+        <!--}-->
+      {% elif version == "flexx2_VGA" %}
+        <!-- flexx2 VGA {-->
+          <horizontal_fov>1.11701</horizontal_fov>
+          <!-- 50 deg vfov -->
+          <vertical_fov>0.87266</vertical_fov>
+          <image>
+              <width>640</width>
+              <height>480</height>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>8.5</far>
+          </clip>
+        <!--}-->
+      {% elif version == 'flexx' %}
+        <!-- flexx old {-->
+          <horizontal_fov>0.977384</horizontal_fov>
+          <image>
+              <width>224</width>
+              <height>172</height>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>7</far>
+          </clip>
+        <!--}-->
+      {% endif %}
       <noise>
         <type>gaussian</type>
         <mean>0.0</mean>
