@@ -2395,10 +2395,10 @@ limitations under the License.
     <!-- imu {-->
     {{ generic.imu_sensor_macro(
       sensor_name = sensor_name + '_imu',
-      parent_link = parent_link,
+      parent_link = sensor_name + '_link',
       update_rate = spawner_args[spawner_keyword]['imu_rate'],
       topic_name = '/' + spawner_args['name'] + '/' + sensor_name + '/imu',
-      frame_name = spawner_args['name'] + '/' + sensor_name,
+      frame_name = spawner_args['name'] + '/' + sensor_name + '_imu',
       noise_mean = spawner_args[spawner_keyword]['imu_noise'],
       x = 0,
       y = 0,
@@ -2408,6 +2408,14 @@ limitations under the License.
       yaw = -math.radians(90))
     }}
     <!--}-->
+
+    <!-- static tf {-->
+  {{ generic.tf_static_macro(
+     namespace = spawner_args['name'] + '/',
+     parent_link = sensor_name + "_link",
+     child_link = sensor_name + "_imu_link")
+  }}
+  {# <!--}--> #}
 
     <!-- mount {-->
     {{ mount if mount }}
@@ -2476,7 +2484,7 @@ limitations under the License.
     <!-- imu {-->
     {{ generic.imu_sensor_macro(
       sensor_name = sensor_name + '_imu',
-      parent_link = parent_link,
+      parent_link = sensor_name,
       update_rate = spawner_args[spawner_keyword]['imu_rate'],
       topic_name = '/' + spawner_args['name'] + '/' + sensor_name + '/imu',
       frame_name = spawner_args['name'] + '/' + sensor_name,
@@ -2489,6 +2497,14 @@ limitations under the License.
       yaw = -math.radians(90))
     }}
     <!--}-->
+
+    <!-- static tf {-->
+    {{ generic.tf_static_macro(
+       namespace = spawner_args['name'] + '/',
+       parent_link = sensor_name + "_link",
+       child_link = sensor_name + "_imu_link")
+    }}
+    {# <!--}--> #}
 
     <!-- mount {-->
     {{ mount if mount }}
