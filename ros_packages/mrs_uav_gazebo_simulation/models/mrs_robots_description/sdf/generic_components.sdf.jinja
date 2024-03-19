@@ -789,6 +789,16 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--} #}
 
+{# tf static publisher macro {--> #}
+{%- macro tf_static_macro(namespace, parent_link, child_link) -%}
+<plugin name="{{ parent_link }}_to_{{ child_link }}_tf_plugin" filename="libMrsGazeboCommonResources_LinkStaticTFPublisher.so">
+  <namespace>{{ namespace }}</namespace>
+  <parentLink>{{ parent_link }}</parentLink>
+  <childLink>{{ child_link }}</childLink>
+</plugin>
+{%- endmacro -%}
+{# <!--}--> #}
+
 {# ========================== gazebo plugins ========================= #}
 
 {# gazebo_gps_macro {--> #}
