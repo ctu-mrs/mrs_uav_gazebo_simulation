@@ -124,7 +124,7 @@
       <!-- Body visuals {-->
 
       <!-- Frame guard {-->
-      {{ components.visual_mesh_macro(
+      {{ components.visual_mesh_with_collision_macro(
         name = "prop_guard",
         mesh_file = prop_guard_mesh,
         mesh_scale = mesh_scale_milimeters,
@@ -806,6 +806,7 @@
     <!--}-->
       
     <!-- realsense up {-->
+    {% if enable_realsense_up %}
     {{ components.realsense_macro(
       namespace = namespace,
       camera_name = "rgbd",
@@ -819,6 +820,7 @@
       pitch = -components.rad90,
       yaw = 0)
     }}
+    {% endif %}
     <!--}-->
 
     <!-- basler down {-->
