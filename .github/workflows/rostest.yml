@@ -1,0 +1,16 @@
+name: rostest
+
+on:
+
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  build:
+    uses: ctu-mrs/ci_scripts/.github/workflows/rostest.yml@master
+    secrets:
+      PUSH_TOKEN: ${{ secrets.PUSH_TOKEN }}
