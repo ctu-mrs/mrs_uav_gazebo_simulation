@@ -972,6 +972,17 @@ limitations under the License.
   <parent>{{ parent_link }}</parent>
   <child>{{ sensor_name }}_link</child>
 </joint>
+
+{%- endmacro -%}
+<!--}-->
+
+<!-- Macro to add tf static publisher {-->
+{%- macro tf_static_macro(namespace, parent_link, child_link) -%}
+<plugin name="{{ parent_link }}_to_{{ child_link }}_tf_plugin" filename="libMrsGazeboCommonResources_LinkStaticTFPublisher.so">
+  <namespace>{{ namespace }}</namespace>
+  <parentLink>{{ parent_link }}</parentLink>
+  <childLink>{{ child_link }}</childLink>
+</plugin>
 {%- endmacro -%}
 <!--}-->
 
@@ -3173,7 +3184,7 @@ limitations under the License.
   parent_link = sensor_name + "_link",
   update_rate = imu_rate,
   topic_name = "/" + namespace + "/" + sensor_name + "/imu",
-  frame_name = namespace + "/" + sensor_name,
+  frame_name = namespace + "/" + sensor_name + "_imu",
   noise_mean = imu_noise_mean,
   x = 0,
   y = 0,
@@ -3181,6 +3192,12 @@ limitations under the License.
   roll = -rad90,
   pitch = 0,
   yaw = -rad90)
+}}
+
+{{ tf_static_macro(
+  namespace = namespace,
+  parent_link = sensor_name + "_link",
+  child_link = sensor_name + "_imu_link")
 }}
 {%- endmacro -%}
 <!--}-->
