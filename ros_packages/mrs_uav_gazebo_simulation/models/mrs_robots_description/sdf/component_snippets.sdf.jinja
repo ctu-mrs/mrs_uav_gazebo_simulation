@@ -2645,12 +2645,14 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
+
+
 {# pendulum_macro {--> #}
 {%- macro pendulum_macro(parent_link, x, y, z, spawner_args) -%}
 
   {%- set spawner_keyword = 'enable-pendulum' -%}
   {%- set spawner_description = 'Add a pendulum to the vehicle. Specify the length and mass of the whole chain. Length and mass is uniformly distributed between the links' -%}
-  {%- set spawner_default_args = {'chain_length': 3.0, 'chain_mass': 0.5, 'num_links': 30, 'radius': 0.01} -%}
+  {%- set spawner_default_args = {'chain_length': 2.0, 'chain_mass': 0.1, 'load_mass': 1.0, 'load_radius': 0.1, 'num_links': 15, 'radius': 0.01} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
@@ -2685,6 +2687,16 @@ limitations under the License.
       <!--}-->
 
     {%- endfor -%}
+    <!--}-->
+
+    <!-- load {-->
+    {{ generic.load_pendulum_macro(
+      parent_link = 'pendulum_chain_' + (spawner_args[spawner_keyword]['num_links'] - 1)| string() + '_link',
+      link_length = spawner_args[spawner_keyword]['chain_length'] / spawner_args[spawner_keyword]['num_links'],
+      load_mass = spawner_args[spawner_keyword]['load_mass'],
+      load_radius = spawner_args[spawner_keyword]['load_radius']
+      )
+    }}
     <!--}-->
 
   {%- endif -%}
