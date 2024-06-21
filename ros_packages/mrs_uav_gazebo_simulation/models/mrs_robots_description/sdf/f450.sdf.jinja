@@ -532,6 +532,18 @@
 
     </link>
 
+  {# Air drag {--> #}
+  {{ generic.gazebo_fluid_resistance_plugin_macro(
+    model_mass = mass,
+    verbose = true,
+    parent_link = root,
+    uav_body_resistance_x = 0.1,
+    uav_body_resistance_y = 0.1,
+    uav_body_resistance_z = 0.2,
+    )
+  }}
+  {# <!--}--> #}
+
     {# Propellers {--> #}
     {%- set prop_list = [
     {
