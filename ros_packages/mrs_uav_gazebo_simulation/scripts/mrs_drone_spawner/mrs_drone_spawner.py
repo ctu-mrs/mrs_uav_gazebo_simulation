@@ -471,7 +471,7 @@ class MrsDroneSpawner:
             'model': None,
             'ids': [],
             'names': [],
-            'spawn_poses': {},
+            'spawn_poses': {}
         }
 
         # parse out the keywords starting with '--'
@@ -999,6 +999,10 @@ class MrsDroneSpawner:
 
         robot_params['mavlink_config'] = self.get_mavlink_config_for_robot(ID)
 
+        if 'mavlink_gcs_udp_port' in params_dict.keys():
+            if len(params_dict['mavlink_gcs_udp_port']) > index:
+                robot_params['mavlink_gcs_udp_port'] = params_dict['mavlink_gcs_udp_port'][index]
+
         return robot_params
     # #}
 
@@ -1051,6 +1055,14 @@ class MrsDroneSpawner:
             'PX4_SIM_MODEL:=' + str(robot_params['model']),
             'ROMFS_PATH:=' + str(romfs_path)
         ]
+
+        # do we want to send raw mavlink data to a specific port? (this will also auto connect to QGroundControl)
+        if 'mavlink_gcs_udp_port' in robot_params.keys():
+            if isinstance(robot_params['mavlink_gcs_udp_port'], int):
+                roslaunch_args.append('MAVLINK_GCS_UDP_PORT:=' + str(robot_params["mavlink_gcs_udp_port"]))
+            else:
+                raise CouldNotLaunch(f'\'{robot_params["mavlink_gcs_udp_port"]}\' is not a valid port number')
+
         roslaunch_sequence = [(self.px4_fimrware_launch_path, roslaunch_args)]
 
         firmware_process = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_sequence)
