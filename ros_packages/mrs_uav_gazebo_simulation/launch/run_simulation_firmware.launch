@@ -4,7 +4,8 @@
   <arg name="ID"/>
   <arg name="PX4_SIM_MODEL"/>
   <arg name="PX4_ESTIMATOR" default="ekf2"/>
-  <arg name="MAVLINK_GCS_UDP_PORT" default=""/> <!-- mavlink port for QGC -->
+  <arg name="MAVLINK_GCS_UDP_PORT_LOCAL" default=""/> <!-- mavlink port for QGC -->
+  <arg name="MAVLINK_GCS_UDP_PORT_REMOTE" default=""/> <!-- mavlink port for QGC -->
   <arg name="ROMFS_PATH" default="$(find mrs_uav_gazebo_simulation)/ROMFS"/>
 
   <!-- PX4 configs -->
@@ -19,7 +20,8 @@
     <!-- PX4 params -->
     <env name="PX4_SIM_MODEL" value="$(arg PX4_SIM_MODEL)" />
     <env name="PX4_ESTIMATOR" value="$(arg PX4_ESTIMATOR)" />
-    <env if="$(eval MAVLINK_GCS_UDP_PORT != '')" name="MAVLINK_GCS_UDP_PORT" value="$(arg MAVLINK_GCS_UDP_PORT)" />
+    <env if="$(eval MAVLINK_GCS_UDP_PORT_LOCAL != '')" name="MAVLINK_GCS_UDP_PORT_LOCAL" value="$(arg MAVLINK_GCS_UDP_PORT_LOCAL)" />
+    <env if="$(eval MAVLINK_GCS_UDP_PORT_REMOTE != '')" name="MAVLINK_GCS_UDP_PORT_REMOTE" value="$(arg MAVLINK_GCS_UDP_PORT_REMOTE)" />
 
     <!-- PX4 SITL -->
     <node name="sitl_uav$(arg ID)" pkg="px4" type="px4" output="screen" args="$(arg ROMFS_PATH)/px4fmu_common -s etc/init.d-posix/rcS $(arg px4_interactive_mode) -i $(arg ID) -w sitl_uav$(arg ID)"/>

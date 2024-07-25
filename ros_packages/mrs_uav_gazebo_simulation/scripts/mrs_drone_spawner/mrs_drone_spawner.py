@@ -142,6 +142,8 @@ class MrsDroneSpawner:
             self.vehicle_base_port = rospy.get_param('~mavlink_config/vehicle_base_port')
             self.mavlink_tcp_base_port = rospy.get_param('~mavlink_config/mavlink_tcp_base_port')
             self.mavlink_udp_base_port = rospy.get_param('~mavlink_config/mavlink_udp_base_port')
+            self.mavlink_gcs_udp_base_port_local = rospy.get_param('~mavlink_config/mavlink_gcs_udp_base_port_local')
+            self.mavlink_gcs_udp_base_port_remote = rospy.get_param('~mavlink_config/mavlink_gcs_udp_base_port_remote')
             self.qgc_udp_port = rospy.get_param('~mavlink_config/qgc_udp_port')
             self.sdk_udp_port = rospy.get_param('~mavlink_config/sdk_udp_port')
             self.send_vision_estimation = rospy.get_param('~mavlink_config/send_vision_estimation')
@@ -999,9 +1001,10 @@ class MrsDroneSpawner:
 
         robot_params['mavlink_config'] = self.get_mavlink_config_for_robot(ID)
 
-        if 'mavlink_gcs_udp_port' in params_dict.keys():
-            if len(params_dict['mavlink_gcs_udp_port']) > index:
-                robot_params['mavlink_gcs_udp_port'] = params_dict['mavlink_gcs_udp_port'][index]
+        if 'enable_mavlink_gcs' in params_dict.keys():
+            robot_params['mavlink_gcs_udp_port_local'] = self.mavlink_gcs_udp_base_port_local + ID
+            robot_params['mavlink_gcs_udp_port_remote'] = self.mavlink_gcs_udp_base_port_remote + ID
+            rospy.loginfo(f'[MrsDroneSpawner]: Publishing extra mavlink messages on UDP port {robot_params["mavlink_gcs_udp_port_remote"]}')
 
         return robot_params
     # #}
@@ -1057,11 +1060,9 @@ class MrsDroneSpawner:
         ]
 
         # do we want to send raw mavlink data to a specific port? (this will also auto connect to QGroundControl)
-        if 'mavlink_gcs_udp_port' in robot_params.keys():
-            if isinstance(robot_params['mavlink_gcs_udp_port'], int):
-                roslaunch_args.append('MAVLINK_GCS_UDP_PORT:=' + str(robot_params["mavlink_gcs_udp_port"]))
-            else:
-                raise CouldNotLaunch(f'\'{robot_params["mavlink_gcs_udp_port"]}\' is not a valid port number')
+        if 'mavlink_gcs_udp_port_local' in robot_params.keys() and 'mavlink_gcs_udp_port_remote' in robot_params.keys():
+            roslaunch_args.append('MAVLINK_GCS_UDP_PORT_LOCAL:=' + str(robot_params['mavlink_gcs_udp_port_local']))
+            roslaunch_args.append('MAVLINK_GCS_UDP_PORT_REMOTE:=' + str(robot_params['mavlink_gcs_udp_port_remote']))
 
         roslaunch_sequence = [(self.px4_fimrware_launch_path, roslaunch_args)]
 
