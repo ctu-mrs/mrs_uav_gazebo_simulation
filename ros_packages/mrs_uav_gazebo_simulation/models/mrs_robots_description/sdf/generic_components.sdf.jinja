@@ -1204,7 +1204,11 @@ limitations under the License.
     <!-- rgb camera {-->
     <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_color" type="camera">
       {# <pose>0 -0.046 0.004 0 0 0</pose> #}
-      <pose>0 0 -0.0115 0 0 0</pose>
+      {% if realistic %}
+        <pose>0 0.05 0 0 0 0</pose>
+      {% else %}
+         <pose>0 -0.0115 0.0 0 0 0</pose>
+      {% endif %}
         <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_color">
         {# <horizontal_fov>1.211259</horizontal_fov> #}
         <horizontal_fov>1.211259</horizontal_fov>
@@ -1305,13 +1309,18 @@ limitations under the License.
 
     <!-- aligned depth to color {-->
     <sensor name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_aligned_depth_to_color" type="depth">
-      <pose>0 -0.0115 0.0 0 0 0</pose>
+    {% if realistic %}
+      <pose>0 0.05 0 0 0 0</pose>
+    {% else %}
+       <pose>0 -0.0115 0.0 0 0 0</pose>
+    {% endif %}
+
       <camera name="{{ namespace}}/{{ camera_name }}{{ camera_suffix }}_aligned_depth_to_color">
         <horizontal_fov>1.211259</horizontal_fov>
         <image>
           {% if realistic %}
-            <width>320</width>
-            <height>180</height>
+            <width>640</width>
+            <height>360</height>
           {% else %}
             <width>1280</width>
             <height>720</height>
@@ -1319,7 +1328,11 @@ limitations under the License.
         </image>
         <clip>
           <near>0.3</near>
-          <far>12</far>
+          {% if realistic %}
+            <far>30</far>
+          {% else %}
+            <far>12</far>
+          {% endif %}
         </clip>
         <noise>
           <type>gaussian</type>
@@ -1340,14 +1353,17 @@ limitations under the License.
   <plugin name="{{ camera_name }}{{ camera_suffix }}_plugin" filename="libMrsGazeboCommonResources_RealsensePlugin.so">
     <camera_name>{{ camera_name }}</camera_name>
     <camera_suffix>{{ camera_suffix }}</camera_suffix>
+    
     <useRealistic>{{ realistic }}</useRealistic>
-    <noisePerMeter>0.2</noisePerMeter>
-    <minNoiseDistance>4.0</minNoiseDistance>
-    <perlinEmptyThreshold>0.8</perlinEmptyThreshold>
-    <perlinEmptySpeed>0.2</perlinEmptySpeed>
-    <imageScaling>4</imageScaling>
-    <blurSize>15</blurSize>
-    <erosionSize>5</erosionSize>
+    <minDisparitySGM>1</minDisparitySGM>
+    <numDisparitiesSGM>16</numDisparitiesSGM>
+    <blockSizeSGM>5</blockSizeSGM>
+    <imageScaling>2</imageScaling>
+    <depthSaturation>12000</depthSaturation>
+    <backgroundNoise>0.1</backgroundNoise>
+    <defectKernelSize>5</defectKernelSize>
+    <randomNoise>5</randomNoise>
+
     <parentFrameName>{{ frame_fcu }}</parentFrameName>
     <x>{{ x }}</x>
     <y>{{ y }}</y>
