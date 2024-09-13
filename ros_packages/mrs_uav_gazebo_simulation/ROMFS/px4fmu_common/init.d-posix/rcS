@@ -271,6 +271,11 @@ fi
 #user defined mavlink streams for instances can be in PATH
 . px4-rc.mavlink
 
+if [ -n "$MAVLINK_GCS_UDP_PORT_LOCAL" ] && [ -n "$MAVLINK_GCS_UDP_PORT_REMOTE" ]
+then
+  . px4-rc.mavlink_gcs
+fi
+
 # execute autostart post script if any
 [ -e "$autostart_file".post ] && . "$autostart_file".post
 

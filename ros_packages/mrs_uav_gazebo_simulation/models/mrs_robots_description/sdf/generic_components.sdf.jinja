@@ -166,6 +166,19 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
+<!-- Ball inertia {-->
+{%- macro ball_inertia(m, r) -%}
+	<inertia>
+	  <ixx>{{ 2 * m * r * r / 5 }}</ixx>
+	  <ixy>0</ixy>
+	  <ixz>0</ixz>
+	  <iyy>{{ 2 * m * r * r / 5 }}</iyy>
+	  <iyz>0</iyz>
+	  <izz>{{ 2 * m * r * r / 5 }}</izz>
+	</inertia>
+{%- endmacro -%}
+<!--}-->
+
 {# single_chain_pendulum_macro {--> #}
 {%- macro single_chain_pendulum_macro(parent_link, id, link_mass, link_radius, link_length, joint_offset_x, joint_offset_y, joint_offset_z) -%}
   <link name="pendulum_chain_{{ id }}_link">
@@ -243,6 +256,44 @@ limitations under the License.
   </joint>
 {%- endmacro -%}
 {# <!--}--> #}
+
+{# Macro to add pendulums load {--> #}
+{%- macro load_pendulum_macro(parent_link, link_length, load_mass, load_radius) -%}
+<link name="pendulum_load">
+  <pose relative_to = "{{ parent_link }}"> 0 0 {{ -link_length/2 }} 0 0 0</pose>
+  <inertial>
+    <mass>{{ load_mass }}</mass>
+    {{
+      ball_inertia(
+        m = load_mass,
+        r = load_radius,
+      )
+    }}
+  </inertial>
+  <gravity>1</gravity>
+  <visual name="load_visual">
+    <pose>0 0 0 0 0 0</pose>
+    <geometry>
+      <sphere>
+        <radius>{{ load_radius }}</radius>
+      </sphere>
+    </geometry>
+    <material>
+      <script>
+        <name>Gazebo/Red</name>
+        <uri>file://media/materials/scripts/gazebo.material</uri>
+      </script>
+    </material>
+  </visual>
+</link>
+
+<joint name="pendulum_load_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>pendulum_load</child>
+  <pose relative_to = "{{ parent_link }}">0 0 {{ -link_length/2 }} 0 0 0</pose>
+</joint>
+{%- endmacro -%}
+<!--}-->
 
 {# ========================== visual blocks ========================= #}
 
@@ -806,6 +857,16 @@ limitations under the License.
   </joint>
 {%- endmacro -%}
 {# <!--}--} #}
+
+{# tf static publisher macro {--> #}
+{%- macro tf_static_macro(namespace, parent_link, child_link) -%}
+<plugin name="{{ parent_link }}_to_{{ child_link }}_tf_plugin" filename="libMrsGazeboCommonResources_LinkStaticTFPublisher.so">
+  <namespace>{{ namespace }}</namespace>
+  <parentLink>{{ parent_link }}</parentLink>
+  <childLink>{{ child_link }}</childLink>
+</plugin>
+{%- endmacro -%}
+{# <!--}--> #}
 
 {# ========================== gazebo plugins ========================= #}
 

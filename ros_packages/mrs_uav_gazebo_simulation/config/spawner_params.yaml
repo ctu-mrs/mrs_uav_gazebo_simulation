@@ -2,6 +2,8 @@ mavlink_config:
   vehicle_base_port: 14000
   mavlink_tcp_base_port: 4560
   mavlink_udp_base_port: 14560
+  mavlink_gcs_udp_base_port_local: 18000
+  mavlink_gcs_udp_base_port_remote: 18100
   qgc_udp_port: 14550
   sdk_udp_port: 14540
   send_vision_estimation: false
