@@ -106,6 +106,7 @@
         mass = mass,
         body_radius = body_radius,
         body_height = body_height,
+        collision_bitmask = '0x01',
         rotor_velocity_slowdown_sim = rotor_velocity_slowdown_sim,
         ixx = body_ixx,
         ixy = body_ixy,
@@ -270,7 +271,9 @@
         pitch = 0,
         yaw = math.radians(150),
         collision_height = leg_height,
-        collision_radius = leg_radius)
+        collision_radius = leg_radius,
+        collision_bitmask = '0x01'
+      )
       }}
 
       {{ generic.leg_macro(
@@ -286,7 +289,9 @@
         pitch = 0,
         yaw = math.radians(-90),
         collision_height = leg_height,
-        collision_radius = leg_radius)
+        collision_radius = leg_radius,
+        collision_bitmask = '0x01'
+      )
       }}
 
       {{ generic.leg_macro(
@@ -302,7 +307,9 @@
         pitch = 0,
         yaw = math.radians(30),
         collision_height = leg_height,
-        collision_radius = leg_radius)
+        collision_radius = leg_radius,
+        collision_bitmask = '0x01'
+      )
       }}
 
       <!--}-->
@@ -479,6 +486,7 @@
             size_x = 0.006,
             size_y = 0.035,
             size_z = 0.175,
+            collision_bitmask = '0x01',
             color = 'Grey',
             x = -0.095 * math.cos(math.radians(30)),
             y = 0.095 * math.sin(math.radians(30)),
@@ -493,6 +501,7 @@
             size_x = 0.006,
             size_y = 0.035,
             size_z = 0.175,
+            collision_bitmask = '0x01',
             color = 'Grey',
             x = 0.095 * math.cos(math.radians(30)),
             y = -0.095 * math.sin(math.radians(30)),
@@ -507,6 +516,7 @@
             size_x = 0.190,
             size_y = 0.035,
             size_z = 0.006,
+            collision_bitmask = '0x01',
             color = 'Grey',
             x = 0,
             y = 0,
@@ -597,7 +607,9 @@
           pitch = 0,
           yaw = math.radians(210),
           collision_height = leg_height,
-          collision_radius = leg_radius)
+          collision_radius = leg_radius,
+          collision_bitmask = '0x01',
+        )
         }}
         </link>
         <joint name="extra_leg_joint" type="fixed">
@@ -702,6 +714,7 @@
       moment_constant = moment_constant,
       parent = root,
       mass = mass_prop,
+      collision_bitmask = '0x01',
       radius = radius_prop,
       time_constant_up = time_constant_up,
       time_constant_down = time_constant_down,
