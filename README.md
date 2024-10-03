@@ -35,13 +35,16 @@ A metapackage for the MRS UAV Gazebo + PX4 SITL simulation pipeline.
 
 A custom drone model can be added from an external package.
 Please look at [mrs_gazebo_custom_drone_example](https://github.com/ctu-mrs/mrs_gazebo_custom_drone_example) for an example.
-The wiki page [https://ctu-mrs.github.io/docs/simulation/gazebo/gazebo/custom_drone.html](https://ctu-mrs.github.io/docs/simulation/gazebo/gazebo/custom_drone.html) contains a detailed description of all the important steps and configuration parts. 
+The wiki page [https://ctu-mrs.github.io/docs/simulation/gazebo/gazebo/custom_drone.html](https://ctu-mrs.github.io/docs/simulation/gazebo/gazebo/custom_drone.html) contains a detailed description of all the important steps and configuration parts.
 
 ## Starting the simulation
 
-Use one of the prepared Tmuxinator sessions:
+Use one of the prepared Tmuxinator sessions in [`roscd mrs_uav_gazebo_simulation/tmux`](./ros_packages/mrs_uav_gazebo_simulation/tmux) as an example:
 
-- [tmux/one_drone](tmux/one_drone)
+- [one_drone](./ros_packages/mrs_uav_gazebo_simulation/tmux/one_drone)
+- [one_drone_3dlidar](./ros_packages/mrs_uav_gazebo_simulation/tmux/one_drone_3dlidar)
+- [one_drone_realsense](./ros_packages/mrs_uav_gazebo_simulation/tmux/one_drone_realsense)
+- [three_drones](./ros_packages/mrs_uav_gazebo_simulation/tmux/three_drones)
 
 ## Using the MRS drone spawner in your simulations
 
