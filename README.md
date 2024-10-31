@@ -21,15 +21,16 @@ A metapackage for the MRS UAV Gazebo + PX4 SITL simulation pipeline.
 
 ### Pre-defined UAVs
 
-| Model         | Spawn argument | Simulation                    |
-|---------------|----------------|-------------------------------|
-| DJI f330      | `--f330`       | ![](.fig/f330_simulation.jpg) |
-| DJI f450      | `--f450`       | ![](.fig/f450_simulation.jpg) |
-| Holybro x500  | `--x500`       | ![](.fig/x500_simulation.jpg) |
-| DJI f550      | `--f550`       | ![](.fig/f550_simulation.jpg) |
-| Tarot t650    | `--t650`       | ![](.fig/t650_simulation.jpg) |
-| T-Drones m690 | `--m690`       | ![](.fig/m690_simulation.jpg) |
-| NAKI II       | `--naki`       | ![](.fig/naki_simulation.jpg) |
+| Model         | Spawn argument | Simulation                       |
+|---------------|----------------|----------------------------------|
+| F4F RoboFly   | `--robofly`    | ![](.fig/robofly_simulation.jpg) |
+| DJI f330      | `--f330`       | ![](.fig/f330_simulation.jpg)    |
+| DJI f450      | `--f450`       | ![](.fig/f450_simulation.jpg)    |
+| Holybro x500  | `--x500`       | ![](.fig/x500_simulation.jpg)    |
+| DJI f550      | `--f550`       | ![](.fig/f550_simulation.jpg)    |
+| Tarot t650    | `--t650`       | ![](.fig/t650_simulation.jpg)    |
+| T-Drones m690 | `--m690`       | ![](.fig/m690_simulation.jpg)    |
+| NAKI II       | `--naki`       | ![](.fig/naki_simulation.jpg)    |
 
 ### Adding a custom UAV
 
