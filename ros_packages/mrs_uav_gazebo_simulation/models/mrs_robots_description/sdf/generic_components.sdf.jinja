@@ -1157,6 +1157,65 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
+{# camera_macro_meshless {--> #}
+{%- macro camera_macro_meshless(parent_link, camera_name, camera_frame_name, sensor_base_frame_name, frame_rate, parent_frame_name, horizontal_fov, image_width, image_height, min_distance, max_distance, noise_mean, noise_stddev, x, y, z, roll, pitch, yaw) -%}
+<link name="{{ camera_name }}_link">
+  <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+  {{ zero_inertial_macro() }}
+  <sensor name="{{ camera_name }}_sensor" type="camera">
+    <update_rate>{{ frame_rate }}</update_rate>
+    <camera>
+      <horizontal_fov>{{ horizontal_fov }}</horizontal_fov>
+      <image>
+        <width>{{ image_width }}</width>
+        <height>{{ image_height }}</height>
+      </image>
+      <clip>
+        <near>{{ min_distance }}</near>
+        <far>{{ max_distance }}</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <!-- Noise is sampled independently per pixel on each frame.
+        That pixel's noise value is added to each of its color
+        channels, which at that point lie in the range [0,1]. -->
+        <mean>{{ noise_mean }}</mean>
+        <stddev>{{ noise_stddev }}</stddev>
+      </noise>
+    </camera>
+    <plugin name="{{ camera_name }}_plugin" filename="libMrsGazeboCommonResources_CameraPlugin.so">
+      <alwaysOn>true</alwaysOn>
+      <updateRate>{{ frame_rate }}</updateRate>
+      <cameraName>{{ camera_name }}</cameraName>
+      <imageTopicName>image_raw</imageTopicName>
+      <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+      <frameName>/{{ camera_frame_name }}</frameName>
+      <hackBaseline>0.0</hackBaseline>
+      <distortionK1>0.0</distortionK1>
+      <distortionK2>0.0</distortionK2>
+      <distortionK3>0.0</distortionK3>
+      <distortionT1>0.0</distortionT1>
+      <distortionT2>0.0</distortionT2>
+      <parentFrameName>{{ parent_frame_name }}</parentFrameName>
+      <sensorBaseFrameName>{{ sensor_base_frame_name }}</sensorBaseFrameName>
+      <x>{{ x }}</x>
+      <y>{{ y }}</y>
+      <z>{{ z }}</z>
+      <roll>{{ roll }}</roll>
+      <pitch>{{ pitch }}</pitch>
+      <yaw>{{ yaw }}</yaw>
+    </plugin>
+  </sensor>
+</link>
+
+<joint name="{{ camera_name }}_joint" type="fixed">
+  <parent>{{ parent_link }}</parent>
+  <child>{{ camera_name }}_link</child>
+</joint>
+
+{%- endmacro -%}
+{# <!--}--> #}
+
 {# realsense_d435_macro {--> #}
 {%- macro realsense_d435_macro(namespace, camera_name, camera_suffix, parent_link, realistic, update_rate, x, y, z, roll, pitch, yaw) -%}
   {# -- frame names -- #}

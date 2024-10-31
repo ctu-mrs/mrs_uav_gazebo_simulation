@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<sdf version='1.6'>
+
+  {%- import 'mrs_robots_description/sdf/component_snippets.sdf.jinja' as components -%}
+  {%- import 'mrs_robots_description/sdf/generic_components.sdf.jinja' as generic -%}
+
+  {# ================================================================== #}
+  {# ||                    parameters definition                     || #}
+  {# ================================================================== #}
+
+  {# Robot parameters and arguments {--> #}
+  {%- set mass = 0.8 -%} {# [kg] #}
+  {%- set prop_mass = 0.002 -%} {# [kg] #}
+  {%- set body_radius = 0.15 -%} {# [m] #}
+  {%- set body_height = 0.15 -%} {# [m] #}
+  {%- set mass_prop = 0.005 -%} {# [kg] #}
+  {%- set prop_radius = 0.0635 -%} {# [m] #}
+  {%- set prop_height = 0.01 -%} {# [m] #}
+  {%- set prop_offset_top = 0.021 -%} {# [m] #}
+  {%- set arm_length = 0.135 -%} {# [m] #}
+  {%- set root = 'base_link' -%}
+  {# <!--}--> #}
+
+  {# Motor constants {--> #}
+  {%- set rotor_velocity_slowdown_sim = 0.0159236 -%}
+  {%- set motor_constant = 14.291 -%} {# [kg.m/s^2] #}
+  {%- set moment_constant = 0.016 -%} {# [m] #}
+  {%- set time_constant_up = 1.0 / 120.0 -%} {# [s] #}
+  {%- set time_constant_down = 1.0 / 80.0 -%} {# [s] #}
+  {%- set max_rot_velocity = 1 -%} {# [rad/s] #}
+  {%- set rotor_drag_coefficient = 0.001 -%} {# orig 8.06428e-04 #}
+  {%- set rolling_moment_coefficient = '1.0e-6' -%}
+  {# <!--}--> #}
+
+  {# Inertia constants {--> #}
+  {%- set inertia_body_radius = 0.20 -%} {# [m] #}
+  {%- set inertia_body_height = 0.05 -%} {# [m] #}
+  {# <!--}--> #}
+
+  {# Meshes {--> #}
+
+  {# Drone parts {--> #}
+  {%- set body_mesh = 'model://mrs_robots_description/meshes/robofly/body.dae' -%}
+  {%- set prop_cw_mesh = 'model://mrs_robots_description/meshes/robofly/prop_cw.dae'-%}
+  {%- set prop_ccw_mesh = 'model://mrs_robots_description/meshes/robofly/prop_ccw.dae'-%}
+  {# <!--}--> #}
+
+  {# Scales {--> #}
+  {%- set mesh_scale = '1 1 1' -%}
+  {%- set mesh_scale_milimeters = '0.001 0.001 0.001' -%}
+  {# <!--}--> #}
+
+  {# <!--}--> #}
+
+  {# Inertias {--> #}
+  {%- set body_ixx = mass * (3 * inertia_body_radius * inertia_body_radius + inertia_body_height * inertia_body_height) / 12 -%}
+  {%- set body_ixy = 0 -%}
+  {%- set body_ixz = 0 -%}
+  {%- set body_iyy = mass * (3 * inertia_body_radius * inertia_body_radius + inertia_body_height * inertia_body_height) / 12 -%}
+  {%- set body_iyz = 0 -%}
+  {%- set body_izz = (mass * inertia_body_radius * inertia_body_radius) / 2 -%}
+
+  {%- set prop_ixx = prop_mass * (3 * prop_radius * prop_radius + prop_height * prop_height) / 12 -%}
+  {%- set prop_ixy = 0 -%}
+  {%- set prop_ixz = 0 -%}
+  {%- set prop_iyy = prop_mass * (3 * prop_radius * prop_radius + prop_height * prop_height) / 12 -%}
+  {%- set prop_iyz = 0 -%}
+  {%- set prop_izz = (prop_mass * prop_radius * prop_radius) / 2 -%}
+  {# <!--}--> #}
+
+  <model name="{{ spawner_args['name'] }}">
+
+    {# ================================================================== #}
+    {# ||                    bare body definitions                     || #}
+    {# ================================================================== #}
+
+    <link name="{{ root }}">
+
+      <!-- Body physics {-->
+      {{ generic.multirotor_physics_macro(
+        mass = mass,
+        body_radius = body_radius,
+        body_height = body_height,
+        rotor_velocity_slowdown_sim = rotor_velocity_slowdown_sim,
+        ixx = body_ixx,
+        ixy = body_ixy,
+        ixz = body_ixz,
+        iyy = body_iyy,
+        iyz = body_iyz,
+        izz = body_izz)
+      }}
+      <!--}-->
+
+      <!-- Body visuals {-->
+
+      <!-- Body {-->
+      {{ generic.visual_mesh_textured_macro(
+        name = 'body',
+        mesh_file = body_mesh,
+        mesh_scale = mesh_scale_milimeters,
+        x = 0,
+        y = 0,
+        z = 0.000,
+        roll = -math.radians(90),
+        pitch = 0.0,
+        yaw = -math.radians(90),
+        )
+      }}
+      <!--}-->
+
+      <!--}-->
+
+    </link>
+
+  {# Air drag {--> #}
+  {{ generic.gazebo_fluid_resistance_plugin_macro(
+    model_mass = mass,
+    verbose = true,
+    parent_link = root,
+    uav_body_resistance_x = 0.1,
+    uav_body_resistance_y = 0.1,
+    uav_body_resistance_z = 0.2,
+    )
+  }}
+  {# <!--}--> #}
+
+    {# Propellers {--> #}
+    {%- set prop_list = [
+    {
+    'motor_number': 0,
+    'direction': 'ccw',
+    'x': arm_length * math.sin(math.radians(45)),
+    'y': -arm_length * math.sin(math.radians(45)),
+    'z': prop_offset_top,
+    'mesh_files': [prop_ccw_mesh],
+    'mesh_scale': mesh_scale_milimeters,
+    'color': 'DarkGrey'
+    },
+    {
+    'motor_number': 1,
+    'direction': 'ccw',
+    'x': -arm_length * math.sin(math.radians(45)),
+    'y': arm_length * math.sin(math.radians(45)),
+    'z': prop_offset_top,
+    'mesh_files': [prop_ccw_mesh],
+    'mesh_scale': mesh_scale_milimeters,
+    'color': 'DarkGrey'
+    },
+    {
+    'motor_number': 2,
+    'direction': 'cw',
+    'x': arm_length * math.sin(math.radians(45)),
+    'y': arm_length * math.sin(math.radians(45)),
+    'z': prop_offset_top,
+    'mesh_files': [prop_cw_mesh],
+    'mesh_scale': mesh_scale_milimeters,
+    'color': 'DarkGrey'
+    },
+    {
+    'motor_number': 3,
+    'direction': 'cw',
+    'x': -arm_length * math.sin(math.radians(45)),
+    'y': -arm_length * math.sin(math.radians(45)),
+    'z': prop_offset_top,
+    'mesh_files': [prop_cw_mesh],
+    'mesh_scale': mesh_scale_milimeters,
+    'color': 'DarkGrey'
+    }
+    ]
+    -%}
+    {{ components.propellers_macro(
+      prop_list = prop_list,
+      rotor_velocity_slowdown_sim = rotor_velocity_slowdown_sim,
+      motor_constant = motor_constant,
+      moment_constant = moment_constant,
+      parent = root,
+      mass = mass_prop,
+      radius = prop_radius,
+      time_constant_up = time_constant_up,
+      time_constant_down = time_constant_down,
+      max_rot_velocity = max_rot_velocity,
+      rotor_drag_coefficient = rotor_drag_coefficient,
+      rolling_moment_coefficient = rolling_moment_coefficient,
+      meshes_z_offset = 0,
+      prop_ixx = prop_ixx,
+      prop_ixy = prop_ixy,
+      prop_ixz = prop_ixz,
+      prop_iyy = prop_iyy,
+      prop_iyz = prop_iyz,
+      prop_izz = prop_izz,
+      spawner_args = spawner_args)
+    }}
+    {# <!--}--> #}
+
+    {# ================================================================== #}
+    {# ||                compulsory sensor definitions                 || #}
+    {# ================================================================== #}
+
+    <!-- Pixhawk {-->
+    {%- set imu_topic = '/imu' -%}
+    {%- set mag_topic = '/mag' -%}
+    {%- set baro_topic = '/baro' -%}
+    {%- set lidar_topic = '/lidar' -%}
+
+    <!-- Gazebo ground truth {-->
+    {{ generic.gazebo_groundtruth_macro(
+      home_latitude = 0,
+      home_longitude = 0,
+      home_altitude = 0)
+    }}
+    <!--}-->
+
+    <!-- GPS {-->
+    {{ generic.gazebo_gps_macro(
+      gps_name = 'gps0',
+      parent_link = root,
+      update_rate = 10,
+      gps_noise = true,
+      gps_xy_random_walk = 2.0,
+      gps_z_random_walk = 4.0,
+      gps_xy_noise_density = '2.0e-4',
+      gps_z_noise_density = '4.0e-4',
+      gps_vxy_noise_density = 0.2,
+      gps_vz_noise_density = 0.4,
+      x = 0,
+      y = 0,
+      z = 0,
+      roll = 0,
+      pitch = 0,
+      yaw = 0)
+    }}
+    <!--}-->
+
+    <!-- Magnetometer {-->
+    {{ generic.gazebo_magnetometer_macro(
+      pub_rate = 100,
+      noise_density = 0.0004,
+      random_walk = 0.0000064,
+      bias_correlation_time = 600,
+      mag_topic = mag_topic)
+    }}
+    <!--}-->
+
+    <!-- Barometer {-->
+    {{ generic.gazebo_barometer_macro(
+      baro_topic = baro_topic,
+      pub_rate = 50,
+      baro_drift_pa_per_sec = 0)
+    }}
+    <!--}-->
+
+    <!-- Mavlink interface {-->
+    {{ generic.gazebo_mavlink_interface_macro(
+      imu_topic = imu_topic,
+      mag_topic = mag_topic,
+      baro_topic = baro_topic,
+      lidar_topic = lidar_topic,
+      mavlink_config = spawner_args['mavlink_config'])
+    }}
+    <!--}-->
+
+    <!-- IMU {-->
+    <!-- NOTE: IMU has to be last, otherwise the simulation is extremely slow! -->
+    {{ generic.gazebo_imu_macro(
+      imu_name = 'imu',
+      parent_link = root,
+      imu_topic = '/imu',
+      gyroscope_noise_density = 0.00018665,
+      gyroscope_random_walk = 0.000038785,
+      gyroscope_bias_correlation_time = 1000.0,
+      gyroscope_turn_on_bias_sigma = 0.0087,
+      accelerometer_noise_density = 0.00186,
+      accelerometer_random_walk = 0.006,
+      accelerometer_bias_correlation_time = 300.0,
+      accelerometer_turn_on_bias_sigma = 0.1960,
+      x = 0,
+      y = 0,
+      z = 0,
+      roll = 0,
+      pitch = 0,
+      yaw = 0)
+    }}
+    <!--}-->
+
+    <!--}-->
+
+    {# ================================================================== #}
+    {# ||                  optional sensor definitions                 || #}
+    {# ================================================================== #}
+
+    {# Ground truth {--> #}
+    {{ components.ground_truth_macro(
+      parent_link = root,
+      x = 0,
+      y = 0,
+      z = 0,
+      roll = 0,
+      pitch = 0,
+      yaw = 0,
+      spawner_args = spawner_args)
+    }}
+    {# <!--}--> #}
+
+    {# ========================== camera sensors ======================== #}
+
+    {# camera_front {--> #}
+
+    {%- macro camera_front_macro(spawner_args) -%}
+
+      {%- set spawner_keyword = 'enable-camera-front' -%}
+      {%- set spawner_description = 'Enable front-facing camera' -%}
+      {%- set spawner_default_args = {'rate': 20} -%}
+
+      {%- if spawner_keyword in spawner_args.keys() -%}
+        {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+        {%- set camera_front = generic.camera_macro_meshless(
+          camera_name = 'camera_front',
+          parent_link = root,
+          camera_frame_name = spawner_args['name'] + '/camera_front',
+          spawner_args = spawner_args,
+          parent_frame_name = spawner_args['name'] + '/fcu',
+          sensor_base_frame_name = spawner_args['name'] + '/camera_front',
+          frame_rate = rate,
+          horizontal_fov = 2.1,
+          image_width = 728,
+          image_height = 544,
+          min_distance = 0.02,
+          max_distance = 80,
+          noise_mean = 0.0,
+          noise_stddev = spawner_args[spawner_keyword]['noise'],
+          x = 0.0821,
+          y = 0.0,
+          z = -0.004,
+          roll = 0,
+          pitch = 0,
+          yaw = 0)
+        -%}
+
+      {%- endif -%}
+
+    {%- endmacro -%}
+
+    {{ camera_front_macro(
+      spawner_args = spawner_args)
+    }}
+
+    {# <!--}--> #}
+
+  </model>
+
+</sdf>
