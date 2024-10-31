@@ -309,16 +309,15 @@
 
       {%- set spawner_keyword = 'enable-camera-front' -%}
       {%- set spawner_description = 'Enable front-facing camera' -%}
-      {%- set spawner_default_args = {'rate': 20} -%}
+      {%- set spawner_default_args = {'rate': 20, 'noise': 0.007} -%}
 
       {%- if spawner_keyword in spawner_args.keys() -%}
         {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
 
-        {%- set camera_front = generic.camera_macro_meshless(
+        {{ generic.camera_macro_meshless(
           camera_name = 'camera_front',
           parent_link = root,
-          camera_frame_name = spawner_args['name'] + '/camera_front',
-          spawner_args = spawner_args,
+          camera_frame_name = spawner_args['name'] + '/camera_front_optical',
           parent_frame_name = spawner_args['name'] + '/fcu',
           sensor_base_frame_name = spawner_args['name'] + '/camera_front',
           frame_rate = rate,
@@ -335,7 +334,7 @@
           roll = 0,
           pitch = 0,
           yaw = 0)
-        -%}
+        }}
 
       {%- endif -%}
 
