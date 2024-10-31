@@ -8,6 +8,7 @@ set(MODELS
   t650
   m690
   naki
+  robofly
   )
 
 catkin_add_executable_with_gtest(test_${TEST_NAME}

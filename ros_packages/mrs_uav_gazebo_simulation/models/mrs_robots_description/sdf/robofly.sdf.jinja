@@ -321,16 +321,16 @@
           parent_frame_name = spawner_args['name'] + '/fcu',
           sensor_base_frame_name = spawner_args['name'] + '/camera_front',
           frame_rate = rate,
-          horizontal_fov = 2.1,
+          horizontal_fov = 0.79622,
           image_width = 728,
           image_height = 544,
           min_distance = 0.02,
           max_distance = 80,
           noise_mean = 0.0,
           noise_stddev = spawner_args[spawner_keyword]['noise'],
-          x = 0.0821,
+          x = 0.1,
           y = 0.0,
-          z = -0.004,
+          z = 0.02143,
           roll = 0,
           pitch = 0,
           yaw = 0)
@@ -341,6 +341,49 @@
     {%- endmacro -%}
 
     {{ camera_front_macro(
+      spawner_args = spawner_args)
+    }}
+
+    {# <!--}--> #}
+
+    {# camera_down {--> #}
+
+    {%- macro camera_down_macro(spawner_args) -%}
+
+      {%- set spawner_keyword = 'enable-camera-down' -%}
+      {%- set spawner_description = 'Enable down-facing camera' -%}
+      {%- set spawner_default_args = {'rate': 20, 'noise': 0.007} -%}
+
+      {%- if spawner_keyword in spawner_args.keys() -%}
+        {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+        {{ generic.camera_macro_meshless(
+          camera_name = 'camera_down',
+          parent_link = root,
+          camera_frame_name = spawner_args['name'] + '/camera_down_optical',
+          parent_frame_name = spawner_args['name'] + '/fcu',
+          sensor_base_frame_name = spawner_args['name'] + '/camera_down',
+          frame_rate = rate,
+          horizontal_fov = 1.5476,
+          image_width = 1280,
+          image_height = 800,
+          min_distance = 0.02,
+          max_distance = 80,
+          noise_mean = 0.0,
+          noise_stddev = spawner_args[spawner_keyword]['noise'],
+          x = 0.0821,
+          y = 0.0,
+          z = -0.01,
+          roll = 3.14,
+          pitch = 1.57,
+          yaw = 0.0)
+        }}
+
+      {%- endif -%}
+
+    {%- endmacro -%}
+
+    {{ camera_down_macro(
       spawner_args = spawner_args)
     }}
 
