@@ -336,6 +336,9 @@ class MrsDroneSpawner:
                 if isinstance(node.node, jinja2.nodes.Getattr):
                     if node.node.attr in accessible_components.keys():
                         callable_components[node.node.attr] = accessible_components[node.node.attr]
+                elif isinstance(node.node, jinja2.nodes.Name):
+                    if node.node.name in accessible_components.keys():
+                        callable_components[node.node.name] = accessible_components[node.node.name]
         return dict(sorted(callable_components.items(), key=lambda item: item[1].keyword))
     # #}
 
@@ -370,7 +373,7 @@ class MrsDroneSpawner:
         rospy.loginfo('[MrsDroneSpawner]: Adding available components from dependencies')
         for _, wrapper in template_wrappers.items():
             prev_limit = sys.getrecursionlimit()
-            sys.setrecursionlimit(len(template_wrappers) + 1)
+            sys.setrecursionlimit(int(math.pow(len(template_wrappers),2)))
             wrapper.components = self.get_accessible_components(wrapper, {})
             sys.setrecursionlimit(prev_limit)
 
