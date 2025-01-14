@@ -2301,7 +2301,7 @@ limitations under the License.
 <!--}-->
 
 <!-- Macro to add a Basler Dart camera {-->
-{%- macro basler_camera_macro(namespace, camera_name, parent_link, frame_rate, hfov, noise, x, y, z, roll, pitch, yaw) -%}
+{%- macro basler_camera_macro(namespace, camera_name, parent_link, frame_rate, hfov, width, height, noise, x, y, z, roll, pitch, yaw) -%}
 {{ camera_macro(
   parent_link = parent_link,
   camera_name = camera_name,
@@ -2310,8 +2310,8 @@ limitations under the License.
   sensor_base_frame_name = namespace  + "/" + camera_name,
   frame_rate = frame_rate,
   horizontal_fov = hfov,
-  image_width = 1920,
-  image_height = 1200,
+  image_width = width,
+  image_height = height,
   min_distance = 0.02,
   max_distance = 80,
   noise_mean = 0.0,
