@@ -1006,6 +1006,144 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
+{# livox_macro {--> #}
+{%- macro livox_macro(parent_link, sensor_name, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-livox' -%}
+  {%- set spawner_description = 'Add Livox laser scanner to the vehicle.' -%}
+  {%- set spawner_default_args = {'horizontal_samples': 2048, 'update_rate': 10, 'noise': 0.03, 'range': 50.0} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    {# For simplicity, we are placing sensor_frame to the same place as the lidar_frame is. #}
+
+    {# setup local variables {--> #}
+
+    {# -- gazebo links -- #}
+    {%- set sensor_link = sensor_name + '_sensor_link' -%}
+
+    {# -- frame names -- #}
+    {%- set frame_parent = spawner_args['name'] + '/fcu' -%}
+    {%- set frame_sensor = spawner_args['name'] + '/' + sensor_name + '_sensor' -%}
+    {%- set frame_lidar = spawner_args['name'] + '/' + sensor_name + '_lidar'  -%}
+
+    {# -- topics -- #}
+    {%- set topic_lidar = '/' + spawner_args['name'] + '/' + sensor_name + '_cloud_nodelet/points' -%}
+
+    {# -- tf from sensor to lidar -- #}
+    {# The laser rays should be coming approximately from the half of sensor height #}
+    {%- set lidar_x = 0 -%}
+    {%- set lidar_y = 0 -%}
+    {%- set lidar_z = 0.037725 -%}
+    {%- set lidar_roll = 0 -%}
+    {%- set lidar_pitch = 0 -%}
+    {%- set lidar_yaw = 0  -%}
+
+    {# <!--}--> #}
+
+    <!-- Livox {-->
+    <link name="{{ sensor_link }}">
+      <pose>{{ x }} {{ y }} {{ z }} {{ roll }} {{ pitch }} {{ yaw }}</pose>
+      {{ generic.zero_inertial_macro() }}
+
+      <!-- visuals {-->
+      {{ generic.visual_mesh_macro(
+        name = 'base_visual',
+        mesh_file = 'model://mrs_robots_description/meshes/sensors/livox_mid360.dae',
+        mesh_scale = '1 1 1',
+        color = 'White',
+        x = 0,
+        y = 0,
+        z = 0,
+        roll = 0,
+        pitch = 0,
+        yaw = 0)
+      }}
+      <!--}-->
+
+      <!-- LIDAR {-->
+      <sensor type="ray" name="{{ sensor_name }}_lidar_sensor">
+        <pose>{{ lidar_x }} {{ lidar_y }} {{ lidar_z }} {{ lidar_roll }} {{ lidar_pitch }} {{ lidar_yaw }}</pose>
+        <visualize>false</visualize>
+        <always_on>True</always_on>
+        <update_rate>{{ spawner_args[spawner_keyword]['update_rate'] }}</update_rate>
+        <!-- This ray plgin is only for visualization. -->
+        <plugin name="gazebo_ros_laser_controller" filename="liblivox_laser_simulation.so">
+
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>100</samples>
+                <resolution>1</resolution>
+                <min_angle>-3.1415926535897931</min_angle>
+                <max_angle>3.1415926535897931</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>50</samples>
+                <resolution>1</resolution>
+                <min_angle>-3.1415926535897931</min_angle>
+                <max_angle>3.1415926535897931</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>0.1</min>
+              <max>{{ spawner_args[spawner_keyword]['range'] }}</max>
+              <resolution>1</resolution>
+            </range>
+            <noise>
+              <type>gaussian</type>
+              <mean>0.0</mean>
+              <stddev>0.0</stddev>
+            </noise>
+          </ray>
+
+          <visualize>False</visualize>
+		      <samples>20000</samples>
+		      <downsample>1</downsample>
+		      <csv_file_name>mid360-real-centr.csv</csv_file_name>
+          <publish_pointcloud_type>2</publish_pointcloud_type>
+		      <ros_topic>{{ topic_lidar }}</ros_topic>
+
+          <lidarFrameName>{{ frame_lidar }}</lidarFrameName>
+          <parentFrameName>{{ frame_parent }}</parentFrameName>
+          <sensorFrameName>{{ frame_sensor }}</sensorFrameName>
+
+          <sensor_x>{{ x }}</sensor_x>
+          <sensor_y>{{ y }}</sensor_y>
+          <sensor_z>{{ z }}</sensor_z>
+          <sensor_roll>{{ roll }}</sensor_roll>
+          <sensor_pitch>{{ pitch }}</sensor_pitch>
+          <sensor_yaw>{{ yaw }}</sensor_yaw>
+
+          <lidar_x>{{ lidar_x }}</lidar_x>
+          <lidar_y>{{ lidar_y }}</lidar_y>
+          <lidar_z>{{ lidar_z }}</lidar_z>
+          <lidar_roll>0{{ lidar_roll }}</lidar_roll>
+          <lidar_pitch>0{{ lidar_pitch }}</lidar_pitch>
+          <lidar_yaw>{{ lidar_yaw }}</lidar_yaw>
+
+        </plugin>
+      </sensor>
+      <!--}-->
+
+    </link>
+
+    <joint name="{{ sensor_name }}_joint" type="fixed">
+      <parent>{{ parent_link }}</parent>
+      <child>{{ sensor_link }}</child>
+    </joint>
+
+    <!-- mount {-->
+    {{ mount if mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
 {# velodyne_macro {--> #}
 {%- macro velodyne_macro(parent_link, sensor_name, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
 
