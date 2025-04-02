@@ -2951,6 +2951,61 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# third_person_camera_macro {--> #}
+{%- macro third_person_camera_macro(camera_name, parent_link, x, y, z, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-third-person-camera' -%}
+  {%- set spawner_description = 'Add a third person camera following the UAV mode [1920x1080 100hz], translated by (-2.5, 0, -5.0)' -%}
+  {%- set spawner_default_args = {'update_rate': 100, 'noise': 0.0} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- third person camera {-->
+
+    <!-- sensor {-->
+    {{ generic.camera_macro(
+      parent_link = parent_link,
+      camera_name = camera_name,
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      camera_frame_name = spawner_args['name'] + '/' + camera_name + '_optical',
+      sensor_base_frame_name = spawner_args['name'] + '/' + camera_name,
+      frame_rate = spawner_args[spawner_keyword]['update_rate'],
+      horizontal_fov = 1.5,
+      image_width = 1920,
+      image_height = 1080,
+      min_distance = 0.02,
+      max_distance = 80,
+      noise_mean = 0.0,
+      noise_stddev = spawner_args[spawner_keyword]['noise'],
+      mesh_file = 'model://mrs_robots_description/meshes/sensors/bluefox.dae',
+      mesh_scale = '1 1 1',
+      color = 'Black',
+      visual_x = 0,
+      visual_y = 0,
+      visual_z = 0,
+      visual_roll = 0,
+      visual_pitch = 0,
+      visual_yaw = 0,
+      x = x,
+      y = y,
+      z = z,
+      roll = 0,
+      pitch = 0,
+      yaw = 0)
+    }}
+    <!--}-->
+
+    <!-- mount {-->
+    {{ mount if mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
 {# ==================== Unsupported components ==================== #}
 
 {# TODO: not supported in the current version #}

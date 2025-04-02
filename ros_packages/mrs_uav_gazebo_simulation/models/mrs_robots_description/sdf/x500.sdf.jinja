@@ -940,6 +940,18 @@
     }}
     {# <!--}--> #}
 
+    {# third person camera {--> #}
+    {%- set third_person_camera = components.third_person_camera_macro(
+      camera_name = 'third_person_camera',
+      parent_link = root,
+      x = -1.5,
+      y = 0.0,
+      z = 0.5,
+      mount = none,
+      spawner_args = spawner_args)
+    -%}
+    {{ third_person_camera }}
+    {# <!--}--> #}
     {# <!--}--> #}
 
     {# ========================== other sensors ========================= #}
