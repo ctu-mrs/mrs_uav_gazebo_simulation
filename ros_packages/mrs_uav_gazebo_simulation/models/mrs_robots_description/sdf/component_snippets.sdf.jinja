@@ -2952,11 +2952,11 @@ limitations under the License.
 <!--}-->
 
 {# third_person_camera_macro {--> #}
-{%- macro third_person_camera_macro(camera_name, parent_link, x, y, z, mount, spawner_args) -%}
+{%- macro third_person_camera_macro(camera_name, parent_link, mount, spawner_args) -%}
 
   {%- set spawner_keyword = 'enable-third-person-camera' -%}
-  {%- set spawner_description = 'Add a third person camera following the UAV mode [1920x1080 100hz], translated by (-2.5, 0, -5.0)' -%}
-  {%- set spawner_default_args = {'update_rate': 100, 'noise': 0.0} -%}
+  {%- set spawner_description = 'Add a third person camera following the UAV mode [1920x1080 60hz]' -%}
+  {%- set spawner_default_args = {'update_rate': 60, 'noise_stddev': 0.0, 'x': '-1.5', 'y': '0.0', 'z': '0.5', 'hfov': 1.5} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
@@ -2971,25 +2971,25 @@ limitations under the License.
       camera_frame_name = spawner_args['name'] + '/' + camera_name + '_optical',
       sensor_base_frame_name = spawner_args['name'] + '/' + camera_name,
       frame_rate = spawner_args[spawner_keyword]['update_rate'],
-      horizontal_fov = 1.5,
+      horizontal_fov = spawner_args[spawner_keyword]['hfov'],
       image_width = 1920,
       image_height = 1080,
       min_distance = 0.02,
       max_distance = 80,
       noise_mean = 0.0,
-      noise_stddev = spawner_args[spawner_keyword]['noise'],
+      noise_stddev = spawner_args[spawner_keyword]['noise_stddev'],
       mesh_file = 'model://mrs_robots_description/meshes/sensors/bluefox.dae',
       mesh_scale = '1 1 1',
       color = 'Black',
-      visual_x = 0,
-      visual_y = 0,
-      visual_z = 0,
+      visual_x = spawner_args[spawner_keyword]['x'],
+      visual_y = spawner_args[spawner_keyword]['y'],
+      visual_z = spawner_args[spawner_keyword]['z'],
       visual_roll = 0,
       visual_pitch = 0,
       visual_yaw = 0,
-      x = x,
-      y = y,
-      z = z,
+      x = spawner_args[spawner_keyword]['x'],
+      y = spawner_args[spawner_keyword]['y'],
+      z = spawner_args[spawner_keyword]['z'],
       roll = 0,
       pitch = 0,
       yaw = 0)
