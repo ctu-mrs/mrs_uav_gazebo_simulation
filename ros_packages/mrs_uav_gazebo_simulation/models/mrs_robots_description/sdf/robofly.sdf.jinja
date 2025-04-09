@@ -389,6 +389,16 @@
 
     {# <!--}--> #}
 
+    {# third person camera {--> #}
+    {%- set third_person_camera = components.third_person_camera_macro(
+      camera_name = 'third_person_camera',
+      parent_link = root,
+      mount = none,
+      spawner_args = spawner_args)
+    -%}
+    {{ third_person_camera }}
+    {# <!--}--> #}
+
   </model>
 
 </sdf>
