@@ -2956,7 +2956,7 @@ limitations under the License.
 
   {%- set spawner_keyword = 'enable-third-person-camera' -%}
   {%- set spawner_description = 'Add a third person camera following the UAV mode [1920x1080 60hz]' -%}
-  {%- set spawner_default_args = {'update_rate': 60, 'noise_stddev': 0.0, 'x': '-1.5', 'y': '0.0', 'z': '0.5', 'hfov': 1.5} -%}
+  {%- set spawner_default_args = {'update_rate': 60, 'noise_stddev': 0.0, 'x': '-1.5', 'y': '0.0', 'z': '0.5', 'hfov': 1.5, 'pitch': '0.32'} -%}
 
   {%- if spawner_keyword in spawner_args.keys() -%}
     {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
@@ -2982,7 +2982,7 @@ limitations under the License.
       y = spawner_args[spawner_keyword]['y'],
       z = spawner_args[spawner_keyword]['z'],
       roll = 0,
-      pitch = 0,
+      pitch = spawner_args[spawner_keyword]['pitch'],
       yaw = 0)
     }}
     <!--}-->
