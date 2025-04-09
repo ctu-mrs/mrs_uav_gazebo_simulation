@@ -2964,7 +2964,7 @@ limitations under the License.
     <!-- third person camera {-->
 
     <!-- sensor {-->
-    {{ generic.camera_macro(
+    {{ generic.camera_macro_meshless(
       parent_link = parent_link,
       camera_name = camera_name,
       parent_frame_name = spawner_args['name'] + '/fcu',
@@ -2978,15 +2978,6 @@ limitations under the License.
       max_distance = 80,
       noise_mean = 0.0,
       noise_stddev = spawner_args[spawner_keyword]['noise_stddev'],
-      mesh_file = 'model://mrs_robots_description/meshes/sensors/bluefox.dae',
-      mesh_scale = '1 1 1',
-      color = 'Black',
-      visual_x = spawner_args[spawner_keyword]['x'],
-      visual_y = spawner_args[spawner_keyword]['y'],
-      visual_z = spawner_args[spawner_keyword]['z'],
-      visual_roll = 0,
-      visual_pitch = 0,
-      visual_yaw = 0,
       x = spawner_args[spawner_keyword]['x'],
       y = spawner_args[spawner_keyword]['y'],
       z = spawner_args[spawner_keyword]['z'],
