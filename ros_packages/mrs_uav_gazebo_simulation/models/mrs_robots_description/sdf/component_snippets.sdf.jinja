@@ -2951,6 +2951,52 @@ limitations under the License.
 {%- endmacro -%}
 <!--}-->
 
+{# third_person_camera_macro {--> #}
+{%- macro third_person_camera_macro(camera_name, parent_link, mount, spawner_args) -%}
+
+  {%- set spawner_keyword = 'enable-third-person-camera' -%}
+  {%- set spawner_description = 'Add a third person camera following the UAV mode [1920x1080 60hz]' -%}
+  {%- set spawner_default_args = {'update_rate': 60, 'noise_stddev': 0.0, 'x': '-1.5', 'y': '0.0', 'z': '0.5', 'hfov': 1.5, 'pitch': '0.32'} -%}
+
+  {%- if spawner_keyword in spawner_args.keys() -%}
+    {{ generic.handle_spawner_args(spawner_keyword, spawner_default_args, spawner_args) }}
+
+    <!-- third person camera {-->
+
+    <!-- sensor {-->
+    {{ generic.camera_macro_meshless(
+      parent_link = parent_link,
+      camera_name = camera_name,
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      camera_frame_name = spawner_args['name'] + '/' + camera_name + '_optical',
+      sensor_base_frame_name = spawner_args['name'] + '/' + camera_name,
+      frame_rate = spawner_args[spawner_keyword]['update_rate'],
+      horizontal_fov = spawner_args[spawner_keyword]['hfov'],
+      image_width = 1920,
+      image_height = 1080,
+      min_distance = 0.02,
+      max_distance = 80,
+      noise_mean = 0.0,
+      noise_stddev = spawner_args[spawner_keyword]['noise_stddev'],
+      x = spawner_args[spawner_keyword]['x'],
+      y = spawner_args[spawner_keyword]['y'],
+      z = spawner_args[spawner_keyword]['z'],
+      roll = 0,
+      pitch = spawner_args[spawner_keyword]['pitch'],
+      yaw = 0)
+    }}
+    <!--}-->
+
+    <!-- mount {-->
+    {{ mount if mount }}
+    <!--}-->
+
+    <!--}-->
+
+  {%- endif -%}
+{%- endmacro -%}
+{# <!--}--> #}
+
 {# ==================== Unsupported components ==================== #}
 
 {# TODO: not supported in the current version #}
