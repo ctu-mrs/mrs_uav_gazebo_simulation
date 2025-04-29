@@ -988,8 +988,7 @@
     {{ components.servo_camera_macro(
       parent = root,
       parent_frame_name = spawner_args['name'] + '/fcu',
-      camera_frame_name = spawner_args['name'] + '/servo_camera_optical',
-      sensor_base_frame_name = spawner_args['name'] + '/servo_camera',
+      frame_namespace = spawner_args['name'] + '/servo_camera',
       offset_pitch_link_x = 0.0,
       offset_pitch_link_y = 0.0,
       offset_pitch_link_z = 0.0,
