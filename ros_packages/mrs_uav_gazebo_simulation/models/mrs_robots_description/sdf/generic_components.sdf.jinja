@@ -1066,6 +1066,18 @@ limitations under the License.
 {%- endmacro -%}
 {# <!--}--> #}
 
+{# gazebo_battery_plugin_macro {--> #}
+{%- macro gazebo_battery_plugin_macro(battery_voltage,verbose, propulsion_config_file) -%}
+<plugin name="gazebo_battery_plugin" filename="libMrsGazeboCommonResources_BatteryPlugin.so">
+  <robotNamespace/>
+  <battery_voltage>{{ battery_voltage }}</battery_voltage>
+  <verbose>{{ verbose }}</verbose>
+  <propulsion_config_file>{{ propulsion_config_file }}</propulsion_config_file>
+  <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
+</plugin>
+{%- endmacro -%}
+{# <!--}--> #}
+
 {# TODO: UNUSED #}
 {# gazebo_wind_plugin_macro {--> #}
 {%- macro gazebo_wind_plugin_macro(xyz_offset, wind_direction, wind_force_mean, wind_gust_direction, wind_gust_duration, wind_gust_start, wind_gust_force_mean) -%}
