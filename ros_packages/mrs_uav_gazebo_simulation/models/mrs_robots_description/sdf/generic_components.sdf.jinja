@@ -472,7 +472,7 @@ limitations under the License.
 {# ========================= drone propellers ======================== #}
 
 {# motor_plugins_macro {--> #}
-{%- macro motor_plugins_macro(motor_number, direction, time_constant_up, time_constant_down, max_rot_velocity, motor_constant, moment_constant, rotor_drag_coefficient, rolling_moment_coefficient, rotor_velocity_slowdown_sim, enable_motor_crash, motor_plugin_filename) -%}
+{%- macro motor_plugins_macro(motor_number, direction, time_constant_up, time_constant_down, max_rot_velocity, motor_constant, moment_constant, rotor_drag_coefficient, rolling_moment_coefficient, rotor_velocity_slowdown_sim, enable_motor_crash, motor_plugin_filename, propulsion_config_file) -%}
   <plugin name="motor{{ motor_number }}_plugin" filename="{{ motor_plugin_filename }}">
     <robotNamespace/>
     <jointName>prop_{{ motor_number }}_joint</jointName>
@@ -482,6 +482,7 @@ limitations under the License.
     <timeConstantDown>{{ time_constant_down }}</timeConstantDown>
     <maxRotVelocity>{{ max_rot_velocity }}</maxRotVelocity>
     <motorConstant>{{ motor_constant }}</motorConstant>
+    <propulsion_config_file>{{ propulsion_config_file }}</propulsion_config_file>
     <momentConstant>{{ moment_constant }}</momentConstant>
     <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
     <motorNumber>{{ motor_number }}</motorNumber>
