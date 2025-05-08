@@ -1067,13 +1067,14 @@ limitations under the License.
 {# <!--}--> #}
 
 {# gazebo_battery_plugin_macro {--> #}
-{%- macro gazebo_battery_plugin_macro(battery_voltage,verbose, propulsion_config_file) -%}
+{%- macro gazebo_battery_plugin_macro(battery_voltage,verbose, propulsion_config_file, motor_constant) -%}
 <plugin name="gazebo_battery_plugin" filename="libMrsGazeboCommonResources_BatteryPlugin.so">
   <robotNamespace/>
   <battery_voltage>{{ battery_voltage }}</battery_voltage>
   <verbose>{{ verbose }}</verbose>
   <propulsion_config_file>{{ propulsion_config_file }}</propulsion_config_file>
   <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
+  <motor_constant>{{ motor_constant }}</motor_constant>
 </plugin>
 {%- endmacro -%}
 {# <!--}--> #}
