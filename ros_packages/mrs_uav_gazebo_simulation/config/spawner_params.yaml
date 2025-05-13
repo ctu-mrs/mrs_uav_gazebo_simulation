@@ -1,22 +1,24 @@
-mavlink_config:
-  vehicle_base_port: 14000
-  mavlink_tcp_base_port: 4560
-  mavlink_udp_base_port: 14560
-  mavlink_gcs_udp_base_port_local: 18000
-  mavlink_gcs_udp_base_port_remote: 18100
-  qgc_udp_port: 14550
-  sdk_udp_port: 14540
-  send_vision_estimation: false
-  send_odometry: true
-  enable_lockstep: true
-  use_tcp: true
-
-gazebo_models:
-  spacing: 5.0 # for randomized spawn poses
-  default_robot_name: 'uav'
-
-jinja_templates:
-  save_rendered_sdf: true
-  suffix: '.sdf.jinja'
-
-extra_resource_paths: []
+mrs_drone_spawner:
+  ros__parameters:
+    mavlink_config:
+      vehicle_base_port: 14000
+      mavlink_tcp_base_port: 4560
+      mavlink_udp_base_port: 14560
+      mavlink_gcs_udp_base_port_local: 18000
+      mavlink_gcs_udp_base_port_remote: 18100
+      qgc_udp_port: 14550
+      sdk_udp_port: 14540
+      send_vision_estimation: false
+      send_odometry: true
+      enable_lockstep: true
+      use_tcp: true
+    
+    gazebo_models:
+      spacing: 5.0 # for randomized spawn poses
+      default_robot_name: 'uav'
+    
+    jinja_templates:
+      save_rendered_sdf: true
+      suffix: '.sdf.jinja'
+    
+    extra_resource_paths: []

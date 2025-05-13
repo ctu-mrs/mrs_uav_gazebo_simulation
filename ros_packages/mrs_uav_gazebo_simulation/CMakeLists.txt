@@ -1,38 +1,29 @@
 cmake_minimum_required(VERSION 3.5)
 project(mrs_uav_gazebo_simulation)
 
-set(CATKIN_DEPENDENCIES
-  cmake_modules
-  gazebo_ros
-  mavlink_sitl_gazebo
-  mavros_msgs
-  message_runtime
-  mrs_gazebo_common_resources
-  mrs_msgs
-  mrs_uav_px4_api
-  px4
-  rospy
-  std_msgs
-  mrs_uav_testing
-  mrs_uav_gazebo_testing
-  )
-
-find_package(catkin REQUIRED COMPONENTS
-  ${CATKIN_DEPENDENCIES}
-  )
-
-set(CMAKE_CXX_STANDARD 17)
+# set the correct standards
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-catkin_package(
-  CATKIN_DEPENDS ${CATKIN_DEPENDENCIES}
-  )
+# set the compile options to show code warnings
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra)
+endif()
 
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-  ${mavros_msgs_INCLUDE_DIRS}
-  )
+# 1 == use rclcpp::Timer implementation
+# 0 == use MRS's thread timer implementation
+set(USE_ROS_TIMER 0)
+
+if(${USE_ROS_TIMER})
+  MESSAGE(WARNING "[mrs_uav_px4_api]: Compiling with ROS Timers. This can cause high CPU load in runtime.")
+endif()
+
+if(MRS_ENABLE_TESTING)
+  message(WARNING "Setting optimizaton levels for tests")
+  add_definitions("-O0")
+  add_definitions("-g")
+endif()
 
 if(COVERAGE)
   message(WARNING "building with --coverage, the performance might be limited")
@@ -40,49 +31,98 @@ if(COVERAGE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
 endif()
 
-## --------------------------------------------------------------
-## |                           Testing                          |
-## --------------------------------------------------------------
+set(DEPENDENCIES
+  rclcpp
+  rclpy
+  ros_gz
+  ros_gz_sim
+  px4
+  mavros
+  mrs_gazebo_common_resources
+  std_msgs
+  mrs_msgs
+  mrs_uav_px4_api
+  
+  ## TODO: stibipet@fel.cvut.cz
+  # mrs_uav_testing
+  # mrs_uav_gazebo_testing
+  ## TODO
+  )
 
-if(CATKIN_ENABLE_TESTING AND MRS_ENABLE_TESTING)
+foreach(DEP IN LISTS DEPENDENCIES)
+  find_package(${DEP} REQUIRED)
+endforeach()
 
-  message(WARNING "Testing enabled.")
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
+message(STATUS "Checking for python3-jinja2...")
+execute_process(
+  COMMAND "${Python3_EXECUTABLE}" "-c" "import jinja2"
+  RESULT_VARIABLE _jinja2_check_result
+  OUTPUT_QUIET
+  ERROR_QUIET
+)
 
-  add_subdirectory(test)
-
+if(NOT _jinja2_check_result EQUAL 0)
+  # The command failed, meaning jinja2 is likely not installed or not in PYTHONPATH
+  message(FATAL_ERROR "Python module 'jinja2' (from python3-jinja2) could not be imported. "
+                      "You might need to run:\n"
+                      "  sudo apt update && sudo apt install python3-jinja2\n")
+else()
+  message(STATUS "Python module 'jinja2' found and importable.")
 endif()
+
+include_directories(
+  ${rclcpp_INCLUDE_DIRECTORIES}
+  ${ros_gz_INCLUDE_DIRECTORIES}
+  ${ros_gz_sim_INCLUDE_DIRECTORIES}
+  ${mavros_msgs_INCLUDE_DIRS}
+)
 
 ## --------------------------------------------------------------
 ## |                           Install                          |
 ## --------------------------------------------------------------
 
-install(DIRECTORY launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+
+set(INSTALLED_PROGRAMS
+  scripts/mrs_drone_spawner/mrs_drone_spawner.py
+  scripts/dangerous_pixhawk_only_takeoff
+  scripts/kill_previous_session.sh
+)
+
+foreach(PROG IN LISTS INSTALLED_PROGRAMS)
+  install(
+    PROGRAMS ${PROG}
+    DESTINATION lib/${PROJECT_NAME}
+  )
+endforeach()
+
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
   )
 
-install(DIRECTORY config/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
+install(DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}
   )
 
-install(DIRECTORY models/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/models
-  )
+install(DIRECTORY models
+  DESTINATION share/${PROJECT_NAME}
+)
 
-install(DIRECTORY scripts/
-  USE_SOURCE_PERMISSIONS
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scripts
-  )
+# install(DIRECTORY tmux/
+#   DESTINATION share/${PROJECT_NAME}
+# )
 
-install(DIRECTORY tmux/
-  USE_SOURCE_PERMISSIONS
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/tmux
-  )
+install(DIRECTORY ROMFS
+  DESTINATION share/${PROJECT_NAME}
+)
 
-install(DIRECTORY ROMFS/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ROMFS
-  )
+# install(DIRECTORY scripts
+#   DESTINATION lib/${PROJECT_NAME}
+#   USE_SOURCE_PERMISSIONS
+# )
 
-install(DIRECTORY scripts/
-  USE_SOURCE_PERMISSIONS
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-  )
+ament_export_dependencies(
+  ${DEPENDENCIES}
+)
+
+ament_package()

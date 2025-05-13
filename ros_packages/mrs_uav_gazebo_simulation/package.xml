@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
-<package format="2">
-
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  
   <name>mrs_uav_gazebo_simulation</name>
-  <version>1.0.3</version>
+  <version>2.0.0</version>
   <description>The Metapackage for MRS UAV Gazebo simulation pipeline.</description>
 
   <author email="vojtech.spurny@fel.cvut.cz">Vojtech Spurny</author>
@@ -12,28 +13,27 @@
 
   <license>BSD 3-Clause</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>cmake_modules</depend>
-  <depend>gazebo_ros</depend>
-  <depend>mavlink_sitl_gazebo</depend>
-  <depend>mavros_msgs</depend>
-  <depend>message_runtime</depend>
+  <depend>rclpy</depend>
+  <depend>python3-jinja2</depend>
+  <depend>ros_gz</depend>
+  <depend>ros_gz_sim</depend>
+  <depend>px4</depend>
+  <depend>mavros</depend>
   <depend>mrs_gazebo_common_resources</depend>
+  <depend>std_msgs</depend>
   <depend>mrs_msgs</depend>
   <depend>mrs_uav_px4_api</depend>
-  <depend>px4</depend>
-  <depend>rospy</depend>
-  <depend>std_msgs</depend>
-  <depend>mrs_uav_testing</depend>
-  <depend>mrs_uav_gazebo_testing</depend>
+ <!-- TODO: stibipet@fel.cvut.cz -->
+  <!-- <depend>mrs_uav_testing</depend> -->
+  <!-- <depend>mrs_uav_gazebo_testing</depend> --> 
+ <!-- TODO -->
 
-  <depend>python3-jinja2</depend>
 
   <export>
-    <!-- gazebo_ros_paths_plugin automatically adds these to
-      GAZEBO_PLUGIN_PATH and GAZEBO_MODEL_PATH when you do this export inside
-      the package.xml file. You can than use URIs of type model://my_package/stuff. -->
+    <build_type>ament_cmake</build_type>
+    <!-- ros_gz_sim automatically registers these exports when running the simulation from the ros_gz_sim launch file. You can than use URIs of type model://my_package/stuff. -->
     <gazebo_ros gazebo_model_path="${prefix}/models"/>
     <gazebo_ros gazebo_media_path="${prefix}"/>
   </export>
