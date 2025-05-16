@@ -10,15 +10,18 @@ import math
 import os
 import random
 import re
-import launch
-import rclpy 
+from launch import LaunchDescription, LaunchService
+from launch.actions import IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+import rclpy
 from rclpy.node import Node
 import rclpy.parameter
 import rclpy.exceptions
 import sys
 import tempfile
-import threading
+import multiprocessing
 import xml.dom.minidom
+from rclpy.utilities import try_shutdown
 import yaml
 
 from ament_index_python.packages import get_package_share_directory, get_packages_with_prefixes
@@ -102,18 +105,25 @@ def exit_handler():
         num_zombies = 0
         for p in glob_running_processes:
             try:
-                p.shutdown()
-                print(f'[INFO] [MrsDroneSpawner]: Process {p.run_id} shutdown')
+                if p.is_alive():
+                    p.terminate()
+                    p.join()
+                    print(f'[INFO] [MrsDroneSpawner]: Process {p.pid} terminated')
+                else:
+                    print(f'[INFO] [MrsDroneSpawner]: Process {p.pid} finished cleanly')
             except:
                 num_zombies += 1
 
         if num_zombies > 0:
             print(f'\033[91m[ERROR] [MrsDroneSpawner]: Could not stop {num_zombies} subprocesses\033[91m')
             exit(1)
-    
-    rclpy.shutdown()
-    print('[INFO] [MrsDroneSpawner]: Exited gracefully')
-    exit(0)
+
+    try:
+        rclpy.shutdown()
+    except:
+        print('[INFO] [MrsDroneSpawner]: Shutdown was already called on rclpy')
+    finally:
+        print('[INFO] [MrsDroneSpawner]: Exited gracefully')
 # #}
 
 class MrsDroneSpawner(Node):
@@ -144,12 +154,12 @@ class MrsDroneSpawner(Node):
 
         self.declare_parameter('gazebo_models.default_robot_name', rclpy.parameter.Parameter.Type.STRING)
         self.declare_parameter('gazebo_models.spacing', rclpy.parameter.Parameter.Type.DOUBLE)
-        
+
         self.declare_parameter('jinja_templates.suffix', rclpy.parameter.Parameter.Type.STRING)
         self.declare_parameter('jinja_templates.save_rendered_sdf', rclpy.parameter.Parameter.Type.BOOL)
-        
+
         self.declare_parameter('extra_resource_paths', rclpy.parameter.Parameter.Type.STRING_ARRAY)
-        
+
         # # #{ load required params
         try:
             self.vehicle_base_port = self.get_parameter('mavlink_config.vehicle_base_port').value
@@ -163,7 +173,7 @@ class MrsDroneSpawner(Node):
             self.send_odometry = self.get_parameter('mavlink_config.send_odometry').value
             self.enable_lockstep = self.get_parameter('mavlink_config.enable_lockstep').value
             self.use_tcp = self.get_parameter('mavlink_config.use_tcp').value
-            
+
             self.default_robot_name = self.get_parameter('gazebo_models.default_robot_name').value
             self.model_spacing = self.get_parameter('gazebo_models.spacing').value
 
@@ -198,7 +208,7 @@ class MrsDroneSpawner(Node):
         # # #{ find launchfiles for mavros and px4_firmware
         gazebo_simulation_path = get_package_share_directory('mrs_uav_gazebo_simulation')
         px4_api_path = get_package_share_directory('mrs_uav_px4_api')
-        self.mavros_launch_path = px4_api_path + os.sep + 'launch' + os.sep + 'mavros_gazebo_simulation.launch.py'
+        self.mavros_launch_path = px4_api_path + os.sep + 'launch' + os.sep + 'mavros_gazebo_simulation.py'
         self.px4_fimrware_launch_path = gazebo_simulation_path + os.sep + 'launch' + os.sep + 'run_simulation_firmware.launch.py'
         # # #}
 
@@ -228,7 +238,7 @@ class MrsDroneSpawner(Node):
         self.spawn_called = False
         self.processing = False
         self.vehicle_queue = []
-        self.queue_mutex = threading.Lock()
+        self.queue_mutex = multiprocessing.Lock()
         self.active_vehicles = []
         self.assigned_ids = set()
         # #}
@@ -253,32 +263,32 @@ class MrsDroneSpawner(Node):
     # #{ get_ros_package_name(self, filepath)
     def get_ros_package_name(self, filepath):
         '''Return the name of a ros package that contains a given filepath'''
-    
+
         package_share_pattern = r"^(.*?share/[^/]+)"
         match_result = re.match(package_share_pattern, filepath)
         if match_result is not None:
             package_share_path = match_result.group(0)
         else:
             package_share_path = None
-    
+
         package_name_pattern = r"share/([^/]+)"
         search_result = re.search(package_name_pattern, filepath)
         if search_result is not None:
             package_name = search_result.group(1)
         else:
             package_name = None
-    
+
         if package_share_path is None or package_name is None:
             self.get_logger().error(f"Package name or share path could not be determined from filepath '{filepath}'")
             return None
-    
+
         share_path_from_ament_index = get_package_share_directory(package_name)
-    
+
         # sanity check
         if share_path_from_ament_index != package_share_path:
             self.get_logger().error(f"Share path for package '{package_name}' not registered in ament index. Is the resource package installed and sourced?")
             return None
-    
+
         return package_name
     # #}
 
@@ -834,17 +844,17 @@ class MrsDroneSpawner(Node):
             del self.vehicle_queue[0]
             self.queue_mutex.release()
 
-            orig_signal_handler = roslaunch.pmon._init_signal_handlers
-            roslaunch.pmon._init_signal_handlers = dummy_function
+            # orig_signal_handler = roslaunch.pmon._init_signal_handlers
+            # roslaunch.pmon._init_signal_handlers = dummy_function
 
             model_spawned = False
             firmware_process = None
             mavros_process = None
 
             try:
-                model_spawned = self.spawn_gazebo_model(robot_params)
-                firmware_process = self.launch_px4_firmware(robot_params)
-                mavros_process  = self.launch_mavros(robot_params)
+                # model_spawned = self.spawn_gazebo_model(robot_params) # TODO
+                # firmware_process = self.launch_px4_firmware(robot_params) # TODO
+                mavros_process = self.launch_mavros(robot_params)
 
             except:
                 # one of the subprocesses failed, perform cleanup
@@ -857,15 +867,15 @@ class MrsDroneSpawner(Node):
                         pass
                 if mavros_process is not None:
                     try:
-                        mavros_process.shutdown()
+                        mavros_process.terminate()
                     except:
                         pass
                 self.assigned_ids.remove(robot_params['ID'])
-                roslaunch.pmon._init_signal_handlers = orig_signal_handler
+                # roslaunch.pmon._init_signal_handlers = orig_signal_handler
                 return
 
-            roslaunch.pmon._init_signal_handlers = orig_signal_handler
-            glob_running_processes.append(firmware_process)
+            # roslaunch.pmon._init_signal_handlers = orig_signal_handler
+            # glob_running_processes.append(firmware_process) # TODO
             glob_running_processes.append(mavros_process)
 
             self.get_logger().info(f'Vehicle {robot_params["name"]} successfully spawned')
@@ -1140,17 +1150,24 @@ class MrsDroneSpawner(Node):
         name = robot_params['name']
         self.get_logger().info(f'Launching mavros for {name}')
 
-        uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
-        roslaunch.configure_logging(uuid)
+        ld = LaunchDescription()
 
-        roslaunch_args = [
-                'ID:=' + str(robot_params['ID']),
-                'fcu_url:=' + str(robot_params['mavlink_config']['fcu_url']),
-                'vehicle:=' + str(robot_params['model']) # TODO: rename this to PX4_SIM_MODEL in the mavros launch file?
-        ]
+        mavros_launch_action = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(self.mavros_launch_path),
+                launch_arguments = {
+                    'ID': str(robot_params['ID']),
+                    'fcu_url': str(robot_params['mavlink_config']['fcu_url']),
+                    'vehicle': str(robot_params['model'])
+                   }.items(),
+            )
 
-        roslaunch_sequence = [(self.mavros_launch_path, roslaunch_args)]
-        mavros_process = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_sequence)
+        ld.add_action(mavros_launch_action)
+
+        launch_service = LaunchService(debug = False)
+        launch_service.include_launch_description(ld)
+
+        self.get_logger()
+        mavros_process = multiprocessing.Process(target=launch_service.run)
 
         try:
             mavros_process.start()
@@ -1226,8 +1243,10 @@ class MrsDroneSpawner(Node):
 def main():
     rclpy.init(args=None)
     spawner_node = MrsDroneSpawner(verbose)
-    rclpy.spin(spawner_node)
-
+    try:
+        rclpy.spin(spawner_node)
+    except KeyboardInterrupt:
+        pass
 
 if __name__ == '__main__':
 
@@ -1236,4 +1255,3 @@ if __name__ == '__main__':
     atexit.register(exit_handler)
 
     main()
-
