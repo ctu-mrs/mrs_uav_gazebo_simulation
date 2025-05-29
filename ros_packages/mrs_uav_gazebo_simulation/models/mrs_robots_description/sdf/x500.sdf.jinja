@@ -69,6 +69,7 @@
   {%- set gps_mount_mesh_file = 'model://mrs_robots_description/meshes/x500v2/gps_mount_mesh_file.stl' -%}
   {%- set nuc_board_mesh_file = 'model://mrs_robots_description/meshes/x500v2/nuc_board_mesh_file.stl' -%}
   {%- set nuc_cooler_mesh_file = 'model://mrs_robots_description/meshes/x500v2/nuc_cooler_mesh_file.stl' -%}
+  {%- set siyi_camera_mesh_file = 'model://mrs_robots_description/meshes/sensors/siyi_ZT6_camera.stl' -%}
   {# <!--}--> #}
 
   {# Mounts {--> #}
@@ -989,6 +990,54 @@
         yaw = 0.0,
         mount = qorvo_dw1000_mount,
         spawner_args = spawner_args)
+    }}
+    {# <!--}--> #}
+
+    {# Servo camera {--> #}
+    {{ components.servo_camera_macro(
+      parent = root,
+      parent_frame_name = spawner_args['name'] + '/fcu',
+      frame_namespace = spawner_args['name'] + '/servo_camera',
+      offset_pitch_link_x = 0.0,
+      offset_pitch_link_y = 0.0,
+      offset_pitch_link_z = 0.0,
+      offset_pitch_link_roll = 0.0,
+      offset_pitch_link_yaw = 0.0,
+      offset_pitch_link_pitch = 0.0,
+      offset_roll_link_x = 0.0,
+      offset_roll_link_y = 0.0,
+      offset_roll_link_z = 0.0,
+      offset_roll_link_roll = 0.0,
+      offset_roll_link_yaw = 0.0,
+      offset_roll_link_pitch = 0.0,
+      offset_yaw_link_x = 0.0966901,
+      offset_yaw_link_y = 0.00200395,
+      offset_yaw_link_z = -0.060549,
+      offset_yaw_link_roll = 0.0,
+      offset_yaw_link_yaw = 0.0,
+      offset_yaw_link_pitch = 0.0,
+      tilt_update_rate = 30.0,
+      min_pitch = -1.046,
+      max_pitch = 1.57,
+      min_roll = -0.6,
+      max_roll = 0.6,
+      min_yaw = -1.57,
+      max_yaw = 1.57,
+      max_pitch_rate = 0.2,
+      max_roll_rate = 0.2,
+      max_yaw_rate = 0.2,
+      camera_update_rate = 30,
+      horizontal_fov = 1.92,
+      img_width = 1920,
+      img_height = 1080,
+      compensate_tilt_roll = true,
+      compensate_tilt_pitch = true,
+      compensate_tilt_yaw = false,
+      pitch_link_mesh_file = siyi_camera_mesh_file,
+      roll_link_mesh_file = '',
+      yaw_link_mesh_file = '',
+      mesh_scale = '',
+      spawner_args = spawner_args)
     }}
     {# <!--}--> #}
 
