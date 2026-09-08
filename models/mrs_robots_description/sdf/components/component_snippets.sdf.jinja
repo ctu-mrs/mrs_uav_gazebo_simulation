@@ -207,6 +207,12 @@ limitations under the License.
   {{ velodyne_lidar.velodyne_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) }}
 {%- endmacro -%}
 
+{# ==== Livox lidar ==== #}
+{%- import "mrs_robots_description/sdf/components/lidar/livox/livox.sdf.jinja" as livox_lidar -%}
+{%- macro livox_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) -%}
+  {{ livox_lidar.livox_macro(parent_link, x, y, z, roll, pitch, yaw, mount, spawner_args) }}
+{%- endmacro -%}
+
 
 {# ============================= Cameras ============================ #}
 {# ==== Bluefox camera ==== #}
